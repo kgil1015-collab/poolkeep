@@ -647,7 +647,7 @@ select.sr-input{cursor:pointer}
           <h1 class="dash-h1">Pool Status</h1>
           <div class="pool-badge" onclick="openPoolSheet()">
             <div class="pool-dot"></div>
-            <span>Backyard Pool · Last tested <span id="last-tested-ago">2h ago</span></span>
+            <span><span id="pool-badge-name">Backyard Pool</span> · Last tested <span id="last-tested-ago">2h ago</span></span>
             <i class="ti ti-chevron-down" style="font-size:12px;margin-left:2px;opacity:.6"></i>
           </div>
         </div>
@@ -1198,6 +1198,10 @@ function statusColor(s) {
 function renderDashboard() {
   // Greeting
   document.getElementById('greeting-text').textContent = `${getGreeting()}, ${mockUser.name}`;
+
+  // Pool badge name
+  const badgeName = document.getElementById('pool-badge-name');
+  if (badgeName) badgeName.textContent = mockPool.name;
 
   // Health score with count-up animation
   const score = calcHealthScore(latestTest);
