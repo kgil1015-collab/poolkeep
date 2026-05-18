@@ -863,10 +863,13 @@ select.sr-input{cursor:pointer}
         <div class="dash-header-body">
           <div class="dash-greeting" id="greeting-text">Good morning, Dave</div>
           <h1 class="dash-h1">Pool Status</h1>
-          <div class="pool-badge" onclick="openPoolSheet()">
-            <div class="pool-dot"></div>
-            <span><span id="pool-badge-name">Backyard Pool</span> · Last tested <span id="last-tested-ago">2h ago</span></span>
-            <i class="ti ti-chevron-down" style="font-size:12px;margin-left:2px;opacity:.6"></i>
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+            <div class="pool-badge" onclick="openPoolSheet()">
+              <div class="pool-dot"></div>
+              <span><span id="pool-badge-name">Backyard Pool</span> · Last tested <span id="last-tested-ago">2h ago</span></span>
+              <i class="ti ti-chevron-down" style="font-size:12px;margin-left:2px;opacity:.6"></i>
+            </div>
+            <div id="climate-badge" style="display:none;align-items:center;gap:5px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.14);border-radius:20px;padding:4px 10px;font-size:11px;font-weight:600;color:rgba(255,255,255,.8);cursor:pointer" onclick="navigate('guide')"></div>
           </div>
         </div>
         <!-- Health Score -->
@@ -1265,6 +1268,18 @@ select.sr-input{cursor:pointer}
         <div class="settings-row editable" onclick="editSetting('pool.pump', this)"><span class="sr-label">Pump</span><span class="sr-value">Pentair SuperFlo 1.5HP <span class="sr-arrow">›</span></span></div>
       </div>
 
+      <p class="settings-group-title">Location &amp; Climate</p>
+      <div class="settings-list">
+        <div class="settings-row editable" onclick="editSetting('user.location', this)">
+          <div><span class="sr-label">Location</span><div style="font-size:11px;color:var(--text3);margin-top:2px">City, State — used for climate-aware recommendations</div></div>
+          <span class="sr-value" id="sr-location-val">Phoenix, AZ <span class="sr-arrow">›</span></span>
+        </div>
+        <div class="settings-row" id="sr-climate-row">
+          <span class="sr-label">Detected Climate</span>
+          <span id="sr-climate-badge" class="sr-value"></span>
+        </div>
+      </div>
+
       <p class="settings-group-title">Account</p>
       <div class="settings-list">
         <div class="settings-row editable" onclick="editSetting('user.full', this)"><span class="sr-label">Full Name</span><span class="sr-value">Dave Miller <span class="sr-arrow">›</span></span></div>
@@ -1527,7 +1542,7 @@ const mockPool = {
   pump: 'Pentair SuperFlo 1.5HP', heater: 'Hayward H250FDN'
 };
 
-const mockUser = { name: 'Dave', full: 'Dave Miller', email: 'dave@example.com', address: '123 Sunbelt Drive, Phoenix AZ', phone: '(480) 555-0142' };
+const mockUser = { name: 'Dave', full: 'Dave Miller', email: 'dave@example.com', address: '123 Sunbelt Drive, Phoenix AZ', phone: '(480) 555-0142', location: 'Phoenix, AZ' };
 
 const latestTest = {
   fc: 3.0, cc: 0.0, ph: 7.9, ta: 90, cya: 45, ch: 250,
@@ -1700,6 +1715,60 @@ function statusColor(s) {
 //  RENDER FUNCTIONS
 // ══════════════════════════════════════════
 
+const CLIMATE_ZONES = {
+  hot: {
+    states: ['AZ','NV','NM','TX','FL','SC','GA','AL','MS','LA','HI','CA','OK','AR'],
+    label: 'Hot Climate', icon: '☀️', color: '#F5A623',
+    tips: [
+      'UV is intense — chlorine depletes 2–3× faster than temperate climates.',
+      'Raise CYA target to 50–80 ppm to protect chlorine from UV degradation.',
+      'Test water every 3–4 days during peak summer (not weekly).',
+      'Consider shocking twice per week when temps exceed 90 °F.',
+      'High evaporation concentrates minerals — watch calcium and alkalinity closely.',
+      'Stock extra liquid chlorine — expect to use 40–60% more per week than the label suggests.',
+    ]
+  },
+  cold: {
+    states: ['MN','WI','MI','ND','SD','MT','WY','ID','ME','VT','NH','IA','NE','IL','IN','OH','PA','NY','MA','CT','RI','NJ','MD','DE','CO','OR','WA','KS','MO'],
+    label: 'Cool Climate', icon: '❄️', color: '#00A8F0',
+    tips: [
+      'Cooler water stabilizes chlorine — consumption will be lower than in warm climates.',
+      'Target CYA of 30–50 ppm is sufficient; no need to push higher.',
+      'Weekly testing is adequate — chemistry holds longer in cool temps.',
+      'Plan winterization 2–3 weeks before first hard freeze (typically Oct–Nov).',
+      'At spring startup: shock heavily and balance all parameters before swimming.',
+      'Phosphates can build up over winter — consider a phosphate remover at opening.',
+    ]
+  },
+  temperate: {
+    label: 'Temperate Climate', icon: '🌤️', color: '#1DB869',
+    tips: [
+      'Standard weekly testing schedule works well for your climate.',
+      'Target CYA of 30–50 ppm is ideal.',
+      'Shock weekly or after heavy bather load or heavy rain.',
+      'During heat waves, increase chlorine proactively to prevent algae.',
+      'Winterize when temps consistently drop below 60 °F.',
+    ]
+  }
+};
+
+function getClimate() {
+  const loc = (mockUser.location || '').toUpperCase();
+  for (const [zone, data] of Object.entries(CLIMATE_ZONES)) {
+    if (zone === 'temperate') continue;
+    if (data.states.some(s => loc.includes(s))) return { zone, ...data };
+  }
+  return { zone: 'temperate', ...CLIMATE_ZONES.temperate };
+}
+
+function updateClimateUI() {
+  const c = getClimate();
+  const badge = document.getElementById('climate-badge');
+  if (badge) { badge.innerHTML = `${c.icon} ${c.label}`; badge.style.display = 'flex'; }
+  const srBadge = document.getElementById('sr-climate-badge');
+  if (srBadge) srBadge.innerHTML = `<span style="font-weight:600;color:${c.color}">${c.icon} ${c.label}</span>`;
+}
+
 function renderDashboard() {
   // Greeting
   document.getElementById('greeting-text').textContent = `${getGreeting()}, ${mockUser.name}`;
@@ -1739,6 +1808,7 @@ function renderDashboard() {
 
   // Live "last tested" timestamp
   document.getElementById('last-tested-ago').textContent = timeAgo(latestTest.date);
+  updateClimateUI();
 
   // Test reminder banner (show if >7 days since last test)
   const daysSince = (Date.now() - latestTest.date) / 86400000;
@@ -2029,6 +2099,7 @@ function navigate(page) {
     if (page === 'shock') renderShock();
     if (page === 'costs') renderCosts();
     if (page === 'inventory') renderInventory();
+    if (page === 'settings') updateClimateUI();
 
     window.scrollTo(0, 0);
   };
@@ -3015,7 +3086,8 @@ const SETTINGS_CFG = {
   'user.full':    { obj: mockUser, key: 'full',    type: 'text',   display: v => v },
   'user.email':   { obj: mockUser, key: 'email',   type: 'email',  display: v => v },
   'user.address': { obj: mockUser, key: 'address', type: 'text',   display: v => v },
-  'user.phone':   { obj: mockUser, key: 'phone',   type: 'tel',    display: v => v },
+  'user.phone':    { obj: mockUser, key: 'phone',    type: 'tel',    display: v => v },
+  'user.location': { obj: mockUser, key: 'location', type: 'text',   display: v => v },
 };
 
 function editSetting(field, rowEl) {
@@ -3056,6 +3128,7 @@ function editSetting(field, rowEl) {
       const val = cfg.type === 'number' ? (parseFloat(raw) || cfg.obj[cfg.key]) : raw;
       cfg.obj[cfg.key] = val;
       if (cfg.key === 'full') mockUser.name = val.split(' ')[0];
+      if (cfg.key === 'location') updateClimateUI();
     }
     const display = document.createElement('span');
     display.className = 'sr-value';
