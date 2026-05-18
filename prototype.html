@@ -362,6 +362,16 @@ select.sr-input{cursor:pointer}
 .photo-upload-mock .pu-icon{font-size:32px;margin-bottom:8px}
 .photo-upload-mock p{font-size:14px;color:var(--text2)}
 
+/* ===== HEALTH TREND ===== */
+.trend-section{padding:16px 16px 0}
+.trend-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px}
+.trend-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.trend-title{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text2)}
+.trend-delta{font-size:12px;font-weight:600}
+.trend-svg-wrap{width:100%;overflow:hidden}
+.trend-labels{display:flex;justify-content:space-between;margin-top:6px}
+.trend-lbl{font-size:10px;color:var(--text3);text-align:center}
+
 /* ===== CALCULATOR ===== */
 .calc-pool-row{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--text2);margin-bottom:16px}
 .calc-pool-lbl{font-weight:500}
@@ -686,6 +696,9 @@ select.sr-input{cursor:pointer}
 
       <!-- Stat Grid -->
       <div class="stat-grid" id="stat-grid"></div>
+
+      <!-- Health Trend -->
+      <div class="trend-section" id="trend-section"></div>
 
       <!-- Recommendations -->
       <div class="rec-section">
@@ -1528,7 +1541,7 @@ function navigate(page) {
     const fab = document.querySelector('.fab');
     if (fab) fab.style.display = formPages.includes(page) ? 'none' : '';
 
-    if (page === 'dashboard') renderDashboard();
+    if (page === 'dashboard') { renderDashboard(); renderTrend(); }
     if (page === 'history') renderHistory();
     if (page === 'log-test') prefillLogTest();
     if (page === 'share') renderShare();
@@ -1755,6 +1768,78 @@ function submitLogIssue(event) {
   document.getElementById('form-log-issue').reset();
   showToast('Issue logged! Consider sharing with a pro.', 'success');
   setTimeout(() => navigate('history'), 700);
+}
+
+
+// ══════════════════════════════════════════
+//  HEALTH TREND
+// ══════════════════════════════════════════
+
+function renderTrend() {
+  const el = document.getElementById('trend-section');
+  if (!el) return;
+
+  const tests = historyEvents
+    .filter(e => e.type === 'test' && e.readings)
+    .slice(0, 7)
+    .reverse();
+
+  if (tests.length < 2) { el.innerHTML = ''; return; }
+
+  const scores = tests.map(t => calcHealthScore(t.readings));
+  const latest = scores[scores.length - 1];
+  const prev   = scores[scores.length - 2];
+  const delta  = latest - prev;
+  const deltaStr = (delta >= 0 ? '+' : '') + delta;
+  const deltaCol = delta >= 0 ? 'var(--green)' : 'var(--red)';
+
+  const W = 300, H = 56, pad = 6;
+  const minS = Math.max(0,  Math.min(...scores) - 10);
+  const maxS = Math.min(100, Math.max(...scores) + 10);
+  const span = maxS - minS || 1;
+
+  const pts = scores.map((s, i) => {
+    const x = pad + (i / (scores.length - 1)) * (W - pad * 2);
+    const y = H - pad - ((s - minS) / span) * (H - pad * 2);
+    return `${x.toFixed(1)},${y.toFixed(1)}`;
+  }).join(' ');
+
+  const lastPt = pts.split(' ').pop().split(',');
+  const lineCol = delta >= 0 ? '#1DB869' : '#E5304A';
+
+  const labels = tests.map(t => {
+    const d = t.date;
+    return d.toLocaleDateString('en-US', { month:'short', day:'numeric' });
+  });
+
+  el.innerHTML = `
+    <div class="trend-card">
+      <div class="trend-head">
+        <span class="trend-title">Health Score Trend</span>
+        <span class="trend-delta" style="color:${deltaCol}">${deltaStr} pts vs last test</span>
+      </div>
+      <div class="trend-svg-wrap">
+        <svg viewBox="0 0 ${W} ${H}" width="100%" preserveAspectRatio="none" style="display:block">
+          <defs>
+            <linearGradient id="trendGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="${lineCol}" stop-opacity="0.18"/>
+              <stop offset="100%" stop-color="${lineCol}" stop-opacity="0"/>
+            </linearGradient>
+          </defs>
+          <polygon points="${pts} ${lastPt[0]},${H} ${pad},${H}" fill="url(#trendGrad)"/>
+          <polyline points="${pts}" fill="none" stroke="${lineCol}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          ${scores.map((s, i) => {
+            const pt = pts.split(' ')[i].split(',');
+            return `<circle cx="${pt[0]}" cy="${pt[1]}" r="3" fill="${lineCol}"/>`;
+          }).join('')}
+          <circle cx="${lastPt[0]}" cy="${lastPt[1]}" r="5" fill="${lineCol}" opacity="0.25"/>
+          <circle cx="${lastPt[0]}" cy="${lastPt[1]}" r="3" fill="${lineCol}"/>
+        </svg>
+      </div>
+      <div class="trend-labels">
+        ${labels.map(l => `<span class="trend-lbl">${l}</span>`).join('')}
+      </div>
+    </div>`;
 }
 
 
