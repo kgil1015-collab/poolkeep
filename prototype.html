@@ -227,6 +227,13 @@ textarea.input{resize:vertical;min-height:80px}
 /* Recommendations */
 .rec-section{padding:16px}
 .rec-section-title{font-size:12px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.7px;margin-bottom:10px;margin-top:8px}
+.all-clear-card{background:linear-gradient(135deg,#003D5C,#005A8A);border-radius:var(--r-lg);padding:24px 20px;text-align:center;margin-bottom:12px;position:relative;overflow:hidden}
+.all-clear-card::before{content:'';position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%2300E0B0' fill-opacity='0.06'%3E%3Ccircle cx='30' cy='30' r='20'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");pointer-events:none}
+.all-clear-icon{font-size:40px;margin-bottom:10px;display:block}
+.all-clear-title{font-size:18px;font-weight:700;color:#ffffff;margin-bottom:6px}
+.all-clear-sub{font-size:13px;color:rgba(255,255,255,0.65);line-height:1.5;max-width:240px;margin:0 auto 14px}
+.all-clear-pills{display:flex;justify-content:center;gap:8px;flex-wrap:wrap}
+.all-clear-pill{background:rgba(0,224,176,0.15);border:1px solid rgba(0,224,176,0.3);color:var(--teal);font-size:11px;font-weight:600;padding:4px 10px;border-radius:var(--r-full);font-family:'DM Mono',monospace}
 .rec-card{background:var(--card);border-radius:var(--r-lg);padding:14px;display:flex;gap:12px;align-items:flex-start;border:1px solid var(--border);margin-bottom:10px}
 .rec-icon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px}
 .rec-title{font-size:14px;font-weight:600;color:var(--text);margin-bottom:2px}
@@ -512,6 +519,7 @@ textarea.input{resize:vertical;min-height:80px}
 
       <!-- Recommendations -->
       <div class="rec-section">
+        <div id="recs-all-clear" style="display:none"></div>
         <div id="recs-action-wrap">
           <div class="rec-section-title">Action Needed</div>
           <div id="recs-action"></div>
@@ -1086,12 +1094,28 @@ function renderDashboard() {
   // Recommendations
   const { urgent, ok } = getRecommendations(latestTest, mockPool);
 
+  const allClearEl = document.getElementById('recs-all-clear');
   const actionWrap = document.getElementById('recs-action-wrap');
   const goodWrap = document.getElementById('recs-good-wrap');
 
   if (urgent.length === 0) {
     actionWrap.style.display = 'none';
+    allClearEl.style.display = '';
+    allClearEl.innerHTML = `
+      <div class="all-clear-card">
+        <span class="all-clear-icon">✨</span>
+        <div class="all-clear-title">Your pool is perfect</div>
+        <div class="all-clear-sub">All parameters are in range. No chemicals needed today — enjoy the swim.</div>
+        <div class="all-clear-pills">
+          <span class="all-clear-pill">FC ${latestTest.fc} ppm</span>
+          <span class="all-clear-pill">pH ${latestTest.ph}</span>
+          <span class="all-clear-pill">TA ${latestTest.ta} ppm</span>
+          <span class="all-clear-pill">CYA ${latestTest.cya} ppm</span>
+          <span class="all-clear-pill">CH ${latestTest.ch} ppm</span>
+        </div>
+      </div>`;
   } else {
+    allClearEl.style.display = 'none';
     actionWrap.style.display = '';
     document.getElementById('recs-action').innerHTML = urgent.map(r => recCardHTML(r, true)).join('');
   }
@@ -1099,7 +1123,7 @@ function renderDashboard() {
   if (ok.length === 0) {
     goodWrap.style.display = 'none';
   } else {
-    goodWrap.style.display = '';
+    goodWrap.style.display = urgent.length === 0 ? 'none' : '';
     document.getElementById('recs-good').innerHTML = ok.map(r => recCardHTML(r, false)).join('');
   }
 }
