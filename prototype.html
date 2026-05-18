@@ -100,12 +100,17 @@ textarea.input{resize:vertical;min-height:80px}
 
 /* ===== LANDING PAGE ===== */
 #landing{min-height:100vh;background:var(--card);overflow-y:auto}
-.land-nav{display:flex;align-items:center;justify-content:space-between;padding:14px 24px;background:var(--pool-deep);position:sticky;top:0;z-index:100}
-.logo-row{display:flex;align-items:center;gap:10px;font-weight:700;font-size:19px;color:var(--teal)}
-.logo-icon{width:36px;height:36px;background:rgba(255,255,255,.12);border-radius:10px;display:flex;align-items:center;justify-content:center;color:var(--teal);font-size:20px;border:1px solid rgba(255,255,255,.15)}
-.land-nav-btns{display:flex;gap:10px}
-.land-nav .btn-secondary{background:rgba(255,255,255,.1);color:white;border-color:rgba(255,255,255,.2)}
-.land-nav .btn-primary{background:var(--teal);color:var(--pool-deep)}
+.land-nav{display:flex;align-items:center;justify-content:space-between;padding:18px 48px;background:var(--pool-deep);position:sticky;top:0;z-index:100;border-bottom:1px solid rgba(255,255,255,.06)}
+.logo-row{display:flex;align-items:center;gap:12px;font-weight:800;font-size:20px;color:#fff;letter-spacing:-.01em}
+.logo-row span.logo-teal{color:var(--teal)}
+.logo-icon{width:38px;height:38px;background:rgba(0,224,176,.15);border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:21px;border:1px solid rgba(0,224,176,.25)}
+.land-nav-btns{display:flex;align-items:center;gap:6px}
+.land-nav .btn-ghost{background:none;border:none;color:rgba(255,255,255,.7);font-size:14px;font-weight:500;padding:8px 14px;cursor:pointer;border-radius:8px;transition:color .15s,background .15s}
+.land-nav .btn-ghost:hover{color:#fff;background:rgba(255,255,255,.08)}
+.land-nav .btn-signin{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);color:#fff;font-size:14px;font-weight:600;padding:8px 18px;border-radius:22px;cursor:pointer;transition:background .15s,border-color .15s}
+.land-nav .btn-signin:hover{background:rgba(255,255,255,.18)}
+.land-nav .btn-cta{background:var(--teal);border:none;color:var(--pool-deep);font-size:14px;font-weight:700;padding:9px 20px;border-radius:22px;cursor:pointer;transition:opacity .15s}
+.land-nav .btn-cta:hover{opacity:.88}
 .hero{background:linear-gradient(150deg,var(--pool-deep) 0%,#005A8A 100%);color:white;padding:80px 24px;text-align:center}
 .hero h1{font-size:clamp(28px,6vw,60px);font-weight:800;letter-spacing:-.025em;line-height:1.08;margin-bottom:20px}
 .hero p{font-size:clamp(15px,2.5vw,20px);opacity:.85;max-width:520px;margin:0 auto 36px}
@@ -561,12 +566,12 @@ select.sr-input{cursor:pointer}
   <nav class="land-nav">
     <div class="logo-row">
       <div class="logo-icon">💧</div>
-      PoolKeep
+      Pool<span class="logo-teal">Keep</span>
     </div>
     <div class="land-nav-btns">
-      <button class="btn btn-secondary btn-sm" style="background:transparent;border-color:transparent;color:rgba(255,255,255,.7)" onclick="document.getElementById('section-faq').scrollIntoView({behavior:'smooth'})">FAQ</button>
-      <button class="btn btn-secondary btn-sm" onclick="showApp()">Sign In</button>
-      <button class="btn btn-primary btn-sm" onclick="showApp()">Get Started Free</button>
+      <button class="land-nav btn-ghost" onclick="document.getElementById('section-faq').scrollIntoView({behavior:'smooth'})">FAQ</button>
+      <button class="land-nav btn-signin" onclick="showApp()">Sign In</button>
+      <button class="land-nav btn-cta" onclick="showApp()">Get Started Free</button>
     </div>
   </nav>
 
