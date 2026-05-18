@@ -202,7 +202,15 @@ textarea.input{resize:vertical;min-height:80px}
 .dash-header-body{padding:0 20px 14px}
 .dash-greeting{font-size:13px;color:rgba(255,255,255,.55);margin-bottom:2px}
 .dash-h1{font-size:22px;font-weight:600;color:#ffffff;letter-spacing:-.3px;margin-bottom:10px}
-.pool-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.1);border-radius:20px;padding:4px 12px 4px 8px;font-size:12px;border:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.72)}
+.pool-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.1);border-radius:20px;padding:4px 12px 4px 8px;font-size:12px;border:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.72);cursor:pointer;transition:background .15s;user-select:none}
+.pool-badge:hover{background:rgba(255,255,255,.18)}
+.pool-sheet-header{background:var(--pool-deep);padding:20px 20px 16px;margin:-1px -1px 0}
+.pool-sheet-name{font-size:18px;font-weight:700;color:#fff;margin-bottom:2px}
+.pool-sheet-sub{font-size:12px;color:rgba(255,255,255,.55)}
+.pool-info-row{display:flex;justify-content:space-between;align-items:center;padding:12px 20px;border-bottom:1px solid var(--border);font-size:14px}
+.pool-info-row:last-of-type{border-bottom:none}
+.pool-info-label{color:var(--text2);font-weight:500}
+.pool-info-value{color:var(--text);font-weight:600;text-align:right}
 .pool-dot{width:8px;height:8px;background:var(--teal);border-radius:50%;flex-shrink:0}
 
 /* Health score */
@@ -502,9 +510,10 @@ textarea.input{resize:vertical;min-height:80px}
         <div class="dash-header-body">
           <div class="dash-greeting" id="greeting-text">Good morning, Dave</div>
           <h1 class="dash-h1">Pool Status</h1>
-          <div class="pool-badge">
+          <div class="pool-badge" onclick="openPoolSheet()">
             <div class="pool-dot"></div>
             <span>Backyard Pool · Last tested <span id="last-tested-ago">2h ago</span></span>
+            <i class="ti ti-chevron-down" style="font-size:12px;margin-left:2px;opacity:.6"></i>
           </div>
         </div>
         <!-- Health Score -->
@@ -840,6 +849,26 @@ textarea.input{resize:vertical;min-height:80px}
 
 </div><!-- /app -->
 
+
+<!-- Pool Info Sheet -->
+<div id="pool-sheet" class="overlay hidden" onclick="closePoolSheet(event)">
+  <div class="sheet" onclick="event.stopPropagation()" style="padding:0 0 32px">
+    <div class="sheet-handle" style="margin-bottom:0"></div>
+    <div class="pool-sheet-header">
+      <div class="pool-sheet-name">🏊 Backyard Pool</div>
+      <div class="pool-sheet-sub">Last tested <span id="pool-sheet-time"></span></div>
+    </div>
+    <div class="pool-info-row"><span class="pool-info-label">Volume</span><span class="pool-info-value">15,000 gallons</span></div>
+    <div class="pool-info-row"><span class="pool-info-label">Type</span><span class="pool-info-value">Inground</span></div>
+    <div class="pool-info-row"><span class="pool-info-label">Surface</span><span class="pool-info-value">Plaster</span></div>
+    <div class="pool-info-row"><span class="pool-info-label">Filter</span><span class="pool-info-value">Pentair Sand Filter</span></div>
+    <div class="pool-info-row"><span class="pool-info-label">Pump</span><span class="pool-info-value">Pentair SuperFlo 1.5HP</span></div>
+    <div class="pool-info-row"><span class="pool-info-label">Heater</span><span class="pool-info-value">Hayward H250FDN</span></div>
+    <div style="padding:16px 20px 0">
+      <button class="btn btn-primary btn-full" onclick="closePoolSheet();navigate('settings')">Edit Pool Settings →</button>
+    </div>
+  </div>
+</div>
 
 <!-- Log Modal -->
 <div id="log-modal" class="overlay hidden" onclick="closeLogModal(event)">
@@ -1371,6 +1400,19 @@ function signOut() {
 // ══════════════════════════════════════════
 //  LOG MODAL
 // ══════════════════════════════════════════
+
+function openPoolSheet() {
+  document.getElementById('pool-sheet-time').textContent = timeAgo(latestTest.date);
+  document.getElementById('pool-sheet').classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+}
+
+function closePoolSheet(e) {
+  if (!e || e.target === document.getElementById('pool-sheet')) {
+    document.getElementById('pool-sheet').classList.add('hidden');
+    document.body.style.overflow = '';
+  }
+}
 
 function openLogModal() {
   document.getElementById('log-modal').classList.remove('hidden');
