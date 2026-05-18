@@ -526,6 +526,25 @@ select.sr-input{cursor:pointer}
 .btn-outline-sm{background:transparent;border:1px solid var(--border-solid);color:var(--text2);border-radius:8px;padding:7px 16px;font-size:13px;cursor:pointer}
 .btn-primary-sm{background:var(--pool-blue-dark);color:#fff;border:none;border-radius:8px;padding:7px 16px;font-size:13px;font-weight:600;cursor:pointer}
 
+/* ===== INVENTORY PAGE ===== */
+.bg-inventory{background:radial-gradient(ellipse 100% 64% at 16% 10%,rgba(255,255,255,.55) 0%,transparent 50%),radial-gradient(ellipse 62% 46% at 82% 52%,rgba(255,255,255,.36) 0%,transparent 44%),linear-gradient(170deg,#edfaf4 0%,#b8edd6 28%,#70ccac 58%,#38a888 100%)}
+.dark .bg-inventory{background:radial-gradient(ellipse 96% 62% at 14% 8%,rgba(0,200,160,.09) 0%,transparent 48%),linear-gradient(170deg,#091f18 0%,#0d2820 28%,#0f3228 58%,#0a2820 100%)}
+.inv-card{background:var(--card);border-radius:14px;border:1px solid var(--border);padding:14px 16px;margin-bottom:10px;display:flex;align-items:center;gap:12px}
+.inv-card.low{border-color:rgba(245,166,35,.4);background:#FFFBF0}
+.inv-card.out{border-color:rgba(229,48,74,.35);background:#FFF0F2}
+.inv-card-info{flex:1;min-width:0}
+.inv-card-name{font-size:14px;font-weight:600;color:var(--text);margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.inv-status{display:inline-block;font-size:10px;font-weight:700;padding:2px 7px;border-radius:8px;text-transform:uppercase;letter-spacing:.04em}
+.inv-status.ok{background:#D4F5E6;color:#0E7A3A}
+.inv-status.low{background:#FFF0CC;color:#8A5A00}
+.inv-status.out{background:#FFE0E5;color:#A01828}
+.inv-qty-ctrl{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.inv-btn{width:30px;height:30px;border-radius:50%;border:1.5px solid var(--border-solid);background:var(--card);color:var(--text);font-size:18px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:300;transition:background .12s}
+.inv-btn:hover{background:var(--surface)}
+.inv-qty-val{font-family:'DM Mono',monospace;font-size:16px;font-weight:700;color:var(--text);min-width:38px;text-align:center}
+.inv-qty-unit{font-size:11px;color:var(--text3);min-width:20px}
+.inv-low-alert{background:#FFF8EC;border:1px solid rgba(245,166,35,.35);border-radius:12px;padding:12px 16px;margin-bottom:16px;display:flex;align-items:center;gap:10px}
+
 /* ===== RESPONSIVE ===== */
 @media(max-width:767px){
   .sidebar{display:none}
@@ -807,6 +826,9 @@ select.sr-input{cursor:pointer}
       </div>
       <div class="sb-item" id="sb-share" onclick="navigate('share')">
         <i class="ti ti-share"></i> Share with Pro
+      </div>
+      <div class="sb-item" id="sb-inventory" onclick="navigate('inventory')">
+        <i class="ti ti-package"></i> Inventory
       </div>
       <div class="sb-item" id="sb-costs" onclick="navigate('costs')">
         <i class="ti ti-receipt"></i> Spending
@@ -1286,6 +1308,49 @@ select.sr-input{cursor:pointer}
       </div>
 
       <p style="text-align:center;color:var(--text3);font-size:12px;margin-top:24px">PoolKeep v1.0 · 30-day money-back guarantee</p>
+    </div>
+
+    <!-- ─── INVENTORY ─── -->
+    <div id="page-inventory" class="page">
+      <div class="page-head">
+        <div class="page-title">Chemical Inventory</div>
+        <button class="btn-add-cost" onclick="toggleInvForm()"><i class="ti ti-plus"></i> Add Chemical</button>
+      </div>
+
+      <div id="inv-low-alert" style="display:none" class="inv-low-alert">
+        <i class="ti ti-alert-triangle" style="color:#F5A623;font-size:20px;flex-shrink:0"></i>
+        <div><span style="font-size:13px;font-weight:600;color:#7A4F00" id="inv-alert-text"></span><div style="font-size:12px;color:#A06A10;margin-top:1px">Restock before your next treatment</div></div>
+      </div>
+
+      <div id="inv-add-form" class="card cost-form" style="display:none">
+        <p style="font-weight:600;margin:0 0 12px;color:var(--text)">Add Chemical</p>
+        <div class="form-group">
+          <label class="form-label">Chemical Name</label>
+          <input id="inv-name-input" class="form-input" type="text" placeholder="e.g. Liquid Chlorine">
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
+          <div class="form-group">
+            <label class="form-label">Qty on Hand</label>
+            <input id="inv-qty-input" class="form-input" type="number" min="0" step="0.5" placeholder="0">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Unit</label>
+            <select id="inv-unit-input" class="form-input">
+              <option>gal</option><option>qt</option><option>lb</option><option>oz</option><option>bag</option><option>tablet</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Low Alert At</label>
+            <input id="inv-low-input" class="form-input" type="number" min="0" step="0.5" placeholder="2">
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:4px">
+          <button class="btn-outline-sm" onclick="toggleInvForm()">Cancel</button>
+          <button class="btn-primary-sm" onclick="submitInventory()">Save</button>
+        </div>
+      </div>
+
+      <div id="inv-list"></div>
     </div>
 
     <!-- ─── COSTS ─── -->
@@ -1915,7 +1980,7 @@ function setHistoryFilter(filter, el) {
 //  NAVIGATION
 // ══════════════════════════════════════════
 
-const BG_PAGES = ['dashboard','history','log-test','log-chemical','log-issue','calc','shock','share','settings','costs'];
+const BG_PAGES = ['dashboard','history','log-test','log-chemical','log-issue','calc','shock','share','settings','costs','inventory'];
 
 function applyPageBg(page) {
   const mc = document.querySelector('.main-content');
@@ -1925,7 +1990,7 @@ function applyPageBg(page) {
   if (BG_PAGES.includes(page)) mc.classList.add('bg-' + page);
 }
 
-const pages = ['dashboard','history','log-test','log-chemical','log-issue','calc','shock','share','settings','costs'];
+const pages = ['dashboard','history','log-test','log-chemical','log-issue','calc','shock','share','settings','costs','inventory'];
 const navIds = ['dashboard','history','share','pro'];
 
 function navigate(page) {
@@ -1963,6 +2028,7 @@ function navigate(page) {
     if (page === 'calc') renderCalc();
     if (page === 'shock') renderShock();
     if (page === 'costs') renderCosts();
+    if (page === 'inventory') renderInventory();
 
     window.scrollTo(0, 0);
   };
@@ -2743,6 +2809,84 @@ function showToast(msg, type) {
 // ══════════════════════════════════════════
 
 const mockNotifs = { testEmail: true, testSms: true, maintEmail: true, maintSms: false };
+
+let invNextId = 8;
+const mockInventory = [
+  { id:1, name:'Liquid Chlorine',        unit:'gal', qty:2.5, low:2   },
+  { id:2, name:'pH Down (Muriatic Acid)',unit:'qt',  qty:1,   low:2   },
+  { id:3, name:'Shock (Cal-Hypo)',       unit:'lb',  qty:8,   low:4   },
+  { id:4, name:'Stabilizer (CYA)',       unit:'lb',  qty:3,   low:2   },
+  { id:5, name:'Alkalinity Up',          unit:'lb',  qty:0,   low:2   },
+  { id:6, name:'Algaecide',              unit:'oz',  qty:24,  low:8   },
+  { id:7, name:'Calcium Hardness Up',    unit:'lb',  qty:5,   low:3   },
+];
+
+function invStatus(item) {
+  if (item.qty <= 0)          return 'out';
+  if (item.qty <= item.low)   return 'low';
+  return 'ok';
+}
+
+function renderInventory() {
+  const lowItems = mockInventory.filter(i => invStatus(i) !== 'ok');
+  const alertEl = document.getElementById('inv-low-alert');
+  const alertTxt = document.getElementById('inv-alert-text');
+  if (lowItems.length) {
+    const out = lowItems.filter(i => invStatus(i) === 'out');
+    alertTxt.textContent = out.length
+      ? `${out.length} chemical${out.length>1?'s':''} out of stock, ${lowItems.length - out.length} running low`
+      : `${lowItems.length} chemical${lowItems.length>1?'s':''} running low`;
+    alertEl.style.display = 'flex';
+  } else {
+    alertEl.style.display = 'none';
+  }
+
+  document.getElementById('inv-list').innerHTML = mockInventory.map(item => {
+    const st = invStatus(item);
+    const statusLabel = st === 'out' ? 'Out of Stock' : st === 'low' ? 'Low Stock' : 'In Stock';
+    return `
+      <div class="inv-card ${st}">
+        <div class="inv-card-info">
+          <div class="inv-card-name">${item.name}</div>
+          <span class="inv-status ${st}">${statusLabel}</span>
+        </div>
+        <div class="inv-qty-ctrl">
+          <button class="inv-btn" onclick="adjustInv(${item.id},-1)">−</button>
+          <div>
+            <div class="inv-qty-val">${item.qty % 1 === 0 ? item.qty : item.qty.toFixed(1)}</div>
+            <div class="inv-qty-unit">${item.unit}</div>
+          </div>
+          <button class="inv-btn" onclick="adjustInv(${item.id},1)">+</button>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function adjustInv(id, delta) {
+  const item = mockInventory.find(i => i.id === id);
+  if (!item) return;
+  item.qty = Math.max(0, parseFloat((item.qty + delta).toFixed(1)));
+  renderInventory();
+}
+
+function toggleInvForm() {
+  const f = document.getElementById('inv-add-form');
+  f.style.display = f.style.display === 'none' ? 'block' : 'none';
+}
+
+function submitInventory() {
+  const name = document.getElementById('inv-name-input').value.trim();
+  const qty  = parseFloat(document.getElementById('inv-qty-input').value);
+  const unit = document.getElementById('inv-unit-input').value;
+  const low  = parseFloat(document.getElementById('inv-low-input').value) || 1;
+  if (!name || isNaN(qty)) { showToast('Please fill in name and quantity', 'error'); return; }
+  mockInventory.push({ id: invNextId++, name, unit, qty, low });
+  document.getElementById('inv-name-input').value = '';
+  document.getElementById('inv-qty-input').value  = '';
+  document.getElementById('inv-add-form').style.display = 'none';
+  showToast(`${name} added`, 'success');
+  renderInventory();
+}
 
 const COST_COLORS = { Chemicals:'#00A8F0', Equipment:'#00E0B0', Supplies:'#F5A623', Maintenance:'#E5304A', Other:'#8AAABB' };
 let spendingNextId = 13;
