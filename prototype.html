@@ -29,6 +29,17 @@
   --shadow:         0 2px 8px rgba(0,61,92,0.07);
   --shadow-lg:      0 8px 24px rgba(0,61,92,0.13);
 }
+body.dark {
+  --surface:      #0D1B26;
+  --card:         #122333;
+  --text:         #E8F4FF;
+  --text2:        #7FB3CC;
+  --text3:        #3D6A7C;
+  --border:       rgba(0,120,184,0.18);
+  --border-solid: #1E3D52;
+  --shadow:       0 2px 8px rgba(0,0,0,0.3);
+  --shadow-lg:    0 8px 24px rgba(0,0,0,0.4);
+}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
 body{font-family:'DM Sans',-apple-system,system-ui,sans-serif;background:var(--surface);color:var(--text);font-size:15px;line-height:1.55;overscroll-behavior:none}
@@ -328,6 +339,10 @@ textarea.input{resize:vertical;min-height:80px}
 .settings-row.editing{cursor:default}
 .sr-input{flex:1;font:inherit;font-size:13px;color:var(--text);background:var(--surface);border:1.5px solid var(--pool-blue-dark);border-radius:6px;padding:3px 8px;outline:none;min-width:0;max-width:200px;text-align:right}
 select.sr-input{cursor:pointer}
+.toggle-switch{width:44px;height:24px;border-radius:12px;background:var(--border-solid);position:relative;transition:background .2s;flex-shrink:0}
+.toggle-switch::after{content:'';position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:transform .2s,background .2s;box-shadow:0 1px 3px rgba(0,0,0,0.2)}
+.toggle-switch.on{background:var(--pool-blue-dark)}
+.toggle-switch.on::after{transform:translateX(20px)}
 
 /* ===== LOG FORMS ===== */
 .form-back{display:flex;align-items:center;gap:8px;color:var(--text2);font-size:14px;font-weight:500;cursor:pointer;margin-bottom:20px;width:fit-content}
@@ -778,6 +793,14 @@ select.sr-input{cursor:pointer}
     <!-- ─── SETTINGS ─── -->
     <div id="page-settings" class="page">
       <div class="page-head"><div class="page-title">Settings</div></div>
+
+      <p class="settings-group-title">Appearance</p>
+      <div class="settings-list">
+        <div class="settings-row" style="cursor:pointer" onclick="toggleDarkMode()">
+          <span class="sr-label">Dark Mode</span>
+          <div id="dark-toggle" class="toggle-switch"></div>
+        </div>
+      </div>
 
       <p class="settings-group-title">Your Pool</p>
       <div class="settings-list">
@@ -1553,6 +1576,27 @@ function showToast(msg, type) {
 
 
 // ══════════════════════════════════════════
+//  DARK MODE
+// ══════════════════════════════════════════
+
+function toggleDarkMode() {
+  const isDark = document.body.classList.toggle('dark');
+  localStorage.setItem('pk-dark', isDark ? '1' : '0');
+  const tog = document.getElementById('dark-toggle');
+  if (tog) tog.classList.toggle('on', isDark);
+}
+
+function initDarkMode() {
+  const isDark = localStorage.getItem('pk-dark') === '1';
+  if (isDark) {
+    document.body.classList.add('dark');
+    const tog = document.getElementById('dark-toggle');
+    if (tog) tog.classList.add('on');
+  }
+}
+
+
+// ══════════════════════════════════════════
 //  SETTINGS EDIT
 // ══════════════════════════════════════════
 
@@ -1662,6 +1706,7 @@ function toggleFAQ(i, qEl) {
 // ══════════════════════════════════════════
 
 document.addEventListener('DOMContentLoaded', () => {
+  initDarkMode();
   renderFAQ();
 
   // Animate spots counter on load
