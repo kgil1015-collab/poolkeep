@@ -1369,6 +1369,61 @@ select.sr-input{cursor:pointer}
         <div class="settings-row editable" onclick="editSetting('user.phone', this)"><span class="sr-label">Phone Number</span><span class="sr-value">(480) 555-0142 <span class="sr-arrow">›</span></span></div>
       </div>
 
+      <p class="settings-group-title">Notification Previews</p>
+      <div style="padding:4px 0 8px;display:flex;flex-direction:column;gap:10px">
+
+        <!-- Push / lock-screen style -->
+        <div style="background:var(--surface);border-radius:14px;padding:14px 16px;border:1px solid var(--border)">
+          <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">Lock Screen — Test Reminder</div>
+          <div style="background:rgba(255,255,255,.85);backdrop-filter:blur(8px);border-radius:12px;padding:12px 14px;display:flex;gap:10px;align-items:flex-start;box-shadow:0 2px 12px rgba(0,0,0,.1)">
+            <div style="width:36px;height:36px;background:#003D5C;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">💧</div>
+            <div style="flex:1">
+              <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:2px">
+                <span style="font-size:12px;font-weight:700;color:#0D2333">PoolKeep</span>
+                <span style="font-size:11px;color:#8AAABB">now</span>
+              </div>
+              <div style="font-size:13px;font-weight:600;color:#0D2333;margin-bottom:1px">Time to test your pool 🧪</div>
+              <div style="font-size:12px;color:#4A6A7C;line-height:1.4">It's been 3 days since your last test. Tap to log your results and keep <span id="notif-pool-name-1">Backyard Pool</span> balanced.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SMS style -->
+        <div style="background:var(--surface);border-radius:14px;padding:14px 16px;border:1px solid var(--border)">
+          <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">SMS — Maintenance Reminder</div>
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <div style="font-size:11px;color:var(--text3);text-align:center">PoolKeep · Today 8:00 AM</div>
+            <div style="background:#E8F4FF;border-radius:14px 14px 14px 4px;padding:10px 14px;max-width:85%;font-size:13px;color:#0D2333;line-height:1.45">
+              🏊 Weekly pool check-in: Your <span id="notif-pool-name-2">Backyard Pool</span> is due for a pH and chlorine check. Open PoolKeep to log your test → poolkeep.app
+            </div>
+            <div style="font-size:11px;color:var(--text3);text-align:left;padding-left:4px">Delivered</div>
+          </div>
+        </div>
+
+        <!-- Email style -->
+        <div style="background:var(--surface);border-radius:14px;padding:14px 16px;border:1px solid var(--border)">
+          <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">Email — Weekly Summary</div>
+          <div style="background:var(--card);border:1px solid var(--border);border-radius:10px;overflow:hidden">
+            <div style="background:#003D5C;padding:12px 16px;display:flex;align-items:center;gap:8px">
+              <span style="font-size:16px">💧</span>
+              <span style="font-size:13px;font-weight:700;color:#fff">PoolKeep Weekly Report</span>
+            </div>
+            <div style="padding:12px 16px;font-size:13px;color:var(--text);line-height:1.55">
+              <div style="margin-bottom:6px">Hi <strong id="notif-user-name">Dave</strong>,</div>
+              <div style="margin-bottom:8px">Here's this week's snapshot for <strong id="notif-pool-name-3">Backyard Pool</strong>:</div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px">
+                <div style="background:var(--surface);border-radius:8px;padding:7px 10px;font-size:12px"><span style="color:var(--text3)">Health Score</span><br><strong style="color:#1DB869">82 / 100</strong></div>
+                <div style="background:var(--surface);border-radius:8px;padding:7px 10px;font-size:12px"><span style="color:var(--text3)">Last Tested</span><br><strong>2 days ago</strong></div>
+                <div style="background:#FFF8EC;border-radius:8px;padding:7px 10px;font-size:12px"><span style="color:var(--text3)">pH</span><br><strong style="color:#F5A623">7.9 — High</strong></div>
+                <div style="background:var(--surface);border-radius:8px;padding:7px 10px;font-size:12px"><span style="color:var(--text3)">Free Chlorine</span><br><strong style="color:#1DB869">3.0 ppm ✓</strong></div>
+              </div>
+              <div style="font-size:12px;color:var(--text2)">→ Add pH Down to bring pH to 7.4–7.6</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
       <p class="settings-group-title">Billing</p>
       <div class="settings-list">
         <div class="settings-row"><span class="sr-label">Plan</span><span class="sr-value"><span style="color:var(--pool-blue-dark);font-weight:600">⭐ Founding Member</span></span></div>
