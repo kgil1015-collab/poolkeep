@@ -137,6 +137,13 @@ textarea.input{resize:vertical;min-height:80px}
 .spots-progress-fill{height:100%;border-radius:var(--r-full);background:linear-gradient(90deg,var(--pool-blue-dark),var(--teal));transition:width 1.2s cubic-bezier(.4,0,.2,1)}
 .pulse-dot{width:8px;height:8px;border-radius:50%;background:var(--red);animation:pulse 1.5s ease-in-out infinite;flex-shrink:0}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.countdown-wrap{margin:4px 0 20px;text-align:center}
+.countdown-label{font-size:12px;color:var(--text2);font-weight:500;margin-bottom:10px;text-transform:uppercase;letter-spacing:.05em}
+.countdown-tiles{display:inline-flex;align-items:center;gap:6px}
+.cd-tile{display:flex;flex-direction:column;align-items:center;background:var(--pool-deep);border-radius:8px;padding:8px 14px;min-width:54px}
+.cd-num{font-family:'DM Mono',monospace;font-size:26px;font-weight:700;color:#fff;line-height:1}
+.cd-unit{font-size:10px;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.06em;margin-top:3px}
+.cd-sep{font-size:22px;font-weight:700;color:var(--text3);margin-bottom:12px}
 .faq-wrap{max-width:680px;margin:0 auto}
 .faq-item{border-bottom:1px solid var(--border)}
 .faq-q{display:flex;justify-content:space-between;align-items:center;padding:18px 0;cursor:pointer;font-weight:500;font-size:15px;gap:16px;user-select:none}
@@ -517,6 +524,18 @@ select.sr-input{cursor:pointer}
       <div class="pricing-card">
         <div class="spots-bar"><div class="pulse-dot"></div>🔥 <span id="spots-count">127</span> of 200 spots claimed</div>
         <div class="spots-progress-wrap"><div class="spots-progress-fill" id="spots-bar-fill" style="width:0%"></div></div>
+        <div class="countdown-wrap">
+          <div class="countdown-label">Founding Member pricing ends in</div>
+          <div class="countdown-tiles">
+            <div class="cd-tile"><span class="cd-num" id="cd-days">--</span><span class="cd-unit">days</span></div>
+            <div class="cd-sep">:</div>
+            <div class="cd-tile"><span class="cd-num" id="cd-hours">--</span><span class="cd-unit">hours</span></div>
+            <div class="cd-sep">:</div>
+            <div class="cd-tile"><span class="cd-num" id="cd-mins">--</span><span class="cd-unit">min</span></div>
+            <div class="cd-sep">:</div>
+            <div class="cd-tile"><span class="cd-num" id="cd-secs">--</span><span class="cd-unit">sec</span></div>
+          </div>
+        </div>
         <div class="price-big">$97</div>
         <div class="price-sub">one-time payment · lifetime access</div>
         <ul class="pricing-feats">
@@ -2192,6 +2211,25 @@ document.addEventListener('DOMContentLoaded', () => {
     if (p < 1) requestAnimationFrame(tick);
   };
   setTimeout(() => requestAnimationFrame(tick), 400);
+  // Countdown timer — founding member deal ends June 30 2026
+  const deadline = new Date('2026-06-30T23:59:59');
+  function tickCountdown() {
+    const diff = deadline - Date.now();
+    if (diff <= 0) {
+      ['cd-days','cd-hours','cd-mins','cd-secs'].forEach(id => { const el = document.getElementById(id); if (el) el.textContent = '00'; });
+      return;
+    }
+    const d = Math.floor(diff / 86400000);
+    const h = Math.floor((diff % 86400000) / 3600000);
+    const m = Math.floor((diff % 3600000) / 60000);
+    const s = Math.floor((diff % 60000) / 1000);
+    const fmt = n => String(n).padStart(2, '0');
+    const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+    set('cd-days', d); set('cd-hours', fmt(h)); set('cd-mins', fmt(m)); set('cd-secs', fmt(s));
+    setTimeout(tickCountdown, 1000);
+  }
+  tickCountdown();
+
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape') {
       document.getElementById('log-modal').classList.add('hidden');
