@@ -405,6 +405,14 @@ select.sr-input{cursor:pointer}
 .shock-opt-sub{font-size:11px;color:var(--text3);margin-top:3px}
 .shock-opt-or{font-size:12px;color:var(--text3);font-weight:600;flex-shrink:0}
 .chem-confirm-tip{background:rgba(0,120,184,.07);border:1px solid rgba(0,120,184,.15);border-radius:var(--r);padding:12px 14px;font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:16px}
+.param-chart-title{font-size:18px;font-weight:700;color:var(--text);margin-bottom:4px}
+.param-chart-sub{font-size:13px;color:var(--text2);margin-bottom:16px}
+.param-chart-svg-wrap{width:100%;overflow:visible;margin-bottom:4px}
+.param-chart-labels{display:flex;justify-content:space-between;margin-top:6px;margin-bottom:14px}
+.param-chart-lbl{font-size:10px;color:var(--text3)}
+.param-chart-legend{display:flex;gap:14px;font-size:12px;color:var(--text2);flex-wrap:wrap}
+.tpill{cursor:pointer;transition:opacity .15s}
+.tpill:hover{opacity:.75}
 .severity-badge{display:inline-block;font-size:11px;font-weight:700;padding:2px 8px;border-radius:var(--r-full);margin-top:6px}
 .severity-badge.Minor{background:rgba(245,166,35,.12);color:#C07800}
 .severity-badge.Moderate{background:rgba(229,100,48,.12);color:#C04800}
@@ -1228,6 +1236,14 @@ select.sr-input{cursor:pointer}
   </div>
 </div>
 
+<!-- Param Chart Sheet -->
+<div id="param-chart-sheet" class="overlay hidden" onclick="closeParamChart(event)">
+  <div class="sheet" onclick="event.stopPropagation()" style="padding-bottom:32px">
+    <div class="sheet-handle"></div>
+    <div id="param-chart-content"></div>
+  </div>
+</div>
+
 <!-- Chemical Confirm Sheet -->
 <div id="chem-confirm" class="overlay hidden" onclick="closeChemConfirm(event)">
   <div class="sheet" onclick="event.stopPropagation()" style="padding-bottom:32px">
@@ -1603,12 +1619,12 @@ function renderHistory() {
       const r = ev.readings;
       const pc = (p, v) => { const s = getStatus(p,v); return s==='good'?'g':s==='warn'?'w':'d'; };
       detailHTML += `<div class="tpills">
-        <span class="tpill ${pc('fc',r.fc)}">FC: ${r.fc}</span>
-        <span class="tpill ${pc('cc',r.cc)}">CC: ${r.cc}</span>
-        <span class="tpill ${pc('ph',r.ph)}">pH: ${r.ph}</span>
-        <span class="tpill ${pc('ta',r.ta)}">TA: ${r.ta}</span>
-        <span class="tpill ${pc('cya',r.cya)}">CYA: ${r.cya}</span>
-        <span class="tpill ${pc('ch',r.ch)}">CH: ${r.ch}</span>
+        <span class="tpill ${pc('fc',r.fc)}" onclick="openParamChart('fc')" title="View FC trend">FC: ${r.fc}</span>
+        <span class="tpill ${pc('cc',r.cc)}" onclick="openParamChart('cc')" title="View CC trend">CC: ${r.cc}</span>
+        <span class="tpill ${pc('ph',r.ph)}" onclick="openParamChart('ph')" title="View pH trend">pH: ${r.ph}</span>
+        <span class="tpill ${pc('ta',r.ta)}" onclick="openParamChart('ta')" title="View TA trend">TA: ${r.ta}</span>
+        <span class="tpill ${pc('cya',r.cya)}" onclick="openParamChart('cya')" title="View CYA trend">CYA: ${r.cya}</span>
+        <span class="tpill ${pc('ch',r.ch)}" onclick="openParamChart('ch')" title="View CH trend">CH: ${r.ch}</span>
       </div>
       <div class="spark-row">
         <div class="spark-item">
@@ -2059,6 +2075,79 @@ function submitLogIssue(event) {
 
   showToast('Issue logged! Consider sharing with a pro.', 'success');
   setTimeout(() => navigate('history'), 700);
+}
+
+
+// ══════════════════════════════════════════
+//  PARAM TREND CHART
+// ══════════════════════════════════════════
+
+const PARAM_LABELS = { fc:'Free Chlorine', cc:'Combined Chlorine', ph:'pH Level', ta:'Total Alkalinity', cya:'CYA (Stabilizer)', ch:'Calcium Hardness' };
+const PARAM_UNITS  = { fc:' ppm', cc:' ppm', ph:'', ta:' ppm', cya:' ppm', ch:' ppm' };
+
+function openParamChart(param) {
+  const tests = historyEvents.filter(e => e.type === 'test' && e.readings).slice(0, 10).reverse();
+  if (tests.length < 1) return;
+
+  const vals  = tests.map(t => t.readings[param]);
+  const { low, high } = RANGES[param];
+  const unit  = PARAM_UNITS[param];
+
+  const W = 320, H = 110, pL = 4, pR = 4, pT = 18, pB = 4;
+  const plotW = W - pL - pR, plotH = H - pT - pB;
+
+  const lo = Math.min(...vals, low) - (high - low) * 0.3;
+  const hi = Math.max(...vals, high) + (high - low) * 0.3;
+  const span = hi - lo || 1;
+
+  const xOf = i => pL + (i / Math.max(tests.length - 1, 1)) * plotW;
+  const yOf = v => pT + plotH - ((v - lo) / span) * plotH;
+
+  const pts = vals.map((v, i) => `${xOf(i).toFixed(1)},${yOf(v).toFixed(1)}`).join(' ');
+  const lastPt = vals.length ? `${xOf(vals.length-1).toFixed(1)},${yOf(vals[vals.length-1]).toFixed(1)}` : '';
+
+  const bandY1 = Math.min(yOf(high), yOf(low));
+  const bandH  = Math.abs(yOf(low) - yOf(high));
+  const lineCol = statusColor(getStatus(param, vals[vals.length - 1]));
+
+  const dots = vals.map((v, i) => {
+    const col = statusColor(getStatus(param, v));
+    const cx = xOf(i).toFixed(1), cy = yOf(v).toFixed(1);
+    return `<circle cx="${cx}" cy="${cy}" r="4" fill="${col}" stroke="white" stroke-width="1.5"/>
+            <text x="${cx}" y="${(parseFloat(cy) - 8).toFixed(1)}" text-anchor="middle" font-size="9" fill="${col}" font-family="DM Mono,monospace" font-weight="600">${v}</text>`;
+  }).join('');
+
+  const labels = tests.map(t => t.date.toLocaleDateString('en-US', { month:'short', day:'numeric' }));
+  const latest = vals[vals.length - 1];
+  const latestCol = statusColor(getStatus(param, latest));
+
+  document.getElementById('param-chart-content').innerHTML = `
+    <div class="param-chart-title">${PARAM_LABELS[param]}</div>
+    <div class="param-chart-sub">Ideal range: ${low}–${high}${unit} &nbsp;·&nbsp; Latest: <strong style="color:${latestCol}">${latest}${unit}</strong></div>
+    <div class="param-chart-svg-wrap">
+      <svg viewBox="0 0 ${W} ${H}" width="100%" style="display:block;overflow:visible">
+        <rect x="${pL}" y="${bandY1.toFixed(1)}" width="${plotW}" height="${bandH.toFixed(1)}" fill="rgba(29,184,105,0.1)" rx="2"/>
+        <polyline points="${pts}" fill="none" stroke="${lineCol}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity="0.55"/>
+        ${dots}
+      </svg>
+    </div>
+    <div class="param-chart-labels">${labels.map(l => `<span class="param-chart-lbl">${l}</span>`).join('')}</div>
+    <div class="param-chart-legend">
+      <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:2px;background:rgba(29,184,105,0.15);border:1px solid rgba(29,184,105,0.3);display:inline-block"></span>Ideal range</span>
+      <span><span style="color:var(--green)">●</span> Good</span>
+      <span><span style="color:var(--yellow)">●</span> Watch</span>
+      <span><span style="color:var(--red)">●</span> Act</span>
+    </div>`;
+
+  document.getElementById('param-chart-sheet').classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeParamChart(e) {
+  if (!e || e.target === document.getElementById('param-chart-sheet')) {
+    document.getElementById('param-chart-sheet').classList.add('hidden');
+    document.body.style.overflow = '';
+  }
 }
 
 
@@ -2583,9 +2672,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape') {
-      document.getElementById('log-modal').classList.add('hidden');
-      document.getElementById('test-confirm').classList.add('hidden');
-      document.getElementById('chem-confirm').classList.add('hidden');
+      ['log-modal','test-confirm','chem-confirm','param-chart-sheet'].forEach(id => {
+        document.getElementById(id).classList.add('hidden');
+      });
       document.body.style.overflow = '';
     }
   });
