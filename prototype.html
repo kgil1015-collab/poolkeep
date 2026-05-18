@@ -92,6 +92,9 @@ input,select,textarea{font-family:inherit;font-size:inherit}
 .form-group{margin-bottom:16px}
 .form-label{display:block;font-size:13px;font-weight:600;color:var(--text);margin-bottom:6px}
 .form-hint{font-size:12px;color:var(--text2);margin-top:4px}
+.inp-live-status{margin-top:5px;font-size:12px;font-weight:600;display:none;align-items:center;gap:5px}
+.inp-live-status.show{display:flex}
+.inp-live-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
 .input{width:100%;padding:10px 14px;border:1.5px solid var(--border-solid);border-radius:var(--r);font-size:15px;color:var(--text);background:var(--card);transition:border-color .15s;outline:none}
 .input:focus{border-color:var(--pool-blue-dark);box-shadow:0 0 0 3px rgba(0,120,184,.12)}
 select.input{cursor:pointer}
@@ -1055,12 +1058,14 @@ select.sr-input{cursor:pointer}
           <div class="input-row">
             <div class="form-group">
               <label class="form-label">Free Chlorine (FC)</label>
-              <input type="number" class="input" id="inp-fc" step="0.1" min="0" max="20" placeholder="e.g. 3.0">
+              <input type="number" class="input" id="inp-fc" step="0.1" min="0" max="20" placeholder="ppm" oninput="updateTestStatus('fc',this)">
+              <div class="inp-live-status" id="status-fc"></div>
               <p class="form-hint">Ideal: 3–5 ppm</p>
             </div>
             <div class="form-group">
               <label class="form-label">Combined Chlorine (CC)</label>
-              <input type="number" class="input" id="inp-cc" step="0.1" min="0" max="10" placeholder="e.g. 0.0">
+              <input type="number" class="input" id="inp-cc" step="0.1" min="0" max="10" placeholder="ppm" oninput="updateTestStatus('cc',this)">
+              <div class="inp-live-status" id="status-cc"></div>
               <p class="form-hint">Ideal: &lt; 0.5 ppm</p>
             </div>
           </div>
@@ -1068,24 +1073,28 @@ select.sr-input{cursor:pointer}
           <div class="input-row">
             <div class="form-group">
               <label class="form-label">pH</label>
-              <input type="number" class="input" id="inp-ph" step="0.1" min="6" max="9" placeholder="e.g. 7.5">
+              <input type="number" class="input" id="inp-ph" step="0.1" min="6" max="9" placeholder="7.0–8.0" oninput="updateTestStatus('ph',this)">
+              <div class="inp-live-status" id="status-ph"></div>
               <p class="form-hint">Ideal: 7.4–7.6</p>
             </div>
             <div class="form-group">
               <label class="form-label">Total Alkalinity (TA)</label>
-              <input type="number" class="input" id="inp-ta" step="1" min="0" max="400" placeholder="e.g. 90">
+              <input type="number" class="input" id="inp-ta" step="1" min="0" max="400" placeholder="ppm" oninput="updateTestStatus('ta',this)">
+              <div class="inp-live-status" id="status-ta"></div>
               <p class="form-hint">Ideal: 80–120 ppm</p>
             </div>
           </div>
           <div class="input-row">
             <div class="form-group">
               <label class="form-label">CYA (Stabilizer)</label>
-              <input type="number" class="input" id="inp-cya" step="1" min="0" max="200" placeholder="e.g. 45">
+              <input type="number" class="input" id="inp-cya" step="1" min="0" max="200" placeholder="ppm" oninput="updateTestStatus('cya',this)">
+              <div class="inp-live-status" id="status-cya"></div>
               <p class="form-hint">Ideal: 30–50 ppm</p>
             </div>
             <div class="form-group">
               <label class="form-label">Calcium Hardness (CH)</label>
-              <input type="number" class="input" id="inp-ch" step="1" min="0" max="1000" placeholder="e.g. 250">
+              <input type="number" class="input" id="inp-ch" step="1" min="0" max="1000" placeholder="ppm" oninput="updateTestStatus('ch',this)">
+              <div class="inp-live-status" id="status-ch"></div>
               <p class="form-hint">Ideal: 250–350 ppm</p>
             </div>
           </div>
@@ -2255,6 +2264,19 @@ function buildSparkline(param, beforeDate) {
     <polyline points="${pts}" fill="none" stroke="${col}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.5"/>
     <circle cx="${lastPt[0]}" cy="${lastPt[1]}" r="2.5" fill="${col}"/>
   </svg>`;
+}
+
+function updateTestStatus(param, el) {
+  const statusEl = document.getElementById('status-' + param);
+  if (!statusEl) return;
+  const val = parseFloat(el.value);
+  if (isNaN(val)) { statusEl.classList.remove('show'); return; }
+  const s = getStatus(param, val);
+  const labels = { good:'✓ Good', warn:'⚠ Slightly off', danger:'✗ Out of range' };
+  const colors = { good:'var(--green)', warn:'var(--yellow)', danger:'var(--red)' };
+  const hints  = { fc:'3–5 ppm', cc:'< 0.5 ppm', ph:'7.4–7.6', ta:'80–120 ppm', cya:'30–50 ppm', ch:'250–350 ppm' };
+  statusEl.classList.add('show');
+  statusEl.innerHTML = `<div class="inp-live-dot" style="background:${colors[s]}"></div><span style="color:${colors[s]}">${labels[s]}</span><span style="color:var(--text3);font-weight:400;margin-left:3px">· ideal ${hints[param]}</span>`;
 }
 
 function prefillLogTest() {
