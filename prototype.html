@@ -939,6 +939,12 @@ function getScoreLabel(score) {
   return '● Action required';
 }
 
+function getScoreColor(score) {
+  if (score >= 70) return { num: '#ffffff', tag: '#00E0B0' };
+  if (score >= 50) return { num: '#F5A623', tag: '#F5A623' };
+  return { num: '#FF7A8A', tag: '#FF7A8A' };
+}
+
 function calcAcidDose(gallons, currentPH, targetPH) {
   const delta = (currentPH - targetPH) / 0.1;
   return Math.round(delta * (gallons / 10000) * 10);
@@ -1043,15 +1049,20 @@ function renderDashboard() {
 
   // Health score with count-up animation
   const score = calcHealthScore(latestTest);
-  document.getElementById('health-score-tag').textContent = getScoreLabel(score);
+  const scoreColor = getScoreColor(score);
   const scoreEl = document.getElementById('health-score-num');
+  const tagEl = document.getElementById('health-score-tag');
+  tagEl.textContent = getScoreLabel(score);
+  tagEl.style.color = scoreColor.tag;
   const start = parseInt(scoreEl.textContent) || 0;
   const duration = 600;
   const startTime = performance.now();
   const animateScore = (now) => {
     const p = Math.min((now - startTime) / duration, 1);
     const ease = 1 - Math.pow(1 - p, 3);
-    scoreEl.textContent = Math.round(start + (score - start) * ease);
+    const current = Math.round(start + (score - start) * ease);
+    scoreEl.textContent = current;
+    scoreEl.style.color = getScoreColor(current).num;
     if (p < 1) requestAnimationFrame(animateScore);
   };
   requestAnimationFrame(animateScore);
