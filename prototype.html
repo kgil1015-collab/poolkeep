@@ -151,7 +151,8 @@ textarea.input{resize:vertical;min-height:80px}
 
 .main-content{flex:1;margin-left:240px;min-height:100vh}
 .page{display:none;padding:28px;max-width:740px}
-.page.active{display:block}
+.page.active{display:block;animation:pageFadeIn .18s ease}
+@keyframes pageFadeIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
 .page-head{margin-bottom:24px}
 .page-title{font-size:24px;font-weight:700;letter-spacing:-.015em;color:var(--text)}
 .page-sub{font-size:14px;color:var(--text2);margin-top:4px}
@@ -1255,38 +1256,46 @@ const pages = ['dashboard','history','log-test','log-chemical','log-issue','shar
 const navIds = ['dashboard','history','share','pro'];
 
 function navigate(page) {
-  pages.forEach(p => {
-    const el = document.getElementById(`page-${p}`);
-    if (el) el.classList.remove('active');
-  });
-  const target = document.getElementById(`page-${page}`);
-  if (target) target.classList.add('active');
-  state.page = page;
+  const current = document.querySelector('.page.active');
 
-  // Sidebar
-  ['dashboard','history','share','settings'].forEach(n => {
-    const sb = document.getElementById(`sb-${n}`);
-    if (sb) sb.classList.toggle('active', n === page);
-  });
+  const doSwitch = () => {
+    pages.forEach(p => {
+      const el = document.getElementById(`page-${p}`);
+      if (el) { el.classList.remove('active'); el.style.opacity = ''; el.style.transition = ''; }
+    });
+    const target = document.getElementById(`page-${page}`);
+    if (target) target.classList.add('active');
+    state.page = page;
 
-  // Bottom nav
-  navIds.forEach(n => {
-    const bn = document.getElementById(`bn-${n}`);
-    if (!bn) return;
-    const matches = n === page || (n === 'pro' && page === 'settings');
-    bn.classList.toggle('active', matches);
-  });
+    ['dashboard','history','share','settings'].forEach(n => {
+      const sb = document.getElementById(`sb-${n}`);
+      if (sb) sb.classList.toggle('active', n === page);
+    });
 
-  // FAB visibility (hide on log form pages)
-  const formPages = ['log-test','log-chemical','log-issue'];
-  const fab = document.querySelector('.fab');
-  if (fab) fab.style.display = formPages.includes(page) ? 'none' : '';
+    navIds.forEach(n => {
+      const bn = document.getElementById(`bn-${n}`);
+      if (!bn) return;
+      bn.classList.toggle('active', n === page || (n === 'pro' && page === 'settings'));
+    });
 
-  if (page === 'dashboard') renderDashboard();
-  if (page === 'history') renderHistory();
-  if (page === 'log-test') prefillLogTest();
+    const formPages = ['log-test','log-chemical','log-issue'];
+    const fab = document.querySelector('.fab');
+    if (fab) fab.style.display = formPages.includes(page) ? 'none' : '';
 
-  window.scrollTo(0, 0);
+    if (page === 'dashboard') renderDashboard();
+    if (page === 'history') renderHistory();
+    if (page === 'log-test') prefillLogTest();
+
+    window.scrollTo(0, 0);
+  };
+
+  if (current && current.id !== `page-${page}`) {
+    current.style.transition = 'opacity 0.12s ease';
+    current.style.opacity = '0';
+    setTimeout(doSwitch, 130);
+  } else {
+    doSwitch();
+  }
 }
 
 
