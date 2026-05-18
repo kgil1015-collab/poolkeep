@@ -33,6 +33,7 @@
   --r:              12px;
   --r-lg:           16px;
   --r-full:         9999px;
+  --wave-fill:      #f0f9ff;
   --shadow:         0 2px 8px rgba(0,61,92,0.07);
   --shadow-lg:      0 8px 24px rgba(0,61,92,0.13);
 }
@@ -46,6 +47,7 @@ body.dark {
   --border-solid: #1E3D52;
   --shadow:       0 2px 8px rgba(0,0,0,0.3);
   --shadow-lg:    0 8px 24px rgba(0,0,0,0.4);
+  --wave-fill:    #091825;
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
@@ -282,7 +284,13 @@ textarea.input{resize:vertical;min-height:80px}
 .score-tag{font-size:13px;color:var(--teal);font-weight:500;margin-top:4px;margin-bottom:4px}
 @keyframes scoreFlash{0%{transform:scale(1)}30%{transform:scale(1.18)}60%{transform:scale(0.96)}100%{transform:scale(1)}}
 .score-flash{animation:scoreFlash .5s cubic-bezier(.36,.07,.19,.97)}
-.dash-wave{display:block;width:100%}
+.wave-wrap{position:relative;height:56px;overflow:hidden;flex-shrink:0}
+.wave-layer{position:absolute;bottom:0;left:0;width:200%;height:56px;will-change:transform}
+.wave-layer svg{width:100%;height:100%;display:block}
+.wave-1{animation:wavescroll 8s linear infinite}
+.wave-2{animation:wavescroll 14s linear infinite reverse}
+.wave-3{animation:wavescroll 20s linear infinite}
+@keyframes wavescroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
 
 /* Stat grid — 2 columns, new card style */
 .stat-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;padding:16px 16px 0}
@@ -845,10 +853,24 @@ select.sr-input{cursor:pointer}
           <div class="score-num" id="health-score-num">82</div>
           <div class="score-tag" id="health-score-tag">● Good condition</div>
         </div>
-        <!-- Wave SVG -->
-        <svg class="dash-wave" viewBox="0 0 800 40" preserveAspectRatio="none" style="height:32px">
-          <path d="M0,20 C160,0 400,40 800,10 L800,40 L0,40 Z" fill="#F0F6FA"/>
-        </svg>
+        <!-- Animated wave -->
+        <div class="wave-wrap">
+          <div class="wave-layer wave-3">
+            <svg viewBox="0 0 1600 56" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+              <path style="fill:rgba(0,168,240,.2)" d="M0,34 C200,14 400,52 800,34 C1000,14 1200,52 1600,34 L1600,56 L0,56 Z"/>
+            </svg>
+          </div>
+          <div class="wave-layer wave-2">
+            <svg viewBox="0 0 1600 56" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+              <path style="fill:rgba(0,210,245,.3)" d="M0,38 C260,20 540,54 800,38 C1100,20 1360,54 1600,38 L1600,56 L0,56 Z"/>
+            </svg>
+          </div>
+          <div class="wave-layer wave-1">
+            <svg viewBox="0 0 1600 56" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+              <path style="fill:var(--wave-fill)" d="M0,32 C160,12 360,50 800,32 C1060,12 1360,50 1600,32 L1600,56 L0,56 Z"/>
+            </svg>
+          </div>
+        </div>
       </div>
 
       <!-- Stat Grid -->
