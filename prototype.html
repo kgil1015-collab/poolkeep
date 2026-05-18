@@ -1,0 +1,1418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PoolKeep — Smart Pool Assistant</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+<style>
+:root {
+  --pool-deep:      #003D5C;
+  --pool-blue:      #00A8F0;
+  --pool-blue-dark: #0078B8;
+  --teal:           #00E0B0;
+  --surface:        #F0F6FA;
+  --card:           #ffffff;
+  --text:           #0D2333;
+  --text2:          #4A6A7C;
+  --text3:          #8AAABB;
+  --green:          #1DB869;
+  --yellow:         #F5A623;
+  --red:            #E5304A;
+  --border:         rgba(0,120,184,0.12);
+  --border-solid:   #D0E4F0;
+  --r:              12px;
+  --r-lg:           16px;
+  --r-full:         9999px;
+  --shadow:         0 2px 8px rgba(0,61,92,0.07);
+  --shadow-lg:      0 8px 24px rgba(0,61,92,0.13);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+body{font-family:'DM Sans',-apple-system,system-ui,sans-serif;background:var(--surface);color:var(--text);font-size:15px;line-height:1.55;overscroll-behavior:none}
+a{color:var(--pool-blue-dark);text-decoration:none}
+button{font-family:inherit;cursor:pointer;border:none;background:none}
+input,select,textarea{font-family:inherit;font-size:inherit}
+.hidden{display:none!important}
+
+/* === MONO NUMS === */
+.mono{font-family:'DM Mono',monospace}
+
+/* === BUTTONS === */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:10px 20px;border-radius:var(--r);font-weight:600;font-size:14px;transition:all .15s;cursor:pointer;line-height:1;border:none;text-align:center}
+.btn-primary{background:var(--pool-blue-dark);color:#fff}
+.btn-primary:hover{background:#005f94;box-shadow:0 4px 12px rgba(0,120,184,.35)}
+.btn-secondary{background:var(--card);color:var(--text);border:1.5px solid var(--border-solid)}
+.btn-secondary:hover{background:var(--surface)}
+.btn-ghost{background:transparent;color:var(--text2);padding:8px}
+.btn-ghost:hover{background:rgba(0,120,184,.08);color:var(--text)}
+.btn-success{background:var(--green);color:#fff}
+.btn-danger{background:var(--red);color:#fff}
+.btn-full{width:100%}
+.btn-lg{padding:14px 28px;font-size:16px;border-radius:var(--r-lg)}
+.btn-sm{padding:7px 14px;font-size:13px}
+.btn:active{transform:scale(.97)}
+
+/* === CARDS === */
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--r-lg);padding:20px;box-shadow:var(--shadow)}
+.card+.card{margin-top:16px}
+.card-title{font-size:16px;font-weight:600;margin-bottom:4px}
+.card-sub{font-size:13px;color:var(--text2);margin-bottom:16px}
+
+/* === BADGES === */
+.badge{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:var(--r-full);font-size:12px;font-weight:600}
+.badge-good{background:#D4F5E6;color:#0E7A3A}
+.badge-warn{background:#FEF0D9;color:#92610A}
+.badge-danger{background:#FDDDE3;color:#9B1627}
+.badge-neutral{background:rgba(0,120,184,.1);color:var(--text2)}
+
+/* === FORMS === */
+.form-group{margin-bottom:16px}
+.form-label{display:block;font-size:13px;font-weight:600;color:var(--text);margin-bottom:6px}
+.form-hint{font-size:12px;color:var(--text2);margin-top:4px}
+.input{width:100%;padding:10px 14px;border:1.5px solid var(--border-solid);border-radius:var(--r);font-size:15px;color:var(--text);background:var(--card);transition:border-color .15s;outline:none}
+.input:focus{border-color:var(--pool-blue-dark);box-shadow:0 0 0 3px rgba(0,120,184,.12)}
+select.input{cursor:pointer}
+textarea.input{resize:vertical;min-height:80px}
+.input-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.form-section-title{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text2);margin:20px 0 12px;padding-top:20px;border-top:1px solid var(--border)}
+.form-section-title:first-child{margin-top:0;padding-top:0;border-top:none}
+
+/* ===== LANDING PAGE ===== */
+#landing{min-height:100vh;background:var(--card);overflow-y:auto}
+.land-nav{display:flex;align-items:center;justify-content:space-between;padding:14px 24px;background:var(--pool-deep);position:sticky;top:0;z-index:100}
+.logo-row{display:flex;align-items:center;gap:10px;font-weight:700;font-size:19px;color:var(--teal)}
+.logo-icon{width:36px;height:36px;background:rgba(255,255,255,.12);border-radius:10px;display:flex;align-items:center;justify-content:center;color:var(--teal);font-size:20px;border:1px solid rgba(255,255,255,.15)}
+.land-nav-btns{display:flex;gap:10px}
+.land-nav .btn-secondary{background:rgba(255,255,255,.1);color:white;border-color:rgba(255,255,255,.2)}
+.land-nav .btn-primary{background:var(--teal);color:var(--pool-deep)}
+.hero{background:linear-gradient(150deg,var(--pool-deep) 0%,#005A8A 100%);color:white;padding:80px 24px;text-align:center}
+.hero h1{font-size:clamp(28px,6vw,60px);font-weight:800;letter-spacing:-.025em;line-height:1.08;margin-bottom:20px}
+.hero p{font-size:clamp(15px,2.5vw,20px);opacity:.85;max-width:520px;margin:0 auto 36px}
+.hero-badges{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-bottom:36px}
+.hero-badge{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.85);padding:5px 14px;border-radius:var(--r-full);font-size:12px;font-weight:500}
+.hero-btn{background:var(--teal);color:var(--pool-deep);font-size:17px;padding:16px 36px;border-radius:var(--r-lg);font-weight:700;cursor:pointer;border:none;transition:all .2s;box-shadow:0 4px 20px rgba(0,0,0,.2)}
+.hero-btn:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(0,0,0,.25)}
+.section-wrap{padding:64px 24px;background:var(--surface)}
+.section-wrap.alt{background:white}
+.section-inner{max-width:960px;margin:0 auto}
+.section-label{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--pool-blue-dark);margin-bottom:12px}
+.section-title{font-size:clamp(22px,3.5vw,38px);font-weight:700;color:var(--text);margin-bottom:12px;line-height:1.2;letter-spacing:-.015em}
+.section-sub{color:var(--text2);font-size:16px;max-width:540px;margin-bottom:40px;line-height:1.65}
+.feat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px}
+.feat-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r-lg);padding:22px}
+.feat-icon{width:48px;height:48px;border-radius:var(--r);background:rgba(0,168,240,.1);display:flex;align-items:center;justify-content:center;font-size:24px;margin-bottom:16px}
+.feat-card h3{font-size:15px;font-weight:600;margin-bottom:8px}
+.feat-card p{font-size:13px;color:var(--text2);line-height:1.65}
+.pricing-wrap{background:var(--pool-deep);padding:64px 24px;text-align:center}
+.pricing-card{background:var(--card);border-radius:20px;padding:40px;max-width:460px;margin:0 auto;box-shadow:0 8px 40px rgba(0,0,0,.3)}
+.price-big{font-size:72px;font-weight:800;color:var(--pool-deep);line-height:1;letter-spacing:-.04em;font-family:'DM Mono',monospace}
+.price-sub{font-size:15px;color:var(--text2);margin-top:6px;margin-bottom:28px}
+.pricing-feats{list-style:none;text-align:left;margin-bottom:28px}
+.pricing-feats li{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);font-size:14px}
+.pricing-feats li:last-child{border-bottom:none}
+.pf-check{color:var(--green);font-weight:700;font-size:16px;flex-shrink:0}
+.spots-bar{display:inline-flex;align-items:center;gap:8px;background:rgba(229,48,74,.1);color:var(--red);padding:8px 16px;border-radius:var(--r-full);font-size:13px;font-weight:600;margin-bottom:24px}
+.pulse-dot{width:8px;height:8px;border-radius:50%;background:var(--red);animation:pulse 1.5s ease-in-out infinite;flex-shrink:0}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.faq-wrap{max-width:680px;margin:0 auto}
+.faq-item{border-bottom:1px solid var(--border)}
+.faq-q{display:flex;justify-content:space-between;align-items:center;padding:18px 0;cursor:pointer;font-weight:500;font-size:15px;gap:16px;user-select:none}
+.faq-q:hover{color:var(--pool-blue-dark)}
+.faq-arrow{font-size:20px;color:var(--text3);flex-shrink:0;transition:transform .2s}
+.faq-item.open .faq-arrow{transform:rotate(45deg)}
+.faq-a{padding-bottom:18px;color:var(--text2);font-size:14px;line-height:1.7;display:none}
+.faq-item.open .faq-a{display:block}
+.land-cta{background:linear-gradient(150deg,var(--pool-deep) 0%,#005A8A 100%);padding:80px 24px;text-align:center;color:white}
+.land-cta h2{font-size:clamp(24px,4.5vw,48px);font-weight:800;margin-bottom:16px;letter-spacing:-.025em}
+.land-cta p{font-size:16px;opacity:.85;margin-bottom:36px}
+.land-footer{background:var(--text);color:#6B8899;text-align:center;padding:32px 24px;font-size:13px}
+
+/* ===== APP SHELL ===== */
+#app{display:flex;min-height:100vh}
+
+/* Sidebar — dark navy theme */
+.sidebar{width:240px;background:var(--pool-deep);border-right:1px solid rgba(255,255,255,.07);position:fixed;top:0;left:0;bottom:0;display:flex;flex-direction:column;z-index:200}
+.sb-head{display:flex;align-items:center;gap:10px;padding:20px;font-weight:700;font-size:19px;color:var(--teal);border-bottom:1px solid rgba(255,255,255,.07)}
+.sb-head-icon{width:32px;height:32px;background:rgba(255,255,255,.1);border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--teal);font-size:17px;border:1px solid rgba(255,255,255,.15)}
+.sb-nav{flex:1;padding:12px;overflow-y:auto}
+.sb-item{display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:var(--r);color:rgba(255,255,255,.5);font-weight:500;font-size:14px;cursor:pointer;transition:all .15s;margin-bottom:2px;user-select:none}
+.sb-item:hover{background:rgba(255,255,255,.07);color:rgba(255,255,255,.85)}
+.sb-item.active{background:rgba(0,168,240,.15);color:var(--pool-blue);font-weight:600}
+.sb-item i{font-size:18px}
+.sb-foot{padding:12px;border-top:1px solid rgba(255,255,255,.07)}
+.user-row{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--r);cursor:pointer;transition:background .15s}
+.user-row:hover{background:rgba(255,255,255,.07)}
+.avatar{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--pool-blue),var(--pool-blue-dark));color:white;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;flex-shrink:0}
+.user-name{font-size:14px;font-weight:600;color:rgba(255,255,255,.9)}
+.user-plan{font-size:11px;color:var(--teal)}
+
+.main-content{flex:1;margin-left:240px;min-height:100vh}
+.page{display:none;padding:28px;max-width:740px}
+.page.active{display:block}
+.page-head{margin-bottom:24px}
+.page-title{font-size:24px;font-weight:700;letter-spacing:-.015em;color:var(--text)}
+.page-sub{font-size:14px;color:var(--text2);margin-top:4px}
+
+/* Bottom Nav */
+.btm-nav{position:fixed;bottom:0;left:0;right:0;background:rgba(255,255,255,.97);border-top:1px solid var(--border);display:none;z-index:200;padding-bottom:env(safe-area-inset-bottom,0)}
+.btm-nav-inner{display:flex;align-items:center;height:64px;padding:0 8px}
+.bn-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;border:none;background:none;padding:8px 0}
+.bn-item i{font-size:22px;color:var(--text3)}
+.bn-item span{font-size:10px;color:var(--text3);font-weight:500}
+.bn-item.active i{color:var(--pool-blue-dark)}
+.bn-item.active span{color:var(--pool-blue-dark)}
+.bn-fab-wrap{flex:1;display:flex;justify-content:center;align-items:center}
+.bn-fab{width:48px;height:48px;border-radius:16px;background:var(--pool-blue-dark);border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 4px 16px rgba(0,120,184,.4)}
+.bn-fab i{color:white;font-size:22px}
+
+/* Desktop floating FAB */
+.fab{position:fixed;right:24px;bottom:24px;width:52px;height:52px;border-radius:16px;background:var(--pool-blue-dark);color:white;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(0,120,184,.45);cursor:pointer;transition:all .2s;z-index:150;border:none;font-size:24px}
+.fab:hover{transform:scale(1.07);box-shadow:0 6px 28px rgba(0,120,184,.55)}
+.fab:active{transform:scale(.94)}
+
+/* === MODAL / OVERLAY === */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:300;display:flex;align-items:flex-end;backdrop-filter:blur(2px)}
+.sheet{background:var(--card);border-radius:var(--r-lg) var(--r-lg) 0 0;width:100%;padding:8px 0 40px;animation:slideUp .25s ease}
+.sheet-handle{width:36px;height:4px;background:var(--border-solid);border-radius:2px;margin:12px auto 20px}
+.sheet-lbl{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);padding:0 20px 8px}
+.sheet-item{display:flex;align-items:center;gap:16px;padding:14px 20px;cursor:pointer;transition:background .1s;user-select:none}
+.sheet-item:hover{background:var(--surface)}
+.sh-icon{width:44px;height:44px;border-radius:var(--r);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+.sh-title{font-size:15px;font-weight:600;color:var(--text)}
+.sh-desc{font-size:13px;color:var(--text2);margin-top:2px}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+
+/* === TOAST === */
+.toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:var(--text);color:white;padding:11px 22px;border-radius:var(--r-full);font-size:14px;font-weight:500;z-index:500;white-space:nowrap;box-shadow:var(--shadow-lg);animation:fiu .2s ease;pointer-events:none}
+.toast.success{background:var(--green)}
+.toast.error{background:var(--red)}
+@keyframes fiu{from{opacity:0;transform:translateX(-50%) translateY(8px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+
+/* ===== DASHBOARD ===== */
+#page-dashboard{padding:0;max-width:100%}
+
+/* Dark navy header block */
+.dash-header{background:var(--pool-deep);padding-bottom:0}
+.dash-status-bar{display:flex;justify-content:space-between;align-items:center;padding:12px 20px 8px;font-size:12px;font-weight:500;color:rgba(255,255,255,.6)}
+.dash-brand{font-weight:700;font-size:19px;color:var(--teal);letter-spacing:-.3px}
+.dash-header-body{padding:0 20px 14px}
+.dash-greeting{font-size:13px;color:rgba(255,255,255,.55);margin-bottom:2px}
+.dash-h1{font-size:22px;font-weight:600;color:#ffffff;letter-spacing:-.3px;margin-bottom:10px}
+.pool-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.1);border-radius:20px;padding:4px 12px 4px 8px;font-size:12px;border:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.72)}
+.pool-dot{width:8px;height:8px;background:var(--teal);border-radius:50%;flex-shrink:0}
+
+/* Health score */
+.dash-score{display:flex;flex-direction:column;align-items:center;padding:16px 0 4px;background:var(--pool-deep)}
+.score-label-sm{font-size:11px;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px}
+.score-num{font-size:56px;font-weight:600;color:white;font-family:'DM Mono',monospace;letter-spacing:-2px;line-height:1}
+.score-tag{font-size:13px;color:var(--teal);font-weight:500;margin-top:4px;margin-bottom:4px}
+.dash-wave{display:block;width:100%}
+
+/* Stat grid — 2 columns, new card style */
+.stat-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;padding:16px 16px 0}
+.stat-card{background:var(--card);border-radius:var(--r-lg);padding:14px;border:1px solid var(--border)}
+.stat-card .sc-label{font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:.7px;font-weight:600;margin-bottom:6px;display:flex;align-items:center;gap:5px}
+.stat-card .sc-val{font-size:28px;font-weight:600;color:var(--text);font-family:'DM Mono',monospace;letter-spacing:-1px;line-height:1}
+.stat-card .sc-unit{font-size:12px;color:var(--text2);font-family:'DM Sans',sans-serif;font-weight:400}
+.stat-card .sc-bar-wrap{background:var(--surface);border-radius:4px;height:5px;margin-top:8px;overflow:hidden}
+.stat-card .sc-bar-fill{height:100%;border-radius:4px;transition:width .4s ease}
+.status-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+
+/* Recommendations */
+.rec-section{padding:16px}
+.rec-section-title{font-size:12px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.7px;margin-bottom:10px;margin-top:8px}
+.rec-card{background:var(--card);border-radius:var(--r-lg);padding:14px;display:flex;gap:12px;align-items:flex-start;border:1px solid var(--border);margin-bottom:10px}
+.rec-icon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px}
+.rec-title{font-size:14px;font-weight:600;color:var(--text);margin-bottom:2px}
+.rec-sub{font-size:12px;color:var(--text2);line-height:1.4}
+.rec-action-tag{display:inline-block;margin-top:6px;font-size:11px;font-weight:600;color:var(--pool-blue-dark);background:rgba(0,120,184,.1);padding:3px 10px;border-radius:20px}
+.rec-chk{width:22px;height:22px;border-radius:6px;border:2px solid var(--border-solid);cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .15s;margin-top:2px;user-select:none;background:transparent}
+.rec-chk.done{background:var(--green);border-color:var(--green);color:white}
+
+/* Empty state */
+.empty-state{text-align:center;padding:40px 20px}
+.es-icon{font-size:44px;margin-bottom:12px}
+.es-title{font-size:16px;font-weight:600;margin-bottom:8px}
+.es-desc{font-size:14px;color:var(--text2);line-height:1.65}
+
+/* Quick Actions strip */
+.dash-quick{padding:0 16px 24px;display:flex;gap:10px;flex-wrap:wrap}
+.dash-quick .btn{flex:1;min-width:140px}
+
+/* ===== HISTORY ===== */
+.filter-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px}
+.ftab{padding:7px 14px;border-radius:var(--r-full);font-size:13px;font-weight:500;cursor:pointer;background:var(--card);border:1.5px solid var(--border-solid);color:var(--text2);transition:all .15s;user-select:none}
+.ftab.active{background:var(--pool-blue-dark);border-color:var(--pool-blue-dark);color:white}
+.ftab:hover:not(.active){border-color:var(--pool-blue-dark);color:var(--pool-blue-dark)}
+.tl-item{display:flex;gap:14px;position:relative}
+.tl-left{display:flex;flex-direction:column;align-items:center;width:36px;flex-shrink:0}
+.tl-icon{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.tl-icon.test{background:rgba(0,168,240,.12);color:var(--pool-blue-dark)}
+.tl-icon.chemical{background:rgba(29,184,105,.12);color:#0E7A3A}
+.tl-icon.issue{background:rgba(245,166,35,.12);color:#92610A}
+.tl-line{width:2px;background:var(--border);flex:1;min-height:12px;margin-top:4px;margin-bottom:4px}
+.tl-item:last-child .tl-line{display:none}
+.tl-card{flex:1;background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:8px}
+.tl-time{font-size:11px;color:var(--text3);margin-bottom:5px;font-weight:500}
+.tl-title{font-weight:600;font-size:14px;margin-bottom:4px;color:var(--text)}
+.tl-detail{font-size:13px;color:var(--text2);line-height:1.5}
+.tpills{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.tpill{padding:3px 9px;border-radius:4px;font-size:12px;font-weight:500;font-family:'DM Mono',monospace}
+.tpill.g{background:#D4F5E6;color:#0E7A3A}
+.tpill.w{background:#FEF0D9;color:#92610A}
+.tpill.d{background:#FDDDE3;color:#9B1627}
+.tpill.n{background:rgba(0,120,184,.08);color:var(--text2)}
+.issue-photo-mock{width:100%;height:120px;background:linear-gradient(135deg,#dff0ff,#b3d9f7);border-radius:4px;margin-top:10px;display:flex;align-items:center;justify-content:center;color:var(--pool-blue-dark);font-size:13px;font-weight:500;border:1px dashed rgba(0,120,184,.3)}
+
+/* ===== SHARE ===== */
+.share-url-row{display:flex;gap:10px;align-items:stretch;margin-bottom:20px}
+.share-url{flex:1;background:var(--surface);border:1.5px solid var(--border-solid);border-radius:var(--r);padding:10px 14px;font-size:12px;color:var(--text2);font-family:'DM Mono',monospace;outline:none;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;cursor:default}
+.preview-hdr{background:linear-gradient(135deg,var(--pool-deep),#005A8A);color:white;padding:20px 24px;border-radius:var(--r-lg) var(--r-lg) 0 0}
+.preview-hdr h2{font-size:16px;font-weight:700}
+.preview-hdr p{font-size:13px;opacity:.75;margin-top:4px}
+.preview-body{background:var(--card);border:1px solid var(--border);border-top:none;border-radius:0 0 var(--r-lg) var(--r-lg);padding:20px 24px}
+.profile-tbl{width:100%;border-collapse:collapse;font-size:14px}
+.profile-tbl th{text-align:left;color:var(--text2);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;padding-bottom:10px}
+.profile-tbl td{padding:10px 0;border-bottom:1px solid var(--border)}
+.profile-tbl td:last-child{text-align:right;font-weight:500;color:var(--text);font-family:'DM Mono',monospace}
+.profile-tbl tr:last-child td{border-bottom:none}
+.history-preview{margin-top:16px}
+.hp-title{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text2);margin-bottom:10px}
+.hp-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);font-size:13px}
+.hp-row:last-child{border-bottom:none}
+.hp-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.hp-dot.test{background:var(--pool-blue)}
+.hp-dot.chemical{background:var(--green)}
+.hp-dot.issue{background:var(--yellow)}
+.hp-desc{flex:1;color:var(--text)}
+.hp-date{color:var(--text2);font-size:12px;flex-shrink:0}
+
+/* ===== SETTINGS ===== */
+.settings-group-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text2);margin-bottom:8px;margin-top:24px;padding-left:2px}
+.settings-group-title:first-child{margin-top:0}
+.settings-list{border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
+.settings-row{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:var(--card);font-size:14px;border-bottom:1px solid var(--border);gap:12px}
+.settings-row:last-child{border-bottom:none}
+.sr-label{font-weight:500;color:var(--text)}
+.sr-value{color:var(--text2);font-size:13px;text-align:right}
+.sr-arrow{color:var(--border-solid);font-size:16px;flex-shrink:0}
+
+/* ===== LOG FORMS ===== */
+.form-back{display:flex;align-items:center;gap:8px;color:var(--text2);font-size:14px;font-weight:500;cursor:pointer;margin-bottom:20px;width:fit-content}
+.form-back:hover{color:var(--text)}
+.chem-quick-btns{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px}
+.chem-quick{padding:6px 12px;border-radius:var(--r-full);border:1.5px solid var(--border-solid);font-size:13px;cursor:pointer;background:var(--card);color:var(--text);font-weight:500;transition:all .15s}
+.chem-quick:hover,.chem-quick.selected{border-color:var(--pool-blue-dark);background:rgba(0,120,184,.08);color:var(--pool-blue-dark)}
+.photo-upload-mock{border:2px dashed var(--border-solid);border-radius:var(--r);padding:32px;text-align:center;cursor:pointer;transition:all .15s;background:var(--surface)}
+.photo-upload-mock:hover{border-color:var(--pool-blue-dark);background:rgba(0,120,184,.05)}
+.photo-upload-mock .pu-icon{font-size:32px;margin-bottom:8px}
+.photo-upload-mock p{font-size:14px;color:var(--text2)}
+
+/* ===== RESPONSIVE ===== */
+@media(max-width:767px){
+  .sidebar{display:none}
+  .main-content{margin-left:0;padding-bottom:72px}
+  .btm-nav{display:block}
+  .fab{display:none}
+  .page{padding:16px}
+  .land-nav .btn-sm:first-child{display:none}
+  #page-dashboard{padding:0}
+  .dash-status-bar{display:flex}
+}
+@media(min-width:768px){
+  .btm-nav{display:none!important}
+  .dash-status-bar{display:none}
+  .dash-header-body{padding-left:28px;padding-right:28px}
+  .dash-score{align-items:flex-start;padding-left:28px}
+  .stat-grid{padding:20px 28px 0}
+  .rec-section{padding:16px 28px}
+  .dash-quick{padding:0 28px 28px}
+  #page-dashboard{max-width:740px}
+}
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════
+     LANDING PAGE
+══════════════════════════════════════════ -->
+<div id="landing">
+  <nav class="land-nav">
+    <div class="logo-row">
+      <div class="logo-icon">💧</div>
+      PoolKeep
+    </div>
+    <div class="land-nav-btns">
+      <button class="btn btn-secondary btn-sm" onclick="showApp()">Sign In</button>
+      <button class="btn btn-primary btn-sm" onclick="showApp()">Get Started Free</button>
+    </div>
+  </nav>
+
+  <section class="hero">
+    <div class="hero-badges">
+      <span class="hero-badge">✦ Mobile-First PWA</span>
+      <span class="hero-badge">✦ No Hardware Required</span>
+      <span class="hero-badge">✦ 200 Founder Spots</span>
+    </div>
+    <h1>Stop Guessing,<br>Start Swimming.</h1>
+    <p>The simple app for DIY pool owners. Get daily advice, track your chemistry, and get a crystal clear pool—without the high cost of a weekly service.</p>
+    <button class="hero-btn" onclick="showApp()">Get Started for Free →</button>
+  </section>
+
+  <section class="section-wrap alt">
+    <div class="section-inner">
+      <p class="section-label">The Problem</p>
+      <h2 class="section-title">Tired of Cloudy Water<br>and Confusing Advice?</h2>
+      <p class="section-sub">You bought a pool for relaxing—not a crash course in chemistry. Juggling test strips, YouTube videos, and expensive trips to the pool store is a headache.</p>
+      <div class="feat-grid">
+        <div class="feat-card"><div class="feat-icon">😰</div><h3>Analysis Paralysis</h3><p>Conflicting advice on forums, YouTube videos that contradict each other, test strip charts impossible to read in sunlight.</p></div>
+        <div class="feat-card"><div class="feat-icon">💸</div><h3>Wasted Money</h3><p>Over-treating and under-treating costs hundreds per year. Emergency pro visits run $300–$500+ for problems you could have prevented.</p></div>
+        <div class="feat-card"><div class="feat-icon">📋</div><h3>No History</h3><p>When something goes wrong, you have no record of what you've done. Your pool pro shows up with zero context—and charges by the hour.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section-wrap">
+    <div class="section-inner">
+      <p class="section-label">The Solution</p>
+      <h2 class="section-title">PoolKeep is Your Personal<br>Poolside Expert.</h2>
+      <p class="section-sub">Get clear, step-by-step instructions on your phone. PoolKeep analyzes your test results and tells you exactly what to add, and when.</p>
+      <div class="feat-grid">
+        <div class="feat-card"><div class="feat-icon">🧪</div><h3>Smart Recommendations</h3><p>Go from test strip to treatment plan in seconds. "Add 52 oz of Muriatic Acid this evening after sunset." Plain English, every time.</p></div>
+        <div class="feat-card"><div class="feat-icon">📊</div><h3>Full Maintenance Log</h3><p>Never forget what you added. A complete history of every test, chemical addition, and service event—with photos attached.</p></div>
+        <div class="feat-card"><div class="feat-icon">🔗</div><h3>One-Tap Pro Handoff</h3><p>When you need a pro, send them a perfect service report with one tap. Your pool tech will have everything they need before they arrive.</p></div>
+        <div class="feat-card"><div class="feat-icon">⏰</div><h3>Maintenance Reminders</h3><p>Get email and SMS reminders before problems start. "Time for your weekly pool check-up!"—so nothing falls through the cracks.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="pricing-wrap">
+    <div class="section-inner" style="text-align:center">
+      <p class="section-label" style="color:var(--teal)">Pricing</p>
+      <h2 class="section-title" style="color:white;margin-bottom:12px">Become a Founding Member</h2>
+      <p style="color:rgba(255,255,255,.7);max-width:460px;margin:0 auto 40px;font-size:16px;line-height:1.6">A one-time payment for lifetime access to all current and future premium features.</p>
+      <div class="pricing-card">
+        <div class="spots-bar"><div class="pulse-dot"></div>🔥 127 of 200 spots claimed</div>
+        <div class="price-big">$97</div>
+        <div class="price-sub">one-time payment · lifetime access</div>
+        <ul class="pricing-feats">
+          <li><span class="pf-check">✓</span> Rule-based water chemistry recommendations</li>
+          <li><span class="pf-check">✓</span> Unlimited test &amp; chemical logging</li>
+          <li><span class="pf-check">✓</span> Maintenance reminders (email &amp; SMS)</li>
+          <li><span class="pf-check">✓</span> Full service history log with photos</li>
+          <li><span class="pf-check">✓</span> One-tap "Share with Pro" feature</li>
+          <li><span class="pf-check">✓</span> Direct line to the founder</li>
+          <li><span class="pf-check">✓</span> All future features, forever</li>
+        </ul>
+        <button class="btn btn-primary btn-full btn-lg" onclick="showApp()" style="background:var(--pool-deep)">Become a Founding Member →</button>
+        <p style="font-size:12px;color:var(--text2);margin-top:12px">30-day money-back guarantee · No questions asked</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section-wrap alt">
+    <div class="section-inner">
+      <p class="section-label">FAQ</p>
+      <h2 class="section-title" style="margin-bottom:32px">Frequently Asked Questions</h2>
+      <div class="faq-wrap" id="faq-list"></div>
+    </div>
+  </section>
+
+  <div class="land-cta">
+    <h2>Your Crystal Clear Pool<br>is Waiting.</h2>
+    <p>Join 127 homeowners already using PoolKeep.</p>
+    <button class="hero-btn" onclick="showApp()">Get Started for Free →</button>
+  </div>
+
+  <footer class="land-footer">
+    <p style="font-weight:700;font-size:16px;color:var(--teal);margin-bottom:6px">💧 PoolKeep</p>
+    <p>Your pool's daily advisor, with a seamless handoff to your local pro.</p>
+    <p style="margin-top:16px">© 2024 PoolKeep · All rights reserved · 30-day money-back guarantee</p>
+  </footer>
+</div>
+
+
+<!-- ══════════════════════════════════════════
+     APP SHELL
+══════════════════════════════════════════ -->
+<div id="app" class="hidden">
+
+  <!-- Sidebar (desktop) -->
+  <aside class="sidebar">
+    <div class="sb-head">
+      <div class="sb-head-icon">💧</div>
+      PoolKeep
+    </div>
+    <nav class="sb-nav">
+      <div class="sb-item active" id="sb-dashboard" onclick="navigate('dashboard')">
+        <i class="ti ti-layout-dashboard"></i> Dashboard
+      </div>
+      <div class="sb-item" id="sb-history" onclick="navigate('history')">
+        <i class="ti ti-history"></i> History
+      </div>
+      <div class="sb-item" id="sb-share" onclick="navigate('share')">
+        <i class="ti ti-share"></i> Share with Pro
+      </div>
+      <div class="sb-item" id="sb-settings" onclick="navigate('settings')">
+        <i class="ti ti-settings"></i> Settings
+      </div>
+    </nav>
+    <div class="sb-foot">
+      <div class="user-row" onclick="navigate('settings')">
+        <div class="avatar">DM</div>
+        <div>
+          <div class="user-name">Dave Miller</div>
+          <div class="user-plan">⭐ Founding Member</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main-content">
+
+    <!-- ─── DASHBOARD ─── -->
+    <div id="page-dashboard" class="page active">
+
+      <!-- Dark navy header section -->
+      <div class="dash-header">
+        <div class="dash-status-bar">
+          <span id="dash-clock">9:41</span>
+          <span class="dash-brand">PoolKeep</span>
+          <span>⚡ 87%</span>
+        </div>
+        <div class="dash-header-body">
+          <div class="dash-greeting" id="greeting-text">Good morning, Dave</div>
+          <h1 class="dash-h1">Pool Status</h1>
+          <div class="pool-badge">
+            <div class="pool-dot"></div>
+            <span>Backyard Pool · Last tested 2h ago</span>
+          </div>
+        </div>
+        <!-- Health Score -->
+        <div class="dash-score">
+          <div class="score-label-sm">Health Score</div>
+          <div class="score-num" id="health-score-num">82</div>
+          <div class="score-tag" id="health-score-tag">● Good condition</div>
+        </div>
+        <!-- Wave SVG -->
+        <svg class="dash-wave" viewBox="0 0 800 40" preserveAspectRatio="none" style="height:32px">
+          <path d="M0,20 C160,0 400,40 800,10 L800,40 L0,40 Z" fill="#F0F6FA"/>
+        </svg>
+      </div>
+
+      <!-- Stat Grid -->
+      <div class="stat-grid" id="stat-grid"></div>
+
+      <!-- Recommendations -->
+      <div class="rec-section">
+        <div id="recs-action-wrap">
+          <div class="rec-section-title">Action Needed</div>
+          <div id="recs-action"></div>
+        </div>
+        <div id="recs-good-wrap">
+          <div class="rec-section-title" style="margin-top:16px">Looking Good</div>
+          <div id="recs-good"></div>
+        </div>
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="dash-quick">
+        <button class="btn btn-secondary" onclick="navigate('log-test')">🧪 Log Water Test</button>
+        <button class="btn btn-secondary" onclick="navigate('log-chemical')">🧴 Log Chemical</button>
+        <button class="btn btn-secondary btn-full" onclick="navigate('log-issue')">📸 Log Issue / Note</button>
+      </div>
+    </div>
+
+    <!-- ─── HISTORY ─── -->
+    <div id="page-history" class="page">
+      <div class="page-head">
+        <div class="page-title">Pool History</div>
+        <div class="page-sub">Complete record of every test, chemical, and service event</div>
+      </div>
+      <div class="filter-row">
+        <div class="ftab active" onclick="setHistoryFilter('all', this)">All</div>
+        <div class="ftab" onclick="setHistoryFilter('test', this)">Tests</div>
+        <div class="ftab" onclick="setHistoryFilter('chemical', this)">Chemicals</div>
+        <div class="ftab" onclick="setHistoryFilter('issue', this)">Issues</div>
+      </div>
+      <div class="timeline" id="timeline"></div>
+    </div>
+
+    <!-- ─── LOG TEST ─── -->
+    <div id="page-log-test" class="page">
+      <div class="form-back" onclick="navigate('dashboard')">← Back to Dashboard</div>
+      <div class="page-head">
+        <div class="page-title">Log Water Test</div>
+        <div class="page-sub">Enter your test results from your kit. We'll calculate what to add.</div>
+      </div>
+      <form id="form-log-test" onsubmit="submitLogTest(event)">
+        <div class="card">
+          <p class="form-section-title">Sanitizer</p>
+          <div class="input-row">
+            <div class="form-group">
+              <label class="form-label">Free Chlorine (FC)</label>
+              <input type="number" class="input" id="inp-fc" step="0.1" min="0" max="20" placeholder="e.g. 3.0">
+              <p class="form-hint">Ideal: 3–5 ppm</p>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Combined Chlorine (CC)</label>
+              <input type="number" class="input" id="inp-cc" step="0.1" min="0" max="10" placeholder="e.g. 0.0">
+              <p class="form-hint">Ideal: &lt; 0.5 ppm</p>
+            </div>
+          </div>
+          <p class="form-section-title">Chemistry</p>
+          <div class="input-row">
+            <div class="form-group">
+              <label class="form-label">pH</label>
+              <input type="number" class="input" id="inp-ph" step="0.1" min="6" max="9" placeholder="e.g. 7.5">
+              <p class="form-hint">Ideal: 7.4–7.6</p>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Total Alkalinity (TA)</label>
+              <input type="number" class="input" id="inp-ta" step="1" min="0" max="400" placeholder="e.g. 90">
+              <p class="form-hint">Ideal: 80–120 ppm</p>
+            </div>
+          </div>
+          <div class="input-row">
+            <div class="form-group">
+              <label class="form-label">CYA (Stabilizer)</label>
+              <input type="number" class="input" id="inp-cya" step="1" min="0" max="200" placeholder="e.g. 45">
+              <p class="form-hint">Ideal: 30–50 ppm</p>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Calcium Hardness (CH)</label>
+              <input type="number" class="input" id="inp-ch" step="1" min="0" max="1000" placeholder="e.g. 250">
+              <p class="form-hint">Ideal: 250–350 ppm</p>
+            </div>
+          </div>
+          <p class="form-section-title">Notes</p>
+          <div class="form-group">
+            <label class="form-label">Notes (optional)</label>
+            <textarea class="input" id="inp-test-notes" placeholder="e.g. Water looks clear. Used Taylor K-2006 kit."></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary btn-full btn-lg">Save Test Results →</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- ─── LOG CHEMICAL ─── -->
+    <div id="page-log-chemical" class="page">
+      <div class="form-back" onclick="navigate('dashboard')">← Back to Dashboard</div>
+      <div class="page-head">
+        <div class="page-title">Log Chemical Addition</div>
+        <div class="page-sub">Record every chemical you add to build your service history.</div>
+      </div>
+      <form id="form-log-chemical" onsubmit="submitLogChemical(event)">
+        <div class="card">
+          <div class="form-group">
+            <label class="form-label">Chemical Added</label>
+            <p style="font-size:13px;color:var(--text2);margin-bottom:8px">Quick select:</p>
+            <div class="chem-quick-btns">
+              <button type="button" class="chem-quick" onclick="selectChem(this,'Liquid Chlorine (10%)')">Liquid Chlorine</button>
+              <button type="button" class="chem-quick" onclick="selectChem(this,'Muriatic Acid')">Muriatic Acid</button>
+              <button type="button" class="chem-quick" onclick="selectChem(this,'Sodium Bicarbonate')">Baking Soda</button>
+              <button type="button" class="chem-quick" onclick="selectChem(this,'Calcium Hypochlorite (Shock)')">Shock (Cal-Hypo)</button>
+              <button type="button" class="chem-quick" onclick="selectChem(this,'Cyanuric Acid (Stabilizer)')">Stabilizer (CYA)</button>
+              <button type="button" class="chem-quick" onclick="selectChem(this,'Calcium Chloride')">Calcium Chloride</button>
+            </div>
+            <input type="text" class="input" id="inp-chem-name" placeholder="Or type a chemical name..." style="margin-top:8px" required>
+          </div>
+          <div class="input-row">
+            <div class="form-group">
+              <label class="form-label">Amount</label>
+              <input type="number" class="input" id="inp-chem-amount" step="0.1" min="0" placeholder="e.g. 32" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Unit</label>
+              <select class="input" id="inp-chem-unit">
+                <option>oz</option>
+                <option>fl oz</option>
+                <option>lbs</option>
+                <option>gallons</option>
+                <option>cups</option>
+                <option>tablets</option>
+                <option>bags</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Notes (optional)</label>
+            <textarea class="input" id="inp-chem-notes" placeholder="e.g. Added after sunset, ran pump for 2 hours."></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary btn-full btn-lg">Log Chemical Addition →</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- ─── LOG ISSUE ─── -->
+    <div id="page-log-issue" class="page">
+      <div class="form-back" onclick="navigate('dashboard')">← Back to Dashboard</div>
+      <div class="page-head">
+        <div class="page-title">Log Issue / Note</div>
+        <div class="page-sub">Document a problem or observation. Photos help your pool pro diagnose issues faster.</div>
+      </div>
+      <form id="form-log-issue" onsubmit="submitLogIssue(event)">
+        <div class="card">
+          <div class="form-group">
+            <label class="form-label">What's happening?</label>
+            <textarea class="input" id="inp-issue-desc" rows="4" placeholder="e.g. Pool is cloudy after Memorial Day party." required></textarea>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Add a Photo (optional)</label>
+            <div class="photo-upload-mock" onclick="showToast('Photo attached! 📸', 'success')">
+              <div class="pu-icon">📷</div>
+              <p><strong>Tap to attach a photo</strong></p>
+              <p style="font-size:12px;margin-top:4px">JPEG, PNG up to 10MB</p>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Notes (optional)</label>
+            <input type="text" class="input" id="inp-issue-notes" placeholder="e.g. Steps show slight green tint.">
+          </div>
+          <button type="submit" class="btn btn-primary btn-full btn-lg">Save Issue Log →</button>
+          <p style="font-size:13px;color:var(--text2);margin-top:16px;line-height:1.6">
+            💡 <strong>Tip:</strong> After logging, use the "Share with Pro" feature to send a complete history report to your pool service company.
+          </p>
+        </div>
+      </form>
+    </div>
+
+    <!-- ─── SHARE ─── -->
+    <div id="page-share" class="page">
+      <div class="page-head">
+        <div class="page-title">Share Your Pool Profile</div>
+        <div class="page-sub">Send this link to your pool service professional. They'll see your pool's details and the last 30 days of history.</div>
+      </div>
+      <div class="card">
+        <p style="font-size:14px;color:var(--text2);line-height:1.6;margin-bottom:20px">
+          Copy the link below and text or email it to any local pool service company. No login required—they can view it instantly on any device.
+        </p>
+        <div class="share-url-row">
+          <input class="share-url" readonly value="https://poolkeep.app/share/dave/backyard-pool-k2f9a7" id="share-url-input">
+          <button class="btn btn-primary" onclick="copyShareLink()">Copy Link</button>
+        </div>
+        <div style="display:flex;gap:10px">
+          <button class="btn btn-secondary" style="flex:1" onclick="showToast('Opening share sheet...', '')">📤 Share via...</button>
+          <button class="btn btn-secondary" style="flex:1" onclick="window.print()">🖨️ Print Report</button>
+        </div>
+      </div>
+
+      <div style="margin-top:20px">
+        <p style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text2);margin-bottom:12px">Report Preview</p>
+        <div class="preview-hdr">
+          <h2>PoolKeep Service Profile</h2>
+          <p>Backyard Pool · Dave Miller · Generated May 17, 2026</p>
+        </div>
+        <div class="preview-body">
+          <p style="font-size:12px;color:var(--text2);margin-bottom:16px;font-weight:600;text-transform:uppercase;letter-spacing:.05em">Pool Details</p>
+          <table class="profile-tbl">
+            <tr><td style="color:var(--text2)">Pool Name</td><td>Backyard Pool</td></tr>
+            <tr><td style="color:var(--text2)">Volume</td><td>15,000 gal</td></tr>
+            <tr><td style="color:var(--text2)">Type</td><td>Inground</td></tr>
+            <tr><td style="color:var(--text2)">Surface</td><td>Plaster</td></tr>
+            <tr><td style="color:var(--text2)">Filter</td><td>Pentair Sand Filter</td></tr>
+            <tr><td style="color:var(--text2)">Pump</td><td>Pentair SuperFlo 1.5HP</td></tr>
+          </table>
+          <p style="font-size:12px;color:var(--text2);margin:20px 0 16px;font-weight:600;text-transform:uppercase;letter-spacing:.05em">Latest Test Results <span style="color:var(--text2);font-weight:400;text-transform:none;letter-spacing:0">(May 17, 2026 — 10:30 AM)</span></p>
+          <table class="profile-tbl">
+            <tr><td style="color:var(--text2)">Free Chlorine</td><td style="color:var(--green)">3.0 ppm ✓</td></tr>
+            <tr><td style="color:var(--text2)">Combined Chlorine</td><td style="color:var(--green)">0.0 ppm ✓</td></tr>
+            <tr><td style="color:var(--text2)">pH</td><td style="color:var(--red)">7.9 ⚠ HIGH</td></tr>
+            <tr><td style="color:var(--text2)">Total Alkalinity</td><td style="color:var(--green)">90 ppm ✓</td></tr>
+            <tr><td style="color:var(--text2)">CYA (Stabilizer)</td><td style="color:var(--green)">45 ppm ✓</td></tr>
+            <tr><td style="color:var(--text2)">Calcium Hardness</td><td style="color:var(--green)">250 ppm ✓</td></tr>
+          </table>
+          <div class="history-preview">
+            <p class="hp-title">Last 30 Days — Recent Activity</p>
+            <div class="hp-row"><div class="hp-dot test"></div><div class="hp-desc">Water test logged</div><div class="hp-date">Today</div></div>
+            <div class="hp-row"><div class="hp-dot chemical"></div><div class="hp-desc">Added 1 gal Liquid Chlorine (10%)</div><div class="hp-date">Yesterday</div></div>
+            <div class="hp-row"><div class="hp-dot test"></div><div class="hp-desc">Water test — all params in range</div><div class="hp-date">May 14</div></div>
+            <div class="hp-row"><div class="hp-dot chemical"></div><div class="hp-desc">Added 1 lb Cyanuric Acid (stabilizer)</div><div class="hp-date">May 13</div></div>
+            <div class="hp-row"><div class="hp-dot issue"></div><div class="hp-desc">Issue: Pool cloudy after party — photo attached</div><div class="hp-date">May 12</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── SETTINGS ─── -->
+    <div id="page-settings" class="page">
+      <div class="page-head"><div class="page-title">Settings</div></div>
+
+      <p class="settings-group-title">Your Pool</p>
+      <div class="settings-list">
+        <div class="settings-row"><span class="sr-label">Pool Name</span><span class="sr-value">Backyard Pool <span class="sr-arrow">›</span></span></div>
+        <div class="settings-row"><span class="sr-label">Volume</span><span class="sr-value">15,000 gallons <span class="sr-arrow">›</span></span></div>
+        <div class="settings-row"><span class="sr-label">Type</span><span class="sr-value">Inground <span class="sr-arrow">›</span></span></div>
+        <div class="settings-row"><span class="sr-label">Surface</span><span class="sr-value">Plaster <span class="sr-arrow">›</span></span></div>
+        <div class="settings-row"><span class="sr-label">Filter</span><span class="sr-value">Pentair Sand Filter <span class="sr-arrow">›</span></span></div>
+        <div class="settings-row"><span class="sr-label">Pump</span><span class="sr-value">Pentair SuperFlo 1.5HP <span class="sr-arrow">›</span></span></div>
+      </div>
+
+      <p class="settings-group-title">Account</p>
+      <div class="settings-list">
+        <div class="settings-row"><span class="sr-label">Full Name</span><span class="sr-value">Dave Miller <span class="sr-arrow">›</span></span></div>
+        <div class="settings-row"><span class="sr-label">Email</span><span class="sr-value">dave@example.com <span class="sr-arrow">›</span></span></div>
+        <div class="settings-row"><span class="sr-label">Address</span><span class="sr-value">123 Sunbelt Drive, Phoenix AZ <span class="sr-arrow">›</span></span></div>
+      </div>
+
+      <p class="settings-group-title">Notifications</p>
+      <div class="settings-list">
+        <div class="settings-row"><span class="sr-label">Test Reminder</span><span class="sr-value">Every 3 days · Email &amp; SMS</span></div>
+        <div class="settings-row"><span class="sr-label">Maintenance Reminder</span><span class="sr-value">Weekly · Email</span></div>
+        <div class="settings-row"><span class="sr-label">Phone Number</span><span class="sr-value">(480) 555-0142 <span class="sr-arrow">›</span></span></div>
+      </div>
+
+      <p class="settings-group-title">Billing</p>
+      <div class="settings-list">
+        <div class="settings-row"><span class="sr-label">Plan</span><span class="sr-value"><span style="color:var(--pool-blue-dark);font-weight:600">⭐ Founding Member</span></span></div>
+        <div class="settings-row"><span class="sr-label">Paid</span><span class="sr-value">$97 one-time · Jun 2024</span></div>
+        <div class="settings-row"><span class="sr-label">Access</span><span class="sr-value" style="color:var(--green)">✓ Lifetime — All Features</span></div>
+      </div>
+
+      <p class="settings-group-title">Account Actions</p>
+      <div class="settings-list">
+        <div class="settings-row" style="cursor:pointer" onclick="showToast('Feedback form opened!','')"><span class="sr-label">Send Feedback</span><span class="sr-arrow">›</span></div>
+        <div class="settings-row" style="cursor:pointer" onclick="showToast('Support ticket created','success')"><span class="sr-label">Contact Support</span><span class="sr-arrow">›</span></div>
+        <div class="settings-row" style="cursor:pointer" onclick="signOut()"><span class="sr-label" style="color:var(--red)">Sign Out</span><span class="sr-arrow">›</span></div>
+      </div>
+
+      <p style="text-align:center;color:var(--text3);font-size:12px;margin-top:24px">PoolKeep v1.0 · 30-day money-back guarantee</p>
+    </div>
+
+  </main>
+
+  <!-- Bottom Nav (mobile — 5 tabs) -->
+  <nav class="btm-nav">
+    <div class="btm-nav-inner">
+      <button class="bn-item active" id="bn-dashboard" onclick="navigate('dashboard')">
+        <i class="ti ti-layout-dashboard"></i>
+        <span>Dashboard</span>
+      </button>
+      <button class="bn-item" id="bn-history" onclick="navigate('history')">
+        <i class="ti ti-history"></i>
+        <span>History</span>
+      </button>
+      <div class="bn-fab-wrap">
+        <button class="bn-fab" onclick="openLogModal()">
+          <i class="ti ti-plus"></i>
+        </button>
+      </div>
+      <button class="bn-item" id="bn-share" onclick="navigate('share')">
+        <i class="ti ti-share"></i>
+        <span>Share</span>
+      </button>
+      <button class="bn-item" id="bn-pro" onclick="navigate('settings')">
+        <i class="ti ti-tool"></i>
+        <span>Pro</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Desktop FAB -->
+  <button class="fab" onclick="openLogModal()" title="Log something">
+    <i class="ti ti-plus"></i>
+  </button>
+
+</div><!-- /app -->
+
+
+<!-- Log Modal -->
+<div id="log-modal" class="overlay hidden" onclick="closeLogModal(event)">
+  <div class="sheet" onclick="event.stopPropagation()">
+    <div class="sheet-handle"></div>
+    <div class="sheet-lbl">What would you like to log?</div>
+    <div class="sheet-item" onclick="closeLogModal();navigate('log-test')">
+      <div class="sh-icon" style="background:rgba(0,168,240,.1)">🧪</div>
+      <div><div class="sh-title">Log Water Test</div><div class="sh-desc">Enter results from your test kit</div></div>
+    </div>
+    <div class="sheet-item" onclick="closeLogModal();navigate('log-chemical')">
+      <div class="sh-icon" style="background:rgba(29,184,105,.1)">🧴</div>
+      <div><div class="sh-title">Log Chemical Addition</div><div class="sh-desc">Record what you added and how much</div></div>
+    </div>
+    <div class="sheet-item" onclick="closeLogModal();navigate('log-issue')">
+      <div class="sh-icon" style="background:rgba(245,166,35,.1)">📸</div>
+      <div><div class="sh-title">Log Issue / Note</div><div class="sh-desc">Document a problem with a photo</div></div>
+    </div>
+    <div class="sheet-item" onclick="closeLogModal()" style="border-top:1px solid var(--border);margin-top:8px">
+      <div class="sh-icon" style="background:var(--surface)">✕</div>
+      <div><div class="sh-title" style="color:var(--text2)">Cancel</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast" class="toast hidden"></div>
+
+
+<script>
+// ══════════════════════════════════════════
+//  MOCK DATA
+// ══════════════════════════════════════════
+
+const mockPool = {
+  name: 'Backyard Pool', volume: 15000, type: 'Inground',
+  surface: 'Plaster', filter: 'Pentair Sand Filter',
+  pump: 'Pentair SuperFlo 1.5HP', heater: 'Hayward H250FDN'
+};
+
+const mockUser = { name: 'Dave', full: 'Dave Miller', email: 'dave@example.com' };
+
+const latestTest = {
+  fc: 3.0, cc: 0.0, ph: 7.9, ta: 90, cya: 45, ch: 250,
+  date: new Date(Date.now() - 2 * 60 * 60 * 1000)
+};
+
+const historyEvents = [
+  { id:1, type:'test', date:new Date(Date.now()-2*3600*1000), title:'Water Test', detail:'All parameters logged. pH elevated.', readings:{fc:3.0,cc:0.0,ph:7.9,ta:90,cya:45,ch:250} },
+  { id:2, type:'chemical', date:new Date(Date.now()-26*3600*1000), title:'Chemical Addition', detail:'Added 1 gallon of Liquid Chlorine (10%). Poured into skimmer with pump running.', chemical:'Liquid Chlorine (10%)', amount:1, unit:'gallon' },
+  { id:3, type:'test', date:new Date(Date.now()-3*86400*1000), title:'Water Test', detail:'All parameters within ideal range.', readings:{fc:4.5,cc:0.0,ph:7.6,ta:88,cya:44,ch:248} },
+  { id:4, type:'chemical', date:new Date(Date.now()-4*86400*1000), title:'Chemical Addition', detail:'Added 1 lb Cyanuric Acid stabilizer. Dissolved in bucket first.', chemical:'Cyanuric Acid (Stabilizer)', amount:1, unit:'lb' },
+  { id:5, type:'issue', date:new Date(Date.now()-5*86400*1000), title:'Issue Logged', detail:'Pool is cloudy after Memorial Day party. Water has a milky appearance—visibility drops off at about 3ft. Approximately 30 people swam.', hasPhoto:true },
+  { id:6, type:'chemical', date:new Date(Date.now()-5*86400*1000-2*3600*1000), title:'Chemical Addition', detail:'Added 2 lbs Calcium Hypochlorite Shock to combat cloudy water.', chemical:'Calcium Hypochlorite (Shock)', amount:2, unit:'lbs' },
+  { id:7, type:'test', date:new Date(Date.now()-5*86400*1000-4*3600*1000), title:'Water Test', detail:'FC very low after party. Shocked immediately.', readings:{fc:1.5,cc:0.4,ph:7.6,ta:88,cya:42,ch:248} },
+  { id:8, type:'chemical', date:new Date(Date.now()-7*86400*1000), title:'Chemical Addition', detail:'Added 32 oz Muriatic Acid to lower pH from 7.8.', chemical:'Muriatic Acid', amount:32, unit:'oz' },
+  { id:9, type:'test', date:new Date(Date.now()-8*86400*1000), title:'Water Test', detail:'pH slightly elevated. Dosed muriatic acid next day.', readings:{fc:3.5,cc:0.0,ph:7.8,ta:92,cya:42,ch:250} }
+];
+
+const state = { page:'dashboard', historyFilter:'all', checkedRecs:new Set(), selectedChem:null };
+
+
+// ══════════════════════════════════════════
+//  CHEMISTRY ENGINE
+// ══════════════════════════════════════════
+
+const RANGES = {
+  fc:  { low:3,   high:5,   absLow:0,  absHigh:10  },
+  cc:  { low:0,   high:0.5, absLow:0,  absHigh:3   },
+  ph:  { low:7.4, high:7.6, absLow:6.5,absHigh:8.5 },
+  ta:  { low:80,  high:120, absLow:0,  absHigh:300  },
+  cya: { low:30,  high:50,  absLow:0,  absHigh:150  },
+  ch:  { low:250, high:350, absLow:0,  absHigh:800  }
+};
+
+function getStatus(param, value) {
+  if (!RANGES[param]) return 'good';
+  const { low, high } = RANGES[param];
+  if (value < low) return (param === 'fc' && value < 1) ? 'danger' : 'warn';
+  if (value > high) return (param === 'ph' && value > 7.8) ? 'danger' : 'warn';
+  return 'good';
+}
+
+function getBarPercent(param, value) {
+  if (!RANGES[param]) return 50;
+  const { absLow, absHigh } = RANGES[param];
+  const pct = (value - absLow) / (absHigh - absLow) * 100;
+  return Math.min(100, Math.max(2, pct));
+}
+
+function calcHealthScore(test) {
+  const params = ['fc','cc','ph','ta','cya','ch'];
+  let score = 0;
+  params.forEach(p => {
+    const s = getStatus(p, test[p]);
+    if (s === 'good') score += 100;
+    else if (s === 'warn') score += 50;
+    else score += 0;
+  });
+  return Math.round(score / params.length);
+}
+
+function getScoreLabel(score) {
+  if (score >= 90) return '● Excellent';
+  if (score >= 70) return '● Good condition';
+  if (score >= 50) return '● Needs attention';
+  return '● Action required';
+}
+
+function calcAcidDose(gallons, currentPH, targetPH) {
+  const delta = (currentPH - targetPH) / 0.1;
+  return Math.round(delta * (gallons / 10000) * 10);
+}
+function calcSodaAshDose(gallons, currentPH, targetPH) {
+  const delta = (targetPH - currentPH) / 0.1;
+  return Math.round(delta * (gallons / 10000) * 6);
+}
+function calcChlorineDose(gallons, currentFC, targetFC) {
+  const delta = targetFC - currentFC;
+  return Math.round(delta * gallons / 10000 * 128);
+}
+function calcAlkDose(gallons, currentTA, targetTA) {
+  const delta = targetTA - currentTA;
+  return Math.round(delta / 10 * 1.4 * (gallons / 10000) * 16);
+}
+
+function getRecommendations(test, pool) {
+  const urgent = [];
+  const ok = [];
+
+  if (test.ph > 7.8) {
+    const oz = calcAcidDose(pool.volume, test.ph, 7.5);
+    urgent.push({ id:'ph-high', icon:'🧪', bg:'#FFF5E0', title:'Lower your pH', sub:`pH is at ${test.ph} — high. Add <strong>${oz} oz of Muriatic Acid</strong> this evening after sunset.`, tag:`Re-test tomorrow · Muriatic Acid · ${oz} oz`, borderColor:'rgba(245,166,35,0.25)' });
+  } else if (test.ph < 7.2) {
+    const oz = calcSodaAshDose(pool.volume, test.ph, 7.4);
+    urgent.push({ id:'ph-low', icon:'🧪', bg:'#FFE8E8', title:'Raise your pH', sub:`pH is at ${test.ph} — low. Add <strong>${oz} oz of Soda Ash</strong> dissolved in a bucket of water.`, tag:`Re-test in 6 hours · Soda Ash · ${oz} oz`, borderColor:'rgba(229,48,74,0.2)' });
+  } else if (test.ph > 7.6) {
+    const oz = calcAcidDose(pool.volume, test.ph, 7.5);
+    urgent.push({ id:'ph-slightly-high', icon:'🧪', bg:'#FFF5E0', title:'Adjust pH slightly', sub:`pH is at ${test.ph} — slightly above ideal. Add <strong>${oz} oz of Muriatic Acid</strong> after sunset.`, tag:`Re-test tomorrow · ${oz} oz`, borderColor:'rgba(245,166,35,0.25)' });
+  } else {
+    ok.push({ id:'ph-ok', icon:'✅', bg:'#E6F9F1', title:'pH is perfect', sub:`pH at ${test.ph} — right in the ideal 7.4–7.6 range. No action needed.`, borderColor:'rgba(29,184,105,0.2)' });
+  }
+
+  if (test.fc < 1) {
+    const oz = calcChlorineDose(pool.volume, test.fc, 3);
+    urgent.push({ id:'fc-low', icon:'⚠️', bg:'#FFE8E8', title:'Critically low chlorine', sub:`Free Chlorine at ${test.fc} ppm — pool is unsanitized. Add <strong>${oz} oz of Liquid Chlorine</strong> immediately.`, tag:`Run pump 2+ hours · Retest tonight`, borderColor:'rgba(229,48,74,0.2)' });
+  } else if (test.fc < 3) {
+    const oz = calcChlorineDose(pool.volume, test.fc, 4);
+    urgent.push({ id:'fc-low-warn', icon:'🧴', bg:'#FFF5E0', title:'Top off chlorine', sub:`FC is ${test.fc} ppm — below the 3–5 ppm ideal. Add <strong>${oz} oz of Liquid Chlorine</strong> this evening.`, tag:`Add in evening · ${oz} oz`, borderColor:'rgba(245,166,35,0.25)' });
+  } else {
+    ok.push({ id:'fc-ok', icon:'✅', bg:'#E6F9F1', title:'Chlorine is perfect', sub:`Free chlorine at ${test.fc} ppm. No action needed. Check again in 3 days.`, borderColor:'rgba(29,184,105,0.2)' });
+  }
+
+  if (test.cc > 0.5) {
+    urgent.push({ id:'cc-high', icon:'💊', bg:'#FFF5E0', title:'Shock the pool', sub:`Combined Chlorine at ${test.cc} ppm — chloramines present. Shock with <strong>2 lbs Cal-Hypo</strong> or 2 gal Liquid Chlorine.`, tag:`Shock at dusk · Stay out 8h`, borderColor:'rgba(245,166,35,0.25)' });
+  } else {
+    ok.push({ id:'cc-ok', icon:'✅', bg:'#E6F9F1', title:'Combined chlorine clear', sub:`CC at ${test.cc} ppm — no chloramines detected. Water is clean.`, borderColor:'rgba(29,184,105,0.2)' });
+  }
+
+  if (test.cya > 80) {
+    urgent.push({ id:'cya-high', icon:'☀️', bg:'#FFF5E0', title:'CYA slightly elevated', sub:`Cyanuric acid at ${test.cya} ppm. Dilute by replacing ~10% of pool water over the next week.`, tag:'Monitor weekly', borderColor:'rgba(245,166,35,0.25)' });
+  } else if (test.cya < 20) {
+    urgent.push({ id:'cya-low', icon:'🌤️', bg:'#FFF5E0', title:'Add stabilizer', sub:`CYA at ${test.cya} ppm — too low. Chlorine will burn off quickly in sunlight. Add 1–2 lbs Cyanuric Acid.`, tag:'Pre-dissolve in warm water', borderColor:'rgba(245,166,35,0.25)' });
+  } else {
+    ok.push({ id:'cya-ok', icon:'✅', bg:'#E6F9F1', title:'Stabilizer (CYA) good', sub:`CYA at ${test.cya} ppm — within the 30–50 ppm ideal range. Chlorine is properly protected from sunlight.`, borderColor:'rgba(29,184,105,0.2)' });
+  }
+
+  return { urgent, ok };
+}
+
+
+// ══════════════════════════════════════════
+//  HELPERS
+// ══════════════════════════════════════════
+
+function timeAgo(date) {
+  const secs = Math.floor((Date.now() - date.getTime()) / 1000);
+  if (secs < 60) return 'just now';
+  if (secs < 3600) return Math.floor(secs/60) + ' min ago';
+  if (secs < 7200) return '1 hour ago';
+  if (secs < 86400) return Math.floor(secs/3600) + ' hours ago';
+  if (secs < 172800) return 'Yesterday';
+  const days = Math.floor(secs/86400);
+  if (days < 7) return days + ' days ago';
+  return date.toLocaleDateString('en-US', {month:'short',day:'numeric'});
+}
+
+function formatDate(date) {
+  return date.toLocaleDateString('en-US', {weekday:'short',month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit'});
+}
+
+function getGreeting() {
+  const h = new Date().getHours();
+  if (h < 12) return 'Good morning';
+  if (h < 17) return 'Good afternoon';
+  return 'Good evening';
+}
+
+function statusColor(s) {
+  return s === 'good' ? 'var(--green)' : s === 'warn' ? 'var(--yellow)' : 'var(--red)';
+}
+
+
+// ══════════════════════════════════════════
+//  RENDER FUNCTIONS
+// ══════════════════════════════════════════
+
+function renderDashboard() {
+  // Greeting
+  document.getElementById('greeting-text').textContent = `${getGreeting()}, ${mockUser.name}`;
+
+  // Health score
+  const score = calcHealthScore(latestTest);
+  document.getElementById('health-score-num').textContent = score;
+  document.getElementById('health-score-tag').textContent = getScoreLabel(score);
+
+  // Clock
+  const now = new Date();
+  document.getElementById('dash-clock').textContent =
+    now.toLocaleTimeString('en-US', {hour:'numeric',minute:'2-digit',hour12:false});
+
+  // Stat cards
+  const chips = [
+    { key:'fc',  label:'Free Chlorine', value:latestTest.fc, unit:'ppm' },
+    { key:'ph',  label:'pH Level',      value:latestTest.ph, unit:''    },
+    { key:'ta',  label:'Total Alkalinity', value:latestTest.ta, unit:'ppm' },
+    { key:'cya', label:'CYA',           value:latestTest.cya, unit:'ppm' },
+    { key:'ch',  label:'Calcium',       value:latestTest.ch, unit:'ppm' },
+    { key:'cc',  label:'Combined Cl',   value:latestTest.cc, unit:'ppm' }
+  ];
+
+  document.getElementById('stat-grid').innerHTML = chips.map(c => {
+    const s = getStatus(c.key, c.value);
+    const col = statusColor(s);
+    const pct = getBarPercent(c.key, c.value);
+    return `
+      <div class="stat-card">
+        <div class="sc-label">
+          <div class="status-dot" style="background:${col}"></div>
+          ${c.label}
+        </div>
+        <div class="sc-val">${c.value}<span class="sc-unit">${c.unit ? ' ' + c.unit : ''}</span></div>
+        <div class="sc-bar-wrap">
+          <div class="sc-bar-fill" style="width:${pct}%;background:${col}"></div>
+        </div>
+      </div>`;
+  }).join('');
+
+  // Recommendations
+  const { urgent, ok } = getRecommendations(latestTest, mockPool);
+
+  const actionWrap = document.getElementById('recs-action-wrap');
+  const goodWrap = document.getElementById('recs-good-wrap');
+
+  if (urgent.length === 0) {
+    actionWrap.style.display = 'none';
+  } else {
+    actionWrap.style.display = '';
+    document.getElementById('recs-action').innerHTML = urgent.map(r => recCardHTML(r, true)).join('');
+  }
+
+  if (ok.length === 0) {
+    goodWrap.style.display = 'none';
+  } else {
+    goodWrap.style.display = '';
+    document.getElementById('recs-good').innerHTML = ok.map(r => recCardHTML(r, false)).join('');
+  }
+}
+
+function recCardHTML(r, isUrgent) {
+  const done = state.checkedRecs.has(r.id);
+  return `
+    <div class="rec-card" style="border-color:${r.borderColor}">
+      <div class="rec-icon" style="background:${r.bg}">${r.icon}</div>
+      <div style="flex:1">
+        <div class="rec-title"${!isUrgent ? ' style="color:var(--green)"' : ''}>${r.title}</div>
+        <div class="rec-sub">${r.sub}</div>
+        ${r.tag ? `<div class="rec-action-tag">${r.tag}</div>` : ''}
+      </div>
+      ${isUrgent ? `
+      <div class="rec-chk ${done ? 'done' : ''}" onclick="toggleRec('${r.id}', this)" title="Mark done">
+        ${done ? '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>' : ''}
+      </div>` : ''}
+    </div>`;
+}
+
+function toggleRec(id, el) {
+  if (state.checkedRecs.has(id)) {
+    state.checkedRecs.delete(id);
+    el.classList.remove('done');
+    el.innerHTML = '';
+  } else {
+    state.checkedRecs.add(id);
+    el.classList.add('done');
+    el.innerHTML = '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+    showToast('Marked as done!', 'success');
+  }
+}
+
+function renderHistory() {
+  const filter = state.historyFilter;
+  const filtered = filter === 'all' ? historyEvents : historyEvents.filter(e => e.type === filter);
+  const container = document.getElementById('timeline');
+
+  if (filtered.length === 0) {
+    container.innerHTML = `<div class="empty-state"><div class="es-icon">📜</div><div class="es-title">No ${filter} events yet</div><p class="es-desc">Log your first ${filter} event to see it here.</p></div>`;
+    return;
+  }
+
+  container.innerHTML = filtered.map((ev) => {
+    const iconMap = { test:'🧪', chemical:'🧴', issue:'⚠️' };
+    let detailHTML = `<div class="tl-detail">${ev.detail}</div>`;
+
+    if (ev.type === 'test' && ev.readings) {
+      const r = ev.readings;
+      const pc = (p, v) => { const s = getStatus(p,v); return s==='good'?'g':s==='warn'?'w':'d'; };
+      detailHTML += `<div class="tpills">
+        <span class="tpill ${pc('fc',r.fc)}">FC: ${r.fc}</span>
+        <span class="tpill ${pc('cc',r.cc)}">CC: ${r.cc}</span>
+        <span class="tpill ${pc('ph',r.ph)}">pH: ${r.ph}</span>
+        <span class="tpill ${pc('ta',r.ta)}">TA: ${r.ta}</span>
+        <span class="tpill ${pc('cya',r.cya)}">CYA: ${r.cya}</span>
+        <span class="tpill ${pc('ch',r.ch)}">CH: ${r.ch}</span>
+      </div>`;
+    }
+    if (ev.type === 'chemical') {
+      detailHTML = `<div class="tl-detail"><strong>${ev.amount} ${ev.unit}</strong> of ${ev.chemical}</div><div class="tl-detail" style="margin-top:4px">${ev.detail}</div>`;
+    }
+    if (ev.type === 'issue' && ev.hasPhoto) {
+      detailHTML += `<div class="issue-photo-mock">📷 Photo attached — tap to view full size</div>`;
+    }
+
+    return `
+      <div class="tl-item" data-filter="${ev.type}">
+        <div class="tl-left">
+          <div class="tl-icon ${ev.type}">${iconMap[ev.type]}</div>
+          <div class="tl-line"></div>
+        </div>
+        <div class="tl-card">
+          <div class="tl-time">${formatDate(ev.date)}</div>
+          <div class="tl-title">${ev.title}</div>
+          ${detailHTML}
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function setHistoryFilter(filter, el) {
+  state.historyFilter = filter;
+  document.querySelectorAll('.ftab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  renderHistory();
+}
+
+
+// ══════════════════════════════════════════
+//  NAVIGATION
+// ══════════════════════════════════════════
+
+const pages = ['dashboard','history','log-test','log-chemical','log-issue','share','settings'];
+const navIds = ['dashboard','history','share','pro'];
+
+function navigate(page) {
+  pages.forEach(p => {
+    const el = document.getElementById(`page-${p}`);
+    if (el) el.classList.remove('active');
+  });
+  const target = document.getElementById(`page-${page}`);
+  if (target) target.classList.add('active');
+  state.page = page;
+
+  // Sidebar
+  ['dashboard','history','share','settings'].forEach(n => {
+    const sb = document.getElementById(`sb-${n}`);
+    if (sb) sb.classList.toggle('active', n === page);
+  });
+
+  // Bottom nav
+  navIds.forEach(n => {
+    const bn = document.getElementById(`bn-${n}`);
+    if (!bn) return;
+    const matches = n === page || (n === 'pro' && page === 'settings');
+    bn.classList.toggle('active', matches);
+  });
+
+  // FAB visibility (hide on log form pages)
+  const formPages = ['log-test','log-chemical','log-issue'];
+  const fab = document.querySelector('.fab');
+  if (fab) fab.style.display = formPages.includes(page) ? 'none' : '';
+
+  if (page === 'dashboard') renderDashboard();
+  if (page === 'history') renderHistory();
+
+  window.scrollTo(0, 0);
+}
+
+
+// ══════════════════════════════════════════
+//  LANDING / APP SWITCH
+// ══════════════════════════════════════════
+
+function showApp() {
+  document.getElementById('landing').classList.add('hidden');
+  document.getElementById('app').classList.remove('hidden');
+  navigate('dashboard');
+}
+
+function signOut() {
+  document.getElementById('app').classList.add('hidden');
+  document.getElementById('landing').classList.remove('hidden');
+  window.scrollTo(0, 0);
+  setTimeout(() => showToast('Signed out successfully', ''), 300);
+}
+
+
+// ══════════════════════════════════════════
+//  LOG MODAL
+// ══════════════════════════════════════════
+
+function openLogModal() {
+  document.getElementById('log-modal').classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeLogModal(e) {
+  if (!e || e.target === document.getElementById('log-modal')) {
+    document.getElementById('log-modal').classList.add('hidden');
+    document.body.style.overflow = '';
+  }
+}
+
+
+// ══════════════════════════════════════════
+//  FORM HANDLERS
+// ══════════════════════════════════════════
+
+function submitLogTest(event) {
+  event.preventDefault();
+  const fc = parseFloat(document.getElementById('inp-fc').value);
+  const ph = parseFloat(document.getElementById('inp-ph').value);
+
+  if (isNaN(fc) && isNaN(ph)) {
+    showToast('Please enter at least FC and pH values', 'error');
+    return;
+  }
+
+  if (!isNaN(fc))  latestTest.fc  = fc;
+  if (!isNaN(parseFloat(document.getElementById('inp-cc').value)))  latestTest.cc  = parseFloat(document.getElementById('inp-cc').value);
+  if (!isNaN(ph))  latestTest.ph  = ph;
+  if (!isNaN(parseFloat(document.getElementById('inp-ta').value)))  latestTest.ta  = parseFloat(document.getElementById('inp-ta').value);
+  if (!isNaN(parseFloat(document.getElementById('inp-cya').value))) latestTest.cya = parseFloat(document.getElementById('inp-cya').value);
+  if (!isNaN(parseFloat(document.getElementById('inp-ch').value)))  latestTest.ch  = parseFloat(document.getElementById('inp-ch').value);
+  latestTest.date = new Date();
+
+  historyEvents.unshift({
+    id:Date.now(), type:'test', date:new Date(), title:'Water Test',
+    detail:'Manually logged via PoolKeep.',
+    readings:{fc:latestTest.fc,cc:latestTest.cc,ph:latestTest.ph,ta:latestTest.ta,cya:latestTest.cya,ch:latestTest.ch}
+  });
+
+  document.getElementById('form-log-test').reset();
+  showToast('Test results saved! ✓', 'success');
+  setTimeout(() => navigate('dashboard'), 600);
+}
+
+function selectChem(el, name) {
+  document.querySelectorAll('.chem-quick').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+  document.getElementById('inp-chem-name').value = name;
+  state.selectedChem = name;
+}
+
+function submitLogChemical(event) {
+  event.preventDefault();
+  const name   = document.getElementById('inp-chem-name').value.trim();
+  const amount = parseFloat(document.getElementById('inp-chem-amount').value);
+  const unit   = document.getElementById('inp-chem-unit').value;
+  const notes  = document.getElementById('inp-chem-notes').value.trim();
+
+  if (!name || isNaN(amount)) {
+    showToast('Please fill in chemical name and amount', 'error');
+    return;
+  }
+
+  historyEvents.unshift({
+    id:Date.now(), type:'chemical', date:new Date(), title:'Chemical Addition',
+    detail:notes || `Added ${amount} ${unit} of ${name}.`,
+    chemical:name, amount, unit
+  });
+
+  document.getElementById('form-log-chemical').reset();
+  document.querySelectorAll('.chem-quick').forEach(b => b.classList.remove('selected'));
+  showToast(`${name} logged! ✓`, 'success');
+  setTimeout(() => navigate('dashboard'), 600);
+}
+
+function submitLogIssue(event) {
+  event.preventDefault();
+  const desc  = document.getElementById('inp-issue-desc').value.trim();
+  const notes = document.getElementById('inp-issue-notes').value.trim();
+
+  if (!desc) {
+    showToast('Please describe the issue', 'error');
+    return;
+  }
+
+  historyEvents.unshift({
+    id:Date.now(), type:'issue', date:new Date(), title:'Issue Logged',
+    detail:desc + (notes ? ` Notes: ${notes}` : ''),
+    hasPhoto:false
+  });
+
+  document.getElementById('form-log-issue').reset();
+  showToast('Issue logged! Consider sharing with a pro.', 'success');
+  setTimeout(() => navigate('history'), 700);
+}
+
+
+// ══════════════════════════════════════════
+//  SHARE
+// ══════════════════════════════════════════
+
+function copyShareLink() {
+  const url = document.getElementById('share-url-input').value;
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(url).then(() => showToast('Link copied! 🔗', 'success'));
+  } else {
+    document.getElementById('share-url-input').select();
+    document.execCommand('copy');
+    showToast('Link copied! 🔗', 'success');
+  }
+}
+
+
+// ══════════════════════════════════════════
+//  TOAST
+// ══════════════════════════════════════════
+
+let toastTimer = null;
+
+function showToast(msg, type) {
+  const toast = document.getElementById('toast');
+  toast.textContent = msg;
+  toast.className = `toast${type ? ' ' + type : ''}`;
+  toast.classList.remove('hidden');
+  if (toastTimer) clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toast.classList.add('hidden'), 2800);
+}
+
+
+// ══════════════════════════════════════════
+//  FAQ
+// ══════════════════════════════════════════
+
+const faqs = [
+  { q:'What is PoolKeep?', a:'PoolKeep is a mobile-first app for homeowners to manage their pool\'s health. It provides simple, rule-based guidance on water chemistry, tracks your maintenance history, and generates professional service reports to share with pool technicians.' },
+  { q:'Who is this for?', a:'DIY pool owners who want to save money on weekly service but need guidance and confidence. If you\'re tired of guessing and want clear, actionable advice, PoolKeep is for you.' },
+  { q:'Do I need any special hardware?', a:'No! PoolKeep works with any standard liquid test kit or test strips you already own. You enter the results manually, and PoolKeep handles the calculations and recommendations.' },
+  { q:'What is the $97 Founder\'s Deal?', a:'A one-time payment for lifetime access to all of PoolKeep\'s premium features—forever. We\'re offering this to our first 200 members to generate initial capital and build a cohort of passionate early adopters.' },
+  { q:'What happens after the 200 spots are gone?', a:'The Founder\'s Deal will be gone forever. PoolKeep will transition to a recurring subscription model of $7/month or $60/year. Founders lock in lifetime access at no additional cost.' },
+  { q:'Is this a native mobile app?', a:'It\'s a Progressive Web App (PWA). On iOS and Android, you can "Add to Home Screen" for a full app-like experience without visiting an app store.' },
+  { q:'What if I need help from a professional?', a:'That\'s our killer feature! The "Share with Pro" button creates a clean, detailed report of your pool\'s history that you can text or email to any local service company. Your tech will have everything they need before they arrive.' },
+  { q:'Can I get a refund?', a:'Yes, we offer a 30-day, no-questions-asked refund policy. If PoolKeep isn\'t right for you, just reach out and we\'ll make it right.' }
+];
+
+function renderFAQ() {
+  const list = document.getElementById('faq-list');
+  if (!list) return;
+  list.innerHTML = faqs.map((f, i) => `
+    <div class="faq-item">
+      <div class="faq-q" onclick="toggleFAQ(${i}, this)">
+        <span>${f.q}</span><span class="faq-arrow">+</span>
+      </div>
+      <div class="faq-a">${f.a}</div>
+    </div>`).join('');
+}
+
+function toggleFAQ(i, qEl) {
+  qEl.closest('.faq-item').classList.toggle('open');
+}
+
+
+// ══════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════
+
+document.addEventListener('DOMContentLoaded', () => {
+  renderFAQ();
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+      document.getElementById('log-modal').classList.add('hidden');
+      document.body.style.overflow = '';
+    }
+  });
+});
+</script>
+</body>
+</html>
