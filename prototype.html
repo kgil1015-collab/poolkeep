@@ -755,38 +755,7 @@ select.sr-input{cursor:pointer}
 
       <div style="margin-top:20px">
         <p style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text2);margin-bottom:12px">Report Preview</p>
-        <div class="preview-hdr">
-          <h2>PoolKeep Service Profile</h2>
-          <p>Backyard Pool · Dave Miller · Generated May 17, 2026</p>
-        </div>
-        <div class="preview-body">
-          <p style="font-size:12px;color:var(--text2);margin-bottom:16px;font-weight:600;text-transform:uppercase;letter-spacing:.05em">Pool Details</p>
-          <table class="profile-tbl">
-            <tr><td style="color:var(--text2)">Pool Name</td><td>Backyard Pool</td></tr>
-            <tr><td style="color:var(--text2)">Volume</td><td>15,000 gal</td></tr>
-            <tr><td style="color:var(--text2)">Type</td><td>Inground</td></tr>
-            <tr><td style="color:var(--text2)">Surface</td><td>Plaster</td></tr>
-            <tr><td style="color:var(--text2)">Filter</td><td>Pentair Sand Filter</td></tr>
-            <tr><td style="color:var(--text2)">Pump</td><td>Pentair SuperFlo 1.5HP</td></tr>
-          </table>
-          <p style="font-size:12px;color:var(--text2);margin:20px 0 16px;font-weight:600;text-transform:uppercase;letter-spacing:.05em">Latest Test Results <span style="color:var(--text2);font-weight:400;text-transform:none;letter-spacing:0">(May 17, 2026 — 10:30 AM)</span></p>
-          <table class="profile-tbl">
-            <tr><td style="color:var(--text2)">Free Chlorine</td><td style="color:var(--green)">3.0 ppm ✓</td></tr>
-            <tr><td style="color:var(--text2)">Combined Chlorine</td><td style="color:var(--green)">0.0 ppm ✓</td></tr>
-            <tr><td style="color:var(--text2)">pH</td><td style="color:var(--red)">7.9 ⚠ HIGH</td></tr>
-            <tr><td style="color:var(--text2)">Total Alkalinity</td><td style="color:var(--green)">90 ppm ✓</td></tr>
-            <tr><td style="color:var(--text2)">CYA (Stabilizer)</td><td style="color:var(--green)">45 ppm ✓</td></tr>
-            <tr><td style="color:var(--text2)">Calcium Hardness</td><td style="color:var(--green)">250 ppm ✓</td></tr>
-          </table>
-          <div class="history-preview">
-            <p class="hp-title">Last 30 Days — Recent Activity</p>
-            <div class="hp-row"><div class="hp-dot test"></div><div class="hp-desc">Water test logged</div><div class="hp-date">Today</div></div>
-            <div class="hp-row"><div class="hp-dot chemical"></div><div class="hp-desc">Added 1 gal Liquid Chlorine (10%)</div><div class="hp-date">Yesterday</div></div>
-            <div class="hp-row"><div class="hp-dot test"></div><div class="hp-desc">Water test — all params in range</div><div class="hp-date">May 14</div></div>
-            <div class="hp-row"><div class="hp-dot chemical"></div><div class="hp-desc">Added 1 lb Cyanuric Acid (stabilizer)</div><div class="hp-date">May 13</div></div>
-            <div class="hp-row"><div class="hp-dot issue"></div><div class="hp-desc">Issue: Pool cloudy after party — photo attached</div><div class="hp-date">May 12</div></div>
-          </div>
-        </div>
+        <div id="share-preview"></div>
       </div>
     </div>
 
@@ -1395,6 +1364,7 @@ function navigate(page) {
     if (page === 'dashboard') renderDashboard();
     if (page === 'history') renderHistory();
     if (page === 'log-test') prefillLogTest();
+    if (page === 'share') renderShare();
 
     window.scrollTo(0, 0);
   };
@@ -1546,6 +1516,62 @@ function submitLogIssue(event) {
 // ══════════════════════════════════════════
 //  SHARE
 // ══════════════════════════════════════════
+
+function renderShare() {
+  const t = latestTest;
+  const score = calcHealthScore(t);
+  const generated = new Date().toLocaleDateString('en-US', {month:'long', day:'numeric', year:'numeric'});
+  const testTime = t.date.toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'}) +
+    ' — ' + t.date.toLocaleTimeString('en-US', {hour:'numeric', minute:'2-digit'});
+
+  const paramRow = (label, param, value, unit) => {
+    const s = getStatus(param, value);
+    const col = s === 'good' ? 'var(--green)' : s === 'warn' ? 'var(--yellow)' : 'var(--red)';
+    const badge = s === 'good' ? '✓' : s === 'warn' ? '⚠ HIGH' : '⚠ LOW';
+    return `<tr><td style="color:var(--text2)">${label}</td><td style="color:${col}">${value}${unit} ${badge}</td></tr>`;
+  };
+
+  const cutoff = Date.now() - 30 * 86400 * 1000;
+  const recent = historyEvents.filter(e => e.date.getTime() >= cutoff).slice(0, 8);
+  const dotClass = { test: 'test', chemical: 'chemical', issue: 'issue' };
+  const historyHTML = recent.map(ev => {
+    let desc = ev.title;
+    if (ev.type === 'chemical') desc = `Added ${ev.amount} ${ev.unit} ${ev.chemical}`;
+    if (ev.type === 'test') desc = 'Water test logged';
+    if (ev.type === 'issue') desc = `Issue: ${ev.detail.slice(0, 50)}${ev.detail.length > 50 ? '…' : ''}`;
+    return `<div class="hp-row"><div class="hp-dot ${dotClass[ev.type]}"></div><div class="hp-desc">${desc}</div><div class="hp-date">${timeAgo(ev.date)}</div></div>`;
+  }).join('');
+
+  document.getElementById('share-preview').innerHTML = `
+    <div class="preview-hdr">
+      <h2>PoolKeep Service Profile</h2>
+      <p>${mockPool.name} · ${mockUser.full} · Generated ${generated}</p>
+    </div>
+    <div class="preview-body">
+      <p style="font-size:12px;color:var(--text2);margin-bottom:16px;font-weight:600;text-transform:uppercase;letter-spacing:.05em">Pool Details</p>
+      <table class="profile-tbl">
+        <tr><td style="color:var(--text2)">Pool Name</td><td>${mockPool.name}</td></tr>
+        <tr><td style="color:var(--text2)">Volume</td><td>${mockPool.volume.toLocaleString()} gal</td></tr>
+        <tr><td style="color:var(--text2)">Type</td><td>${mockPool.type}</td></tr>
+        <tr><td style="color:var(--text2)">Surface</td><td>${mockPool.surface}</td></tr>
+        <tr><td style="color:var(--text2)">Filter</td><td>${mockPool.filter}</td></tr>
+        <tr><td style="color:var(--text2)">Pump</td><td>${mockPool.pump}</td></tr>
+      </table>
+      <p style="font-size:12px;color:var(--text2);margin:20px 0 16px;font-weight:600;text-transform:uppercase;letter-spacing:.05em">Latest Test Results <span style="color:var(--text2);font-weight:400;text-transform:none;letter-spacing:0">(${testTime})</span></p>
+      <table class="profile-tbl">
+        ${paramRow('Free Chlorine', 'fc', t.fc, ' ppm')}
+        ${paramRow('Combined Chlorine', 'cc', t.cc, ' ppm')}
+        ${paramRow('pH', 'ph', t.ph, '')}
+        ${paramRow('Total Alkalinity', 'ta', t.ta, ' ppm')}
+        ${paramRow('CYA (Stabilizer)', 'cya', t.cya, ' ppm')}
+        ${paramRow('Calcium Hardness', 'ch', t.ch, ' ppm')}
+      </table>
+      <div class="history-preview">
+        <p class="hp-title">Last 30 Days — Recent Activity</p>
+        ${historyHTML || '<div style="color:var(--text2);font-size:13px;padding:8px 0">No activity in the last 30 days.</div>'}
+      </div>
+    </div>`;
+}
 
 function copyShareLink() {
   const url = document.getElementById('share-url-input').value;
