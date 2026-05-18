@@ -505,6 +505,39 @@ select.sr-input{cursor:pointer}
 .ob-back-btn:hover{color:var(--text)}
 .ob-next-btn{min-width:120px}
 
+/* ===== CHEMICAL GUIDE ===== */
+.bg-guide{background:radial-gradient(ellipse 100% 62% at 15% 8%,rgba(255,255,255,.55) 0%,transparent 50%),radial-gradient(ellipse 58% 44% at 84% 54%,rgba(255,255,255,.36) 0%,transparent 44%),linear-gradient(170deg,#eaf6ff 0%,#bcdff8 28%,#78bce8 58%,#3a90cc 100%)}
+.dark .bg-guide{background:radial-gradient(ellipse 96% 60% at 12% 6%,rgba(0,120,184,.1) 0%,transparent 48%),linear-gradient(170deg,#0a1c2e 0%,#0d2340 28%,#102c50 58%,#0c2545 100%)}
+.guide-seq{background:linear-gradient(135deg,var(--pool-deep),#005A8A);border-radius:14px;padding:18px;margin-bottom:18px;color:#fff}
+.guide-seq-title{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:rgba(255,255,255,.6);margin-bottom:12px}
+.guide-seq-steps{display:flex;align-items:center;flex-wrap:wrap;gap:4px}
+.guide-seq-step{background:rgba(255,255,255,.12);border-radius:8px;padding:5px 10px;font-size:12px;font-weight:600;white-space:nowrap}
+.guide-seq-arrow{color:rgba(255,255,255,.4);font-size:13px}
+.guide-seq-warn{background:rgba(245,166,35,.25);border:1px solid rgba(245,166,35,.4);border-radius:8px;padding:8px 12px;margin-top:10px;font-size:12px;color:#FFD070;display:flex;gap:7px;align-items:flex-start}
+.guide-chem{background:var(--card);border-radius:14px;border:1px solid var(--border);margin-bottom:10px;overflow:hidden}
+.guide-chem-hdr{display:flex;align-items:center;gap:12px;padding:14px 16px;cursor:pointer;user-select:none}
+.guide-chem-hdr:hover{background:var(--surface)}
+.guide-chem-icon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.guide-chem-name{font-size:14px;font-weight:700;color:var(--text)}
+.guide-chem-sub{font-size:11px;color:var(--text3);margin-top:1px}
+.guide-chem-body{display:none;padding:0 16px 16px;border-top:1px solid var(--border)}
+.guide-chem-body.open{display:block}
+.guide-section{margin-top:14px}
+.guide-section-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);margin-bottom:8px}
+.guide-step{display:flex;gap:10px;margin-bottom:8px;align-items:flex-start}
+.guide-step-num{width:22px;height:22px;border-radius:50%;background:var(--pool-blue-dark);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.guide-step-text{font-size:13px;color:var(--text);line-height:1.5}
+.guide-step-text strong{color:var(--text);font-weight:600}
+.guide-safety-item{display:flex;gap:8px;align-items:flex-start;background:#FFF0F2;border-radius:8px;padding:8px 10px;margin-bottom:6px;font-size:12px;color:#8B1A2A;line-height:1.45}
+.guide-info-row{display:flex;gap:8px;align-items:flex-start;background:var(--surface);border-radius:8px;padding:8px 10px;margin-bottom:6px;font-size:12px;color:var(--text2);line-height:1.45}
+.guide-vs{background:rgba(0,168,240,.07);border:1px solid rgba(0,168,240,.15);border-radius:10px;padding:10px 12px;font-size:12px;color:var(--text);line-height:1.55}
+.guide-stock-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:8px}
+.guide-stock-item{background:var(--surface);border-radius:8px;padding:8px 10px;font-size:12px}
+.guide-stock-name{font-weight:600;color:var(--text);margin-bottom:2px}
+.guide-stock-qty{color:var(--text2)}
+.climate-tips-card{border-radius:12px;padding:14px;margin-bottom:18px;border:1px solid}
+.guide-filter{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+
 /* ===== COSTS PAGE ===== */
 .bg-costs{background:radial-gradient(ellipse 95% 62% at 14% 8%,rgba(255,255,255,.55) 0%,transparent 50%),radial-gradient(ellipse 60% 45% at 85% 50%,rgba(255,255,255,.38) 0%,transparent 44%),linear-gradient(170deg,#f5f9ff 0%,#d8eaf8 28%,#a8ccf0 58%,#7aaee4 100%)}
 .dark .bg-costs{background:radial-gradient(ellipse 92% 60% at 12% 6%,rgba(0,100,200,.1) 0%,transparent 48%),linear-gradient(170deg,#0a1c2e 0%,#0d2340 28%,#102c50 58%,#0c2545 100%)}
@@ -823,6 +856,9 @@ select.sr-input{cursor:pointer}
       </div>
       <div class="sb-item" id="sb-shock" onclick="navigate('shock')">
         <i class="ti ti-flask"></i> Shock &amp; Acid
+      </div>
+      <div class="sb-item" id="sb-guide" onclick="navigate('guide')">
+        <i class="ti ti-book-2"></i> Chem Guide
       </div>
       <div class="sb-item" id="sb-share" onclick="navigate('share')">
         <i class="ti ti-share"></i> Share with Pro
@@ -1323,6 +1359,33 @@ select.sr-input{cursor:pointer}
       </div>
 
       <p style="text-align:center;color:var(--text3);font-size:12px;margin-top:24px">PoolKeep v1.0 · 30-day money-back guarantee</p>
+    </div>
+
+    <!-- ─── CHEM GUIDE ─── -->
+    <div id="page-guide" class="page">
+      <div class="page-head"><div class="page-title">Chemical Guide</div></div>
+      <div id="guide-climate-card"></div>
+      <div class="guide-seq">
+        <div class="guide-seq-title">Correct Order of Addition</div>
+        <div class="guide-seq-steps">
+          <span class="guide-seq-step">1. Test Water</span>
+          <span class="guide-seq-arrow">→</span>
+          <span class="guide-seq-step">2. Adjust TA</span>
+          <span class="guide-seq-arrow">→</span>
+          <span class="guide-seq-step">3. Adjust pH</span>
+          <span class="guide-seq-arrow">→</span>
+          <span class="guide-seq-step">4. Add Chlorine</span>
+          <span class="guide-seq-arrow">→</span>
+          <span class="guide-seq-step">5. CYA (skimmer)</span>
+          <span class="guide-seq-arrow">→</span>
+          <span class="guide-seq-step">6. Algaecide last</span>
+        </div>
+        <div class="guide-seq-warn">
+          <i class="ti ti-alert-triangle" style="flex-shrink:0;margin-top:1px"></i>
+          <span><strong>Critical timing:</strong> Wait 30 min between each chemical. After muriatic acid, wait a full 30 min before adding any chlorine — adding them together creates toxic chlorine gas. Always shock at dusk. Add algaecide only after FC drops below 5 ppm. Never add two chemicals simultaneously.</span>
+        </div>
+      </div>
+      <div id="guide-list"></div>
     </div>
 
     <!-- ─── INVENTORY ─── -->
@@ -2050,7 +2113,7 @@ function setHistoryFilter(filter, el) {
 //  NAVIGATION
 // ══════════════════════════════════════════
 
-const BG_PAGES = ['dashboard','history','log-test','log-chemical','log-issue','calc','shock','share','settings','costs','inventory'];
+const BG_PAGES = ['dashboard','history','log-test','log-chemical','log-issue','calc','shock','share','settings','costs','inventory','guide'];
 
 function applyPageBg(page) {
   const mc = document.querySelector('.main-content');
@@ -2060,7 +2123,7 @@ function applyPageBg(page) {
   if (BG_PAGES.includes(page)) mc.classList.add('bg-' + page);
 }
 
-const pages = ['dashboard','history','log-test','log-chemical','log-issue','calc','shock','share','settings','costs','inventory'];
+const pages = ['dashboard','history','log-test','log-chemical','log-issue','calc','shock','share','settings','costs','inventory','guide'];
 const navIds = ['dashboard','history','share','pro'];
 
 function navigate(page) {
@@ -2099,6 +2162,7 @@ function navigate(page) {
     if (page === 'shock') renderShock();
     if (page === 'costs') renderCosts();
     if (page === 'inventory') renderInventory();
+    if (page === 'guide') renderGuide();
     if (page === 'settings') updateClimateUI();
 
     window.scrollTo(0, 0);
@@ -2880,6 +2944,262 @@ function showToast(msg, type) {
 // ══════════════════════════════════════════
 
 const mockNotifs = { testEmail: true, testSms: true, maintEmail: true, maintSms: false };
+
+// ══════════════════════════════════════════
+//  CHEMICAL GUIDE
+// ══════════════════════════════════════════
+
+const CHEM_GUIDE = [
+  {
+    id:'liquid-cl', name:'Liquid Chlorine', sub:'Sodium Hypochlorite · 10–12%',
+    icon:'💧', bg:'rgba(0,168,240,.12)', color:'#0078B8',
+    tagline:'Primary sanitizer — fast-acting, no residue, no CYA added',
+    safety:['Wear chemical-resistant gloves and eye protection when handling.','Never mix with other chemicals — can release toxic chlorine gas.','Keep away from heat sources and direct sunlight; vapors are irritating.'],
+    process:[
+      {s:'Measure',t:'Use the Dosage Calculator to get ounces needed based on your pool volume and current FC reading.'},
+      {s:'Time it right',t:'Add chlorine in the <strong>evening or after sunset</strong>. UV destroys free chlorine — adding it at dusk gives it the whole night to work.'},
+      {s:'Check pH first',t:'If you adjusted pH with muriatic acid, <strong>wait at least 30 minutes</strong> before adding chlorine.'},
+      {s:'Pour at returns',t:'With the pump running, pour liquid chlorine slowly in front of the return jets. This distributes it evenly without splashing.'},
+      {s:'Circulate',t:'Run the pump for at least 2–4 hours after adding. Wait 30 minutes before swimming.'},
+      {s:'Retest',t:'Test FC the next morning to confirm it reached target level.'},
+    ],
+    timing:'Add in the evening. Wait 30 min after any pH adjustment. Never add at same time as other chemicals.',
+    storage:'Cool, dark location (basement/garage). Shelf life 1–2 years if stored properly. Never store near acid products. Do not seal in airtight containers — off-gasses slightly.',
+    vs:'<strong>Liquid vs. Powder Chlorine:</strong> Liquid (sodium hypochlorite) acts within 1–2 hours and leaves no residue, but doesn\'t last as long in sunlight and has a shorter shelf life. Granular cal-hypo shock acts within 4–8 hours, stores longer, but raises calcium hardness over time. For regular weekly dosing, liquid is preferred — fast, clean, no buildup.',
+    sub_chem:'No liquid chlorine? Use granular cal-hypo shock at ~60% of the liquid dose, dissolved in a bucket first. Trichlor tablets work short-term but add CYA with every dose — watch CYA levels if using tablets regularly.',
+    stock:'Hot climate: 4–5 gal on hand (1–2 week supply). Temperate: 2–3 gal. Cool: 1–2 gal.',
+  },
+  {
+    id:'cal-hypo', name:'Shock / Cal-Hypo', sub:'Calcium Hypochlorite · 65–73%',
+    icon:'⚡', bg:'rgba(245,166,35,.12)', color:'#C87000',
+    tagline:'High-dose oxidizer — clears algae, breaks chloramine, opens season',
+    safety:['Always add shock to water — never water to shock. Add to a bucket of pool water first, then pour.','Never add directly to skimmer or near vinyl liner without pre-dissolving.','Do not mix with liquid chlorine or other oxidizers — fire hazard.'],
+    process:[
+      {s:'Dissolve first',t:'Fill a 5-gallon bucket with pool water. Slowly add the measured amount of shock granules while stirring. <strong>Never pour dry granules directly into the pool</strong> — they can bleach liners and plaster.'},
+      {s:'Measure dose',t:'Standard weekly shock: 1 lb per 10,000 gal. For algae treatment or opening: 2–3 lbs per 10,000 gal. Use the calculator for precision.'},
+      {s:'Shock at dusk',t:'Shock in the <strong>evening only</strong>. UV destroys up to 50% of cal-hypo within hours in direct sunlight.'},
+      {s:'Pour around perimeter',t:'Slowly walk the perimeter of the pool, pouring the dissolved solution evenly. Avoid pouring in one spot.'},
+      {s:'Circulate overnight',t:'Run the pump overnight (8+ hours). Brush pool walls and floor after shocking to break up algae.'},
+      {s:'Wait before swimming',t:'Test next morning. FC must be below 5 ppm before it\'s safe to swim.'},
+    ],
+    timing:'Evening only. Do not shock in direct sunlight. Do not add algaecide until FC drops below 5 ppm after shocking.',
+    storage:'Dry, sealed container. Keep away from liquids, acids, and heat sources. Shelf life 3–5 years if kept dry. Never store near liquid chlorine.',
+    vs:'<strong>Cal-Hypo vs. Liquid Chlorine:</strong> Cal-hypo is more concentrated (65–73% vs 10–12%) and stores longer, making it better for shocking. It raises calcium hardness with each use — monitor CH levels if shocking weekly. Liquid chlorine is better for routine daily/weekly dosing since it leaves no residue.',
+    sub_chem:'No cal-hypo? Use liquid chlorine at 3–4× the normal dose for a shock treatment. Sodium dichlor granules also work but add CYA — avoid if CYA is already above 60 ppm.',
+    stock:'Keep 10–15 lbs on hand. One bag usually handles a shock treatment plus extra.',
+  },
+  {
+    id:'muriatic', name:'Muriatic Acid (pH Down)', sub:'Hydrochloric Acid · 31.45%',
+    icon:'🧪', bg:'rgba(229,48,74,.1)', color:'#C0001A',
+    tagline:'Lowers pH and total alkalinity — most common pool acid',
+    safety:['<strong>Always wear acid-resistant gloves and splash-proof goggles.</strong> Muriatic acid causes severe burns.','Work in a well-ventilated area. Fumes are harmful — don\'t breathe them.','Always add acid to water, never water to acid — mixing can cause violent spattering.','<strong>CRITICAL: Never store near chlorine products.</strong> Store upright in a ventilated area, never in airtight containers (off-gasses HCl vapor).'],
+    process:[
+      {s:'Calculate dose',t:'Use the Dosage Calculator. Typical: 8 oz per 10,000 gal lowers pH by ~0.2 units. Never add more than needed to overshoot target.'},
+      {s:'Pre-dilute',t:'Fill a plastic bucket with 1 gallon of pool water. <strong>Slowly pour the acid into the water</strong> (never the reverse). Swirl gently.'},
+      {s:'Pump running',t:'Ensure the pump and filter are running. This distributes acid quickly and prevents concentrated acid from sitting on pool surfaces.'},
+      {s:'Add near deep end',t:'Walk to the deep end return jet. Pour the diluted acid slowly into the water near the return. The jet circulates it immediately.'},
+      {s:'⚠️ Wait 30 minutes',t:'<strong>Do not add chlorine or any other chemical for at least 30 minutes after adding muriatic acid.</strong> Acid + chlorine creates toxic chlorine gas.'},
+      {s:'Retest & repeat',t:'After 30 min of circulation, test pH again. If still high, add another calculated dose. Never dump large quantities at once.'},
+    ],
+    timing:'Add in the evening when possible. MANDATORY 30-minute wait before adding chlorine. Never add simultaneously with any chlorine product.',
+    storage:'Original HDPE container, upright, in a ventilated space away from chlorine. Do not seal airtight. Keep in a secondary containment tray in case of leaks.',
+    vs:'<strong>Muriatic Acid vs. Dry Acid (Sodium Bisulfate):</strong> Muriatic acid is faster-acting, cheaper per dose, and more potent. Dry acid is safer to handle and store, dissolves easily, and is better for beginners. Both achieve the same result — dry acid requires about 20% more product to achieve the same pH drop.',
+    sub_chem:'No muriatic acid? Sodium bisulfate (dry acid) is the direct substitute — use 1.2× the muriatic dose. No dry acid either? If pH is only slightly high (above 7.8), you can sometimes let it drop naturally through CO₂ outgassing, or add CO₂ via aeration — though this is slow.',
+    stock:'2 gallons muriatic acid OR 10 lbs dry acid. Hot/high-evaporation climates may need twice this monthly.',
+  },
+  {
+    id:'ph-up', name:'pH Up', sub:'Soda Ash · Sodium Carbonate',
+    icon:'⬆️', bg:'rgba(29,184,105,.1)', color:'#0E7A3A',
+    tagline:'Raises pH — use when pH drops below 7.4',
+    safety:['Wear gloves and eye protection — soda ash is a mild irritant.','Pre-dissolve before adding to avoid cloudy water.'],
+    process:[
+      {s:'Calculate dose',t:'About 6 oz of soda ash per 10,000 gal raises pH by ~0.2 units. Use less than you think — easier to add more than to fix an overshoot.'},
+      {s:'Pre-dissolve',t:'Mix the measured amount in a bucket of pool water until fully dissolved. It may take 1–2 minutes of stirring.'},
+      {s:'Add at returns',t:'With pump running, pour the dissolved solution in front of a return jet. May cause temporary cloudiness — this is normal and clears within hours.'},
+      {s:'Wait and retest',t:'Wait 30 minutes of active circulation, then retest. pH rises can take time to stabilize fully.'},
+    ],
+    timing:'Any time of day. Wait 30 min before testing again. Wait 30 min before adding other chemicals.',
+    storage:'Dry, sealed container. Shelf life is several years. Absorbs moisture over time — keep lid tight.',
+    vs:'<strong>Soda Ash vs. Borax (20 Mule Team):</strong> Soda ash raises pH more efficiently but also raises total alkalinity. Borax raises pH with much less TA impact — useful when your TA is already in range but pH is low. Baking soda (sodium bicarbonate) raises TA more than pH — use it for TA adjustment, not pH.',
+    sub_chem:'No soda ash? Borax works — use about 20% more product. Baking soda can nudge pH up slightly but primarily raises alkalinity. In a pinch, aerating the water vigorously (waterfall, spa jets, fountains) naturally raises pH by off-gassing CO₂.',
+    stock:'5 lbs on hand. A little goes a long way.',
+  },
+  {
+    id:'alk-up', name:'Alkalinity Up', sub:'Sodium Bicarbonate · Baking Soda',
+    icon:'🛡️', bg:'rgba(0,168,240,.1)', color:'#005A8A',
+    tagline:'Raises total alkalinity — stabilizes pH swings',
+    safety:['Very safe to handle. Mild irritant — avoid getting in eyes.'],
+    process:[
+      {s:'Calculate dose',t:'1.5 lbs per 10,000 gal raises TA by ~10 ppm. If you need a large increase (30+ ppm), split into 2–3 doses over multiple days to avoid overshooting.'},
+      {s:'Pre-dissolve',t:'Dissolve in a bucket of pool water before adding — speeds up distribution and prevents any white residue on pool surfaces.'},
+      {s:'Broadcast at returns',t:'Pour slowly in front of return jets with the pump running. Walk around the perimeter for large doses.'},
+      {s:'Circulate and retest',t:'Run pump for 4+ hours, then retest TA. Add another dose if needed.'},
+    ],
+    timing:'Any time of day. No special timing restrictions. Wait 4+ hours before retesting.',
+    storage:'Dry, sealed container. Shelf life indefinite if kept dry. Plain grocery-store baking soda is chemically identical and often cheaper — works perfectly.',
+    vs:'<strong>Pool Alkalinity Up vs. Baking Soda from the grocery store:</strong> They are the same chemical — sodium bicarbonate. The pool-branded version typically costs 3–5× more per pound. Buy baking soda in bulk (10–15 lb bags at a warehouse store) for significant savings.',
+    sub_chem:'Pool alkalinity product and grocery baking soda are interchangeable 1:1. No substitution needed — they\'re identical.',
+    stock:'10 lbs on hand. Consider buying in bulk — it\'s inexpensive and you\'ll use it regularly.',
+  },
+  {
+    id:'cya', name:'Stabilizer / CYA', sub:'Cyanuric Acid',
+    icon:'🔒', bg:'rgba(0,224,176,.1)', color:'#007A60',
+    tagline:'Protects chlorine from UV — essential for outdoor pools',
+    safety:['Wear gloves and a dust mask when handling granular CYA — fine dust is irritating.','Do not over-stabilize: CYA above 80 ppm "locks" chlorine and makes it ineffective.'],
+    process:[
+      {s:'Measure dose',t:'13 oz per 10,000 gal raises CYA by ~10 ppm. Add slowly — CYA is hard to remove once added (only dilution by partial drain works).'},
+      {s:'Dissolve in warm water',t:'CYA dissolves slowly. Add granules to a bucket of warm pool water and stir for several minutes until mostly dissolved.'},
+      {s:'Add through skimmer',t:'With the pump running, slowly pour the slurry into the skimmer. This pulls it into the filter for gradual dissolution over 24–48 hours.'},
+      {s:'Do not backwash',t:'<strong>Do not backwash or clean the filter for 48 hours</strong> after adding CYA through the skimmer — you\'ll wash out the dissolving granules.'},
+      {s:'Retest after 48 hours',t:'CYA takes time to fully register on test kits. Wait 48 hours before your next reading.'},
+    ],
+    timing:'Add through skimmer only. No timing restrictions vs. other chemicals. Do not backwash for 48 hours.',
+    storage:'Keep dry. Original container, sealed. CYA is stable indefinitely if kept dry.',
+    vs:'<strong>Standalone CYA vs. CYA in trichlor/dichlor tablets:</strong> Trichlor and dichlor tablets add a small amount of CYA with every dose — convenient, but CYA accumulates over the season. If your CYA is already at 70–80 ppm mid-season and you\'re still using tablets, you may need a partial drain. Using liquid chlorine + separate CYA gives you precise control.',
+    sub_chem:'No CYA substitute exists — it\'s unique. If you run out and CYA is low, temporarily increase your chlorine dose to compensate for UV loss, and restock CYA promptly. Switching to dichlor tablets temporarily will slowly raise CYA as a side effect.',
+    stock:'5 lbs. Add at season start, then top up only when testing shows levels below 30 ppm.',
+  },
+  {
+    id:'calcium', name:'Calcium Hardness Up', sub:'Calcium Chloride',
+    icon:'💎', bg:'rgba(139,170,187,.15)', color:'#3D6070',
+    tagline:'Prevents plaster etching and equipment corrosion — target 200–400 ppm',
+    safety:['Dissolving calcium chloride generates significant heat — the bucket will get hot. This is normal.','Wear gloves — the heat and alkalinity can irritate skin.','Pre-dissolve always; never add directly to pool.'],
+    process:[
+      {s:'Calculate dose',t:'2 oz per 10,000 gal raises calcium hardness by ~10 ppm. Add in multiple doses if raising more than 50 ppm at once.'},
+      {s:'Pre-dissolve (it gets hot)',t:'Add measured calcium chloride to a large bucket of pool water. It will heat up significantly — stir carefully until dissolved. Let it cool for a few minutes.'},
+      {s:'Add at deep end',t:'With pump running, pour cooled solution slowly around the perimeter of the deep end. Avoid pouring in one concentrated spot.'},
+      {s:'Circulate 4+ hours',t:'Run the pump for at least 4 hours before retesting. Calcium takes time to fully distribute.'},
+    ],
+    timing:'Any time of day. No special timing restrictions. Allow 4 hours of circulation before retesting.',
+    storage:'Keep dry and sealed — calcium chloride aggressively absorbs moisture from air and will clump. Once opened, use promptly or reseal tightly.',
+    vs:'<strong>High calcium:</strong> If calcium is too high (above 500 ppm), the only solution is dilution — drain 20–30% of pool water and refill with fresh water. There is no chemical to lower calcium hardness.',
+    sub_chem:'No direct substitute. If mildly low (150–200 ppm), you can operate safely short-term with careful pH management to protect surfaces. Restock promptly if below 150 ppm — low calcium aggressively etches plaster and corrodes metal fittings.',
+    stock:'5 lbs. Needed mostly at season opening or after significant water changes.',
+  },
+  {
+    id:'algaecide', name:'Algaecide', sub:'Quaternary Ammonium or Polyquat',
+    icon:'🌿', bg:'rgba(29,184,105,.1)', color:'#0E7A3A',
+    tagline:'Kills and prevents algae — use after shocking, not instead of it',
+    safety:['Some algaecides foam heavily — use non-foaming polyquat types for pools with jets or waterfalls.','Do not use copper-based algaecide in pools with light-colored plaster — can cause staining.'],
+    process:[
+      {s:'Shock first',t:'<strong>Always shock the pool before applying algaecide.</strong> Algaecide is a preventative, not a primary treatment. High chlorine makes it far more effective.'},
+      {s:'Wait for FC to drop',t:'After shocking, wait until FC drops below 5 ppm (usually 12–24 hours) before adding algaecide. High chlorine destroys algaecide instantly.'},
+      {s:'Measure dose',t:'Maintenance dose: follow label for your pool volume (typically 1–2 oz per 10,000 gal weekly). Treatment dose: 2–4× the maintenance amount.'},
+      {s:'Pour around perimeter',t:'With the pump running, slowly pour algaecide around the pool perimeter. No need to pre-dilute.'},
+      {s:'Circulate',t:'Run pump for 2+ hours after adding. Brush pool surfaces to expose algae cells to the algaecide.'},
+    ],
+    timing:'Add AFTER chlorine drops below 5 ppm post-shock. Weekly for maintenance, or after rain events and heavy use.',
+    storage:'Original container at room temperature. Most algaecides are stable for 2–3 years.',
+    vs:'<strong>Quaternary ammonium (quat) vs. Polyquat:</strong> Quat algaecides are cheaper but foam and can leave a film at high doses. Polyquat algaecides (e.g., PoolRx, BioGuard) are non-foaming, more effective, and worth the extra cost for pools with spa jets or spillovers.',
+    sub_chem:'Out of algaecide? Maintain FC at the high end of the target range (4–5 ppm) and keep CYA in range — this alone prevents most algae. Algaecide is a complement to proper chlorine maintenance, not a replacement.',
+    stock:'32–64 oz of polyquat algaecide. One bottle typically lasts a full season at maintenance doses.',
+  },
+];
+
+const STOCK_REC = [
+  { name:'Liquid Chlorine',      hot:'4–5 gal',  temp:'2–3 gal', cold:'1–2 gal' },
+  { name:'Cal-Hypo Shock',       hot:'15 lbs',   temp:'10 lbs',  cold:'10 lbs'  },
+  { name:'Muriatic Acid',        hot:'2 gal',    temp:'1 gal',   cold:'½ gal'   },
+  { name:'pH Up (Soda Ash)',     hot:'5 lbs',    temp:'5 lbs',   cold:'5 lbs'   },
+  { name:'Alkalinity Up',        hot:'10 lbs',   temp:'10 lbs',  cold:'10 lbs'  },
+  { name:'CYA / Stabilizer',     hot:'5 lbs',    temp:'5 lbs',   cold:'5 lbs'   },
+  { name:'Calcium Hardness',     hot:'5 lbs',    temp:'5 lbs',   cold:'5 lbs'   },
+  { name:'Polyquat Algaecide',   hot:'64 oz',    temp:'32 oz',   cold:'32 oz'   },
+  { name:'Test Kit Reagents',    hot:'Fresh set',temp:'Fresh set',cold:'Fresh set'},
+];
+
+function renderGuide() {
+  const climate = getClimate();
+  const cc = document.getElementById('guide-climate-card');
+  if (cc) {
+    cc.innerHTML = `<div class="climate-tips-card" style="background:${climate.color}18;border-color:${climate.color}40;margin-bottom:18px">
+      <div style="font-size:13px;font-weight:700;color:${climate.color};margin-bottom:8px">${climate.icon} ${climate.label} Tips — ${mockUser.location || 'Your Area'}</div>
+      ${climate.tips.map(t=>`<div style="font-size:12px;color:var(--text);margin-bottom:5px;padding-left:4px;line-height:1.5">• ${t}</div>`).join('')}
+    </div>`;
+  }
+
+  const zone = climate.zone;
+  const stockKey = zone === 'hot' ? 'hot' : zone === 'cold' ? 'cold' : 'temp';
+
+  document.getElementById('guide-list').innerHTML =
+    CHEM_GUIDE.map(c => `
+      <div class="guide-chem" id="gc-${c.id}">
+        <div class="guide-chem-hdr" onclick="toggleGuide('${c.id}')">
+          <div class="guide-chem-icon" style="background:${c.bg}">${c.icon}</div>
+          <div style="flex:1">
+            <div class="guide-chem-name">${c.name}</div>
+            <div class="guide-chem-sub">${c.sub}</div>
+          </div>
+          <i class="ti ti-chevron-down" id="gc-arrow-${c.id}" style="color:var(--text3);transition:transform .2s"></i>
+        </div>
+        <div class="guide-chem-body" id="gc-body-${c.id}">
+          <div style="font-size:13px;color:var(--text2);font-style:italic;padding:10px 0 2px">${c.tagline}</div>
+
+          ${c.safety.length ? `<div class="guide-section">
+            <div class="guide-section-title"><i class="ti ti-shield-exclamation" style="margin-right:4px"></i>Safety First</div>
+            ${c.safety.map(s=>`<div class="guide-safety-item"><i class="ti ti-alert-triangle" style="flex-shrink:0;margin-top:1px"></i><span>${s}</span></div>`).join('')}
+          </div>` : ''}
+
+          <div class="guide-section">
+            <div class="guide-section-title"><i class="ti ti-list-numbers" style="margin-right:4px"></i>Step-by-Step Process</div>
+            ${c.process.map((p,i)=>`<div class="guide-step"><div class="guide-step-num">${i+1}</div><div class="guide-step-text"><strong>${p.s}:</strong> ${p.t}</div></div>`).join('')}
+          </div>
+
+          <div class="guide-section">
+            <div class="guide-section-title"><i class="ti ti-clock" style="margin-right:4px"></i>Timing</div>
+            <div class="guide-info-row"><i class="ti ti-info-circle" style="flex-shrink:0"></i><span>${c.timing}</span></div>
+          </div>
+
+          <div class="guide-section">
+            <div class="guide-section-title"><i class="ti ti-box" style="margin-right:4px"></i>Storage</div>
+            <div class="guide-info-row"><i class="ti ti-info-circle" style="flex-shrink:0"></i><span>${c.storage}</span></div>
+          </div>
+
+          <div class="guide-section">
+            <div class="guide-section-title"><i class="ti ti-switch-horizontal" style="margin-right:4px"></i>Comparisons &amp; Alternatives</div>
+            <div class="guide-vs">${c.vs}</div>
+          </div>
+
+          <div class="guide-section">
+            <div class="guide-section-title"><i class="ti ti-replace" style="margin-right:4px"></i>If You Don't Have It</div>
+            <div class="guide-info-row"><i class="ti ti-bulb" style="flex-shrink:0"></i><span>${c.sub_chem}</span></div>
+          </div>
+
+          <div class="guide-section">
+            <div class="guide-section-title"><i class="ti ti-shopping-cart" style="margin-right:4px"></i>Recommended Stock (${climate.label})</div>
+            <div class="guide-info-row"><i class="ti ti-package" style="flex-shrink:0"></i><span>${c.stock}</span></div>
+          </div>
+        </div>
+      </div>`).join('') +
+
+    `<div class="guide-chem" id="gc-stock">
+      <div class="guide-chem-hdr" onclick="toggleGuide('stock')">
+        <div class="guide-chem-icon" style="background:rgba(0,168,240,.12)">🛒</div>
+        <div style="flex:1">
+          <div class="guide-chem-name">Recommended Starter Stock</div>
+          <div class="guide-chem-sub">What to keep on hand — adjusted for ${climate.label}</div>
+        </div>
+        <i class="ti ti-chevron-down" id="gc-arrow-stock" style="color:var(--text3);transition:transform .2s"></i>
+      </div>
+      <div class="guide-chem-body" id="gc-body-stock">
+        <div style="font-size:12px;color:var(--text2);padding:10px 0 6px">Based on a 15,000 gal pool in a <strong style="color:${climate.color}">${climate.label}</strong>. Adjust proportionally for your pool size.</div>
+        <div class="guide-stock-grid">
+          ${STOCK_REC.map(r=>`<div class="guide-stock-item">
+            <div class="guide-stock-name">${r.name}</div>
+            <div class="guide-stock-qty">${r[stockKey]}</div>
+          </div>`).join('')}
+        </div>
+      </div>
+    </div>`;
+}
+
+function toggleGuide(id) {
+  const body  = document.getElementById('gc-body-' + id);
+  const arrow = document.getElementById('gc-arrow-' + id);
+  if (!body) return;
+  const open = body.classList.toggle('open');
+  if (arrow) arrow.style.transform = open ? 'rotate(180deg)' : '';
+}
 
 let invNextId = 8;
 const mockInventory = [
