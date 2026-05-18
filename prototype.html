@@ -1685,10 +1685,11 @@ function renderDashboard() {
     const col = statusColor(s);
     const pct = getBarPercent(c.key, c.value);
     return `
-      <div class="stat-card ${s}">
+      <div class="stat-card ${s}" onclick="openParamChart('${c.key}')" style="cursor:pointer" title="Tap to see ${c.label} trend">
         <div class="sc-label">
           <div class="status-dot" style="background:${col}"></div>
           ${c.label}
+          <i class="ti ti-chevron-right" style="margin-left:auto;font-size:10px;color:var(--text3)"></i>
         </div>
         <div class="sc-val">${c.value}<span class="sc-unit">${c.unit ? ' ' + c.unit : ''}</span></div>
         <div class="sc-bar-wrap">
