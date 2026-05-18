@@ -913,6 +913,99 @@ select.sr-input{cursor:pointer}
       <div id="calc-cards"></div>
     </div>
 
+    <!-- ─── SHOCK & ACID ─── -->
+    <div id="page-shock" class="page">
+      <div class="page-head">
+        <div class="page-title">Shock &amp; Acid Guide</div>
+        <div class="page-sub">Calculated doses with timing, safe handling, and storage rules.</div>
+      </div>
+
+      <!-- Storage warning -->
+      <div class="safety-banner danger-banner">
+        <div class="safety-banner-icon">🚫</div>
+        <div>
+          <div class="safety-banner-title">Critical Storage Warning</div>
+          <div class="safety-banner-text">NEVER store chlorine shock and muriatic acid near each other. They react to produce toxic chlorine gas. Keep in separate, ventilated locations — minimum 10 feet apart. Never reuse containers or mix leftover chemicals.</div>
+        </div>
+      </div>
+
+      <!-- Shock Section -->
+      <div class="guide-section">
+        <div class="guide-section-head">
+          <span class="guide-section-icon" style="background:rgba(0,168,240,.1)">☁️</span>
+          <div>
+            <div class="guide-section-title">Pool Shock</div>
+            <div class="guide-section-sub">Eliminates chloramines · restores water clarity</div>
+          </div>
+        </div>
+        <div class="calc-inputs" style="margin-bottom:12px">
+          <div class="calc-field">
+            <span class="calc-lbl">Current FC</span>
+            <input class="calc-inp" id="shock-fc" type="number" step="0.5" min="0" max="20" placeholder="3.0" oninput="updateShock()">
+          </div>
+          <div class="calc-arrow-col" style="padding-bottom:8px">+</div>
+          <div class="calc-field">
+            <span class="calc-lbl">Current CC</span>
+            <input class="calc-inp" id="shock-cc" type="number" step="0.1" min="0" max="10" placeholder="0.0" oninput="updateShock()">
+          </div>
+        </div>
+        <div class="calc-result" id="shock-result"><span class="calc-hint">Enter FC and CC values above</span></div>
+        <div class="guide-steps">
+          <div class="guide-step-title">Timing &amp; Method</div>
+          <div class="guide-step">⏰ Always shock at <strong>dusk or night</strong> — UV destroys chlorine rapidly</div>
+          <div class="guide-step">💧 Pre-dissolve granular shock in a bucket of pool water first</div>
+          <div class="guide-step">🔄 Run pump continuously for <strong>at least 8 hours</strong></div>
+          <div class="guide-step">⏳ Wait until FC drops to <strong>4–6 ppm</strong> before swimming (24–48 hours)</div>
+          <div class="guide-step">🧪 Retest water within <strong>24 hours</strong></div>
+        </div>
+        <div class="safety-banner warn-banner" style="margin:14px 0 0">
+          <div class="safety-banner-icon">🧤</div>
+          <div>
+            <div class="safety-banner-title">Safe Handling — Shock</div>
+            <div class="safety-banner-text">Wear chemical-resistant gloves and splash-proof goggles. Never mix different shock brands or types. Never add to skimmer. Keep away from heat, flame, and direct sunlight. Store in original container in a cool, dry place.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Acid Section -->
+      <div class="guide-section">
+        <div class="guide-section-head">
+          <span class="guide-section-icon" style="background:rgba(229,48,74,.1)">🧪</span>
+          <div>
+            <div class="guide-section-title">Muriatic Acid</div>
+            <div class="guide-section-sub">Lowers pH and total alkalinity</div>
+          </div>
+        </div>
+        <div class="calc-inputs" style="margin-bottom:12px">
+          <div class="calc-field">
+            <span class="calc-lbl">Current pH</span>
+            <input class="calc-inp" id="acid-ph-cur" type="number" step="0.1" min="6" max="9" placeholder="7.9" oninput="updateAcid()">
+          </div>
+          <div class="calc-arrow-col" style="padding-bottom:8px">→</div>
+          <div class="calc-field">
+            <span class="calc-lbl">Target pH</span>
+            <input class="calc-inp" id="acid-ph-tgt" type="number" step="0.1" min="6" max="9" placeholder="7.5" oninput="updateAcid()">
+          </div>
+        </div>
+        <div class="calc-result" id="acid-result"><span class="calc-hint">Enter current and target pH values</span></div>
+        <div class="guide-steps">
+          <div class="guide-step-title">Timing &amp; Method</div>
+          <div class="guide-step">⏰ Add at <strong>dusk</strong> — acid reacts faster in warmer sun-heated pools</div>
+          <div class="guide-step">💧 Pour slowly around the perimeter while walking — never dump in one spot</div>
+          <div class="guide-step">🔄 Keep pump running for <strong>at least 4 hours</strong> after adding</div>
+          <div class="guide-step">⏳ Wait <strong>4 hours minimum</strong> before swimming</div>
+          <div class="guide-step">🧪 Retest pH after <strong>4–6 hours</strong></div>
+        </div>
+        <div class="safety-banner warn-banner" style="margin:14px 0 0">
+          <div class="safety-banner-icon">🧤</div>
+          <div>
+            <div class="safety-banner-title">Safe Handling — Muriatic Acid</div>
+            <div class="safety-banner-text">Wear chemical-resistant gloves and eye protection. Always add acid TO water — never water to acid. Work outdoors in a well-ventilated area — fumes are toxic. Keep away from metals and clothing. Store upright in original container, cool and dry, far from all chlorine products.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- ─── SHARE ─── -->
     <div id="page-share" class="page">
       <div class="page-head">
