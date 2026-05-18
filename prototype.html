@@ -245,6 +245,8 @@ textarea.input{resize:vertical;min-height:80px}
 .score-label-sm{font-size:11px;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px}
 .score-num{font-size:56px;font-weight:600;color:white;font-family:'DM Mono',monospace;letter-spacing:-2px;line-height:1}
 .score-tag{font-size:13px;color:var(--teal);font-weight:500;margin-top:4px;margin-bottom:4px}
+@keyframes scoreFlash{0%{transform:scale(1)}30%{transform:scale(1.18)}60%{transform:scale(0.96)}100%{transform:scale(1)}}
+.score-flash{animation:scoreFlash .5s cubic-bezier(.36,.07,.19,.97)}
 .dash-wave{display:block;width:100%}
 
 /* Stat grid — 2 columns, new card style */
@@ -1444,6 +1446,15 @@ function renderDashboard() {
   const tagEl = document.getElementById('health-score-tag');
   tagEl.textContent = getScoreLabel(score);
   tagEl.style.color = scoreColor.tag;
+
+  // Flash animation when score changes
+  const prev = parseInt(scoreEl.textContent);
+  if (prev !== score && !isNaN(prev)) {
+    scoreEl.classList.remove('score-flash');
+    void scoreEl.offsetWidth; // force reflow
+    scoreEl.classList.add('score-flash');
+    scoreEl.addEventListener('animationend', () => scoreEl.classList.remove('score-flash'), { once: true });
+  }
   const start = parseInt(scoreEl.textContent) || 0;
   const duration = 600;
   const startTime = performance.now();
