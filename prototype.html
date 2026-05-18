@@ -3058,55 +3058,116 @@ function updateCalc(param) {
 function renderShare() {
   const t = latestTest;
   const score = calcHealthScore(t);
+  const sc = getScoreColor(score);
+  const scoreLabel = getScoreLabel(score);
   const generated = new Date().toLocaleDateString('en-US', {month:'long', day:'numeric', year:'numeric'});
   const testTime = t.date.toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'}) +
-    ' — ' + t.date.toLocaleTimeString('en-US', {hour:'numeric', minute:'2-digit'});
+    ' · ' + t.date.toLocaleTimeString('en-US', {hour:'numeric', minute:'2-digit'});
+  const wx = getSimulatedWeather();
 
-  const paramRow = (label, param, value, unit) => {
+  const chemCell = (label, param, value, unit) => {
     const s = getStatus(param, value);
-    const col = s === 'good' ? 'var(--green)' : s === 'warn' ? 'var(--yellow)' : 'var(--red)';
-    const badge = s === 'good' ? '✓' : s === 'warn' ? '⚠ HIGH' : '⚠ LOW';
-    return `<tr><td style="color:var(--text2)">${label}</td><td style="color:${col}">${value}${unit} ${badge}</td></tr>`;
+    const col = s === 'good' ? '#1DB869' : s === 'warn' ? '#F5A623' : '#E5304A';
+    const badge = s === 'good' ? '✓ Good' : s === 'warn' ? '⚠ Watch' : '✗ Action';
+    return `<div style="background:#F8FBFE;border-radius:10px;padding:12px 10px;text-align:center;border:1px solid #E0EEF8">
+      <div style="font-size:11px;font-weight:700;color:#4A6A7C;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">${label}</div>
+      <div style="font-size:20px;font-weight:800;color:#0D2333;font-family:'DM Mono',monospace;margin-bottom:4px">${value}<span style="font-size:12px;font-weight:400;color:#8AAABB">${unit}</span></div>
+      <div style="font-size:11px;font-weight:700;color:${col}">${badge}</div>
+    </div>`;
   };
 
   const cutoff = Date.now() - 30 * 86400 * 1000;
-  const recent = historyEvents.filter(e => e.date.getTime() >= cutoff).slice(0, 8);
-  const dotClass = { test: 'test', chemical: 'chemical', issue: 'issue' };
+  const recent = historyEvents.filter(e => e.date.getTime() >= cutoff).slice(0, 6);
+  const evIcon = { test:'🧪', chemical:'🧴', issue:'⚠️' };
   const historyHTML = recent.map(ev => {
-    let desc = ev.title;
-    if (ev.type === 'chemical') desc = `Added ${ev.amount} ${ev.unit} ${ev.chemical}`;
-    if (ev.type === 'test') desc = 'Water test logged';
-    if (ev.type === 'issue') desc = `Issue: ${ev.detail.slice(0, 50)}${ev.detail.length > 50 ? '…' : ''}`;
-    return `<div class="hp-row"><div class="hp-dot ${dotClass[ev.type]}"></div><div class="hp-desc">${desc}</div><div class="hp-date">${timeAgo(ev.date)}</div></div>`;
+    let desc = ev.type === 'chemical' ? `Added ${ev.amount} ${ev.unit} ${ev.chemical}` :
+               ev.type === 'issue'    ? `Issue: ${ev.detail.slice(0,55)}${ev.detail.length>55?'…':''}` : 'Water test logged';
+    return `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #EEF4F8">
+      <span style="font-size:16px">${evIcon[ev.type]}</span>
+      <span style="flex:1;font-size:13px;color:#0D2333">${desc}</span>
+      <span style="font-size:12px;color:#8AAABB;white-space:nowrap">${timeAgo(ev.date)}</span>
+    </div>`;
   }).join('');
 
+  const dropletSVG = `<svg viewBox="28 8 144 175" width="32" height="39" xmlns="http://www.w3.org/2000/svg" style="vertical-align:middle;margin-right:8px">
+    <defs>
+      <linearGradient id="sh-dg" x1=".35" y1="0" x2=".65" y2="1"><stop offset="0%" stop-color="#92D5F5"/><stop offset="42%" stop-color="#3A8AC8"/><stop offset="100%" stop-color="#052C4E"/></linearGradient>
+      <radialGradient id="sh-gl" cx="42%" cy="25%" r="40%"><stop offset="0%" stop-color="#fff" stop-opacity=".5"/><stop offset="100%" stop-color="#fff" stop-opacity="0"/></radialGradient>
+      <clipPath id="sh-cp"><path d="M100 8C100 8 28 88 28 124C28 163 61 183 100 183C139 183 172 163 172 124C172 88 100 8 100 8Z"/></clipPath>
+    </defs>
+    <path d="M100 8C100 8 28 88 28 124C28 163 61 183 100 183C139 183 172 163 172 124C172 88 100 8 100 8Z" fill="url(#sh-dg)"/>
+    <path d="M100 8C100 8 28 88 28 124C28 163 61 183 100 183C139 183 172 163 172 124C172 88 100 8 100 8Z" fill="url(#sh-gl)"/>
+    <g clip-path="url(#sh-cp)" fill="none" stroke="white" stroke-linecap="round">
+      <path d="M46 145Q100 122 154 145" stroke-width="4.5" opacity=".82"/>
+      <path d="M38 160Q100 136 162 160" stroke-width="4" opacity=".62"/>
+      <path d="M50 173Q100 152 150 173" stroke-width="3.5" opacity=".42"/>
+    </g>
+  </svg>`;
+
   document.getElementById('share-preview').innerHTML = `
-    <div class="preview-hdr">
-      <h2>PoolKeep Service Profile</h2>
-      <p>${mockPool.name} · ${mockUser.full} · Generated ${generated}</p>
+    <div class="preview-hdr" style="background:#003D5C;padding:20px 24px 18px">
+      <div style="display:flex;align-items:center;margin-bottom:4px">
+        ${dropletSVG}
+        <span style="font-size:20px;font-weight:800;color:#fff;letter-spacing:-.01em">Pool<span style="font-weight:300">Keep</span></span>
+        <span style="margin-left:10px;font-size:11px;font-weight:600;color:#00E0B0;background:rgba(0,224,176,.15);border:1px solid rgba(0,224,176,.3);border-radius:20px;padding:2px 9px;letter-spacing:.03em">SERVICE PROFILE</span>
+      </div>
+      <div style="font-size:13px;color:rgba(255,255,255,.6);margin-top:4px">${mockPool.name} &nbsp;·&nbsp; ${mockUser.full} &nbsp;·&nbsp; ${generated}</div>
     </div>
+
     <div class="preview-body">
-      <p style="font-size:12px;color:var(--text2);margin-bottom:16px;font-weight:600;text-transform:uppercase;letter-spacing:.05em">Pool Details</p>
-      <table class="profile-tbl">
-        <tr><td style="color:var(--text2)">Pool Name</td><td>${mockPool.name}</td></tr>
-        <tr><td style="color:var(--text2)">Volume</td><td>${mockPool.volume.toLocaleString()} gal</td></tr>
-        <tr><td style="color:var(--text2)">Type</td><td>${mockPool.type}</td></tr>
-        <tr><td style="color:var(--text2)">Surface</td><td>${mockPool.surface}</td></tr>
-        <tr><td style="color:var(--text2)">Filter</td><td>${mockPool.filter}</td></tr>
-        <tr><td style="color:var(--text2)">Pump</td><td>${mockPool.pump}</td></tr>
-      </table>
-      <p style="font-size:12px;color:var(--text2);margin:20px 0 16px;font-weight:600;text-transform:uppercase;letter-spacing:.05em">Latest Test Results <span style="color:var(--text2);font-weight:400;text-transform:none;letter-spacing:0">(${testTime})</span></p>
-      <table class="profile-tbl">
-        ${paramRow('Free Chlorine', 'fc', t.fc, ' ppm')}
-        ${paramRow('Combined Chlorine', 'cc', t.cc, ' ppm')}
-        ${paramRow('pH', 'ph', t.ph, '')}
-        ${paramRow('Total Alkalinity', 'ta', t.ta, ' ppm')}
-        ${paramRow('CYA (Stabilizer)', 'cya', t.cya, ' ppm')}
-        ${paramRow('Calcium Hardness', 'ch', t.ch, ' ppm')}
-      </table>
-      <div class="history-preview">
-        <p class="hp-title">Last 30 Days — Recent Activity</p>
-        ${historyHTML || '<div style="color:var(--text2);font-size:13px;padding:8px 0">No activity in the last 30 days.</div>'}
+      <!-- Health Score Banner -->
+      <div style="background:linear-gradient(135deg,#003D5C,#005A8A);border-radius:12px;padding:16px 20px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between">
+        <div>
+          <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,.55);text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px">Overall Health Score</div>
+          <div style="font-size:13px;color:rgba(255,255,255,.75)">${scoreLabel} &nbsp;·&nbsp; Tested ${testTime}</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:48px;font-weight:800;color:${sc.num};font-family:'DM Mono',monospace;line-height:1">${score}</div>
+          <div style="font-size:11px;color:rgba(255,255,255,.5);margin-top:2px">out of 100</div>
+        </div>
+      </div>
+
+      <!-- Chemistry Grid -->
+      <div style="font-size:11px;font-weight:700;color:#4A6A7C;text-transform:uppercase;letter-spacing:.07em;margin-bottom:12px">Chemistry Results</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:20px">
+        ${chemCell('FC','fc',t.fc,' ppm')}
+        ${chemCell('CC','cc',t.cc,' ppm')}
+        ${chemCell('pH','ph',t.ph,'')}
+        ${chemCell('TA','ta',t.ta,' ppm')}
+        ${chemCell('CYA','cya',t.cya,' ppm')}
+        ${chemCell('CH','ch',t.ch,' ppm')}
+      </div>
+
+      <!-- Pool Details + Conditions -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px">
+        <div>
+          <div style="font-size:11px;font-weight:700;color:#4A6A7C;text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px">Pool Details</div>
+          <table class="profile-tbl" style="width:100%">
+            <tr><td style="color:#8AAABB">Volume</td><td>${mockPool.volume.toLocaleString()} gal</td></tr>
+            <tr><td style="color:#8AAABB">Type</td><td>${mockPool.type} · ${mockPool.surface}</td></tr>
+            <tr><td style="color:#8AAABB">Filter</td><td>${mockPool.filter}</td></tr>
+            <tr><td style="color:#8AAABB">Pump</td><td>${mockPool.pump}</td></tr>
+          </table>
+        </div>
+        <div>
+          <div style="font-size:11px;font-weight:700;color:#4A6A7C;text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px">Conditions</div>
+          <table class="profile-tbl" style="width:100%">
+            <tr><td style="color:#8AAABB">Location</td><td>${mockUser.location}</td></tr>
+            <tr><td style="color:#8AAABB">Climate</td><td>${wx.climateLabel}</td></tr>
+            <tr><td style="color:#8AAABB">Est. Temp</td><td>${wx.tempF}°F · UV ${wx.uvIndex}</td></tr>
+            <tr><td style="color:#8AAABB">Condition</td><td>${wx.condition}</td></tr>
+          </table>
+        </div>
+      </div>
+
+      <!-- History -->
+      <div style="font-size:11px;font-weight:700;color:#4A6A7C;text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px">Recent Activity — Last 30 Days</div>
+      ${historyHTML || '<div style="color:#8AAABB;font-size:13px;padding:8px 0">No activity in the last 30 days.</div>'}
+
+      <!-- Footer -->
+      <div style="margin-top:24px;padding-top:16px;border-top:1px solid #E0EEF8;display:flex;align-items:center;justify-content:space-between">
+        <div style="font-size:11px;color:#8AAABB">Generated by PoolKeep · poolkeep.app</div>
+        <div style="font-size:11px;color:#8AAABB">${generated}</div>
       </div>
     </div>`;
 }
