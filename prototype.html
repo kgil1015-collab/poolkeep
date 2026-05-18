@@ -362,6 +362,24 @@ select.sr-input{cursor:pointer}
 .photo-upload-mock .pu-icon{font-size:32px;margin-bottom:8px}
 .photo-upload-mock p{font-size:14px;color:var(--text2)}
 
+/* ===== CALCULATOR ===== */
+.calc-pool-row{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--text2);margin-bottom:16px}
+.calc-pool-lbl{font-weight:500}
+.calc-pool-val{color:var(--pool-blue-dark);font-weight:600;font-family:'DM Mono',monospace}
+.calc-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:12px}
+.calc-card-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.calc-param-name{font-size:15px;font-weight:700;color:var(--text)}
+.calc-ideal{font-size:11px;color:var(--text3);font-family:'DM Mono',monospace}
+.calc-inputs{display:flex;align-items:flex-end;gap:10px;margin-bottom:12px}
+.calc-field{display:flex;flex-direction:column;gap:4px;flex:1}
+.calc-lbl{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--text2)}
+.calc-inp{width:100%;box-sizing:border-box;font-family:'DM Mono',monospace;font-size:20px;font-weight:500;color:var(--text);background:var(--surface);border:1.5px solid var(--border-solid);border-radius:8px;padding:8px 10px;outline:none;transition:border-color .15s;text-align:center}
+.calc-inp:focus{border-color:var(--pool-blue-dark)}
+.calc-arrow-col{color:var(--text3);font-size:20px;padding-bottom:10px;flex-shrink:0}
+.calc-hint{font-size:13px;color:var(--text3)}
+.calc-ok{font-size:13px;color:var(--green);font-weight:500}
+.calc-dose{font-size:14px;color:var(--text);line-height:1.55;padding:10px 14px;background:rgba(0,120,184,.07);border-radius:8px;border-left:3px solid var(--pool-blue-dark)}
+
 /* ===== ONBOARDING ===== */
 #onboarding{position:fixed;inset:0;background:var(--surface);z-index:1000;display:flex;align-items:center;justify-content:center;padding:24px}
 #onboarding.hidden{display:none}
@@ -612,6 +630,9 @@ select.sr-input{cursor:pointer}
       <div class="sb-item" id="sb-history" onclick="navigate('history')">
         <i class="ti ti-history"></i> History
       </div>
+      <div class="sb-item" id="sb-calc" onclick="navigate('calc')">
+        <i class="ti ti-calculator"></i> Dosage Calc
+      </div>
       <div class="sb-item" id="sb-share" onclick="navigate('share')">
         <i class="ti ti-share"></i> Share with Pro
       </div>
@@ -683,6 +704,7 @@ select.sr-input{cursor:pointer}
       <div class="dash-quick">
         <button class="btn btn-secondary" onclick="navigate('log-test')">🧪 Log Water Test</button>
         <button class="btn btn-secondary" onclick="navigate('log-chemical')">🧴 Log Chemical</button>
+        <button class="btn btn-secondary" onclick="navigate('calc')">⚗️ Dosage Calc</button>
         <button class="btn btn-secondary btn-full" onclick="navigate('log-issue')">📸 Log Issue / Note</button>
       </div>
     </div>
@@ -844,6 +866,19 @@ select.sr-input{cursor:pointer}
           </p>
         </div>
       </form>
+    </div>
+
+    <!-- ─── CALCULATOR ─── -->
+    <div id="page-calc" class="page">
+      <div class="page-head">
+        <div class="page-title">Dosage Calculator</div>
+        <div class="page-sub">Enter your current and target values — get exact amounts to add.</div>
+      </div>
+      <div class="calc-pool-row">
+        <span class="calc-pool-lbl">Pool volume:</span>
+        <span class="calc-pool-val" id="calc-vol">15,000 gal</span>
+      </div>
+      <div id="calc-cards"></div>
     </div>
 
     <!-- ─── SHARE ─── -->
@@ -1463,7 +1498,7 @@ function setHistoryFilter(filter, el) {
 //  NAVIGATION
 // ══════════════════════════════════════════
 
-const pages = ['dashboard','history','log-test','log-chemical','log-issue','share','settings'];
+const pages = ['dashboard','history','log-test','log-chemical','log-issue','calc','share','settings'];
 const navIds = ['dashboard','history','share','pro'];
 
 function navigate(page) {
@@ -1478,7 +1513,7 @@ function navigate(page) {
     if (target) target.classList.add('active');
     state.page = page;
 
-    ['dashboard','history','share','settings'].forEach(n => {
+    ['dashboard','history','calc','share','settings'].forEach(n => {
       const sb = document.getElementById(`sb-${n}`);
       if (sb) sb.classList.toggle('active', n === page);
     });
@@ -1497,6 +1532,7 @@ function navigate(page) {
     if (page === 'history') renderHistory();
     if (page === 'log-test') prefillLogTest();
     if (page === 'share') renderShare();
+    if (page === 'calc') renderCalc();
 
     window.scrollTo(0, 0);
   };
@@ -1719,6 +1755,105 @@ function submitLogIssue(event) {
   document.getElementById('form-log-issue').reset();
   showToast('Issue logged! Consider sharing with a pro.', 'success');
   setTimeout(() => navigate('history'), 700);
+}
+
+
+// ══════════════════════════════════════════
+//  CALCULATOR
+// ══════════════════════════════════════════
+
+const CALC_PARAMS = [
+  { key:'ph',  label:'pH',               step:'0.1', min:'6',  max:'9',   ideal:'7.4–7.6',   unit:''    },
+  { key:'fc',  label:'Free Chlorine',    step:'0.5', min:'0',  max:'20',  ideal:'3–5 ppm',   unit:' ppm' },
+  { key:'ta',  label:'Total Alkalinity', step:'1',   min:'0',  max:'300', ideal:'80–120 ppm',unit:' ppm' },
+  { key:'cya', label:'CYA (Stabilizer)', step:'1',   min:'0',  max:'150', ideal:'30–50 ppm', unit:' ppm' },
+  { key:'ch',  label:'Calcium Hardness', step:'1',   min:'0',  max:'800', ideal:'250–350 ppm',unit:' ppm' },
+];
+
+function renderCalc() {
+  const volEl = document.getElementById('calc-vol');
+  if (volEl) volEl.textContent = mockPool.volume.toLocaleString() + ' gal';
+
+  document.getElementById('calc-cards').innerHTML = CALC_PARAMS.map(p => `
+    <div class="calc-card">
+      <div class="calc-card-head">
+        <span class="calc-param-name">${p.label}</span>
+        <span class="calc-ideal">Ideal: ${p.ideal}</span>
+      </div>
+      <div class="calc-inputs">
+        <div class="calc-field">
+          <span class="calc-lbl">Current</span>
+          <input class="calc-inp" id="ci-${p.key}-cur" type="number" step="${p.step}" min="${p.min}" max="${p.max}"
+                 placeholder="${latestTest[p.key]}" oninput="updateCalc('${p.key}')">
+        </div>
+        <div class="calc-arrow-col">→</div>
+        <div class="calc-field">
+          <span class="calc-lbl">Target</span>
+          <input class="calc-inp" id="ci-${p.key}-tgt" type="number" step="${p.step}" min="${p.min}" max="${p.max}"
+                 placeholder="${RANGES[p.key] ? ((RANGES[p.key].low + RANGES[p.key].high) / 2) : ''}"
+                 oninput="updateCalc('${p.key}')">
+        </div>
+      </div>
+      <div class="calc-result" id="cr-${p.key}"><span class="calc-hint">Enter values above to get dose</span></div>
+    </div>`).join('');
+}
+
+function updateCalc(param) {
+  const curEl = document.getElementById(`ci-${param}-cur`);
+  const tgtEl = document.getElementById(`ci-${param}-tgt`);
+  const resEl = document.getElementById(`cr-${param}`);
+  if (!resEl) return;
+
+  const cur = parseFloat(curEl.value !== '' ? curEl.value : curEl.placeholder);
+  const tgt = parseFloat(tgtEl.value !== '' ? tgtEl.value : tgtEl.placeholder);
+  const vol = mockPool.volume;
+
+  if (isNaN(cur) || isNaN(tgt)) {
+    resEl.innerHTML = '<span class="calc-hint">Enter values above to get dose</span>'; return;
+  }
+  if (Math.abs(cur - tgt) < 0.01) {
+    resEl.innerHTML = '<span class="calc-ok">✓ Already at target — no dose needed</span>'; return;
+  }
+
+  let msg = '';
+  if (param === 'ph') {
+    if (cur > tgt) {
+      msg = `Add <strong>${calcAcidDose(vol, cur, tgt)} oz</strong> of Muriatic Acid · Pour around perimeter at dusk`;
+    } else {
+      msg = `Add <strong>${calcSodaAshDose(vol, cur, tgt)} oz</strong> of Soda Ash · Pre-dissolve in bucket first`;
+    }
+  } else if (param === 'fc') {
+    if (cur < tgt) {
+      msg = `Add <strong>${calcChlorineDose(vol, cur, tgt)} oz</strong> of Liquid Chlorine (10%) · Pour into deep end`;
+    } else {
+      msg = `Run pump and wait 24–48 hours for chlorine to dissipate naturally`;
+    }
+  } else if (param === 'ta') {
+    if (cur < tgt) {
+      msg = `Add <strong>${calcAlkDose(vol, cur, tgt)} oz</strong> of Baking Soda · Broadcast across surface`;
+    } else {
+      const oz = Math.max(1, Math.round(((cur - tgt) / 10) * (vol / 10000) * 6));
+      msg = `Add <strong>${oz} oz</strong> of Muriatic Acid slowly over several days · Retest each day`;
+    }
+  } else if (param === 'cya') {
+    if (cur < tgt) {
+      const lbs = (((tgt - cur) / 10) * (vol / 10000) * 1.3).toFixed(1);
+      msg = `Add <strong>${lbs} lbs</strong> of Cyanuric Acid (stabilizer) · Pre-dissolve in warm water`;
+    } else {
+      const pct = Math.round((1 - tgt / cur) * 100);
+      msg = `Drain and refill <strong>${pct}%</strong> of pool water to dilute CYA`;
+    }
+  } else if (param === 'ch') {
+    if (cur < tgt) {
+      const lbs = (((tgt - cur) * vol) / 100000).toFixed(1);
+      msg = `Add <strong>${lbs} lbs</strong> of Calcium Chloride · Add slowly near return jets`;
+    } else {
+      const pct = Math.round((1 - tgt / cur) * 100);
+      msg = `Drain and refill <strong>${pct}%</strong> of pool water to lower calcium`;
+    }
+  }
+
+  resEl.innerHTML = `<div class="calc-dose">${msg}</div>`;
 }
 
 
