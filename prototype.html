@@ -940,6 +940,16 @@ select.sr-input{cursor:pointer}
         </div>
       </div>
 
+      <!-- Low stock banner -->
+      <div id="low-stock-banner" style="display:none;margin:12px 16px 0;background:#FFF0F2;border:1px solid rgba(229,48,74,.3);border-radius:12px;padding:10px 14px;align-items:center;gap:10px">
+        <i class="ti ti-package-off" style="color:var(--red);font-size:20px;flex-shrink:0"></i>
+        <div style="flex:1">
+          <div style="font-size:13px;font-weight:600;color:#7A0010" id="low-stock-title"></div>
+          <div style="font-size:12px;color:#A01828;margin-top:1px">Check inventory before your next treatment</div>
+        </div>
+        <button onclick="navigate('inventory')" style="background:var(--red);border:none;color:#fff;font-size:12px;font-weight:700;padding:6px 12px;border-radius:8px;cursor:pointer;white-space:nowrap">View</button>
+      </div>
+
       <!-- Test reminder banner -->
       <div id="test-reminder" style="display:none;margin:12px 16px 0;background:#FFF8EC;border:1px solid rgba(245,166,35,.35);border-radius:12px;padding:10px 14px;display:none;align-items:center;gap:10px">
         <i class="ti ti-clock-exclamation" style="color:#F5A623;font-size:20px;flex-shrink:0"></i>
@@ -1886,6 +1896,21 @@ function renderDashboard() {
   // Live "last tested" timestamp
   document.getElementById('last-tested-ago').textContent = timeAgo(latestTest.date);
   updateClimateUI();
+
+  // Low stock banner
+  const outItems  = mockInventory.filter(i => i.qty <= 0);
+  const lowItems  = mockInventory.filter(i => i.qty > 0 && i.qty <= i.low);
+  const lsBanner  = document.getElementById('low-stock-banner');
+  const lsTitle   = document.getElementById('low-stock-title');
+  if (outItems.length || lowItems.length) {
+    const parts = [];
+    if (outItems.length) parts.push(`${outItems.length} chemical${outItems.length > 1 ? 's' : ''} out of stock`);
+    if (lowItems.length) parts.push(`${lowItems.length} running low`);
+    lsTitle.textContent = parts.join(', ');
+    lsBanner.style.display = 'flex';
+  } else {
+    lsBanner.style.display = 'none';
+  }
 
   // Test reminder banner (show if >7 days since last test)
   const daysSince = (Date.now() - latestTest.date) / 86400000;
