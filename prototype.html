@@ -219,6 +219,9 @@ textarea.input{resize:vertical;min-height:80px}
 .stat-card .sc-unit{font-size:12px;color:var(--text2);font-family:'DM Sans',sans-serif;font-weight:400}
 .stat-card .sc-bar-wrap{background:var(--surface);border-radius:4px;height:5px;margin-top:8px;overflow:hidden}
 .stat-card .sc-bar-fill{height:100%;border-radius:4px;transition:width .4s ease}
+.stat-card.danger{background:#FFF0F2;border-color:rgba(229,48,74,0.3)}
+.stat-card.danger .sc-val{color:var(--red)}
+.stat-card.warn{background:#FFFBF0;border-color:rgba(245,166,35,0.3)}
 .status-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
 
 /* Recommendations */
@@ -488,7 +491,7 @@ textarea.input{resize:vertical;min-height:80px}
           <h1 class="dash-h1">Pool Status</h1>
           <div class="pool-badge">
             <div class="pool-dot"></div>
-            <span>Backyard Pool · Last tested 2h ago</span>
+            <span>Backyard Pool · Last tested <span id="last-tested-ago">2h ago</span></span>
           </div>
         </div>
         <!-- Health Score -->
@@ -1029,10 +1032,23 @@ function renderDashboard() {
   // Greeting
   document.getElementById('greeting-text').textContent = `${getGreeting()}, ${mockUser.name}`;
 
-  // Health score
+  // Health score with count-up animation
   const score = calcHealthScore(latestTest);
-  document.getElementById('health-score-num').textContent = score;
   document.getElementById('health-score-tag').textContent = getScoreLabel(score);
+  const scoreEl = document.getElementById('health-score-num');
+  const start = parseInt(scoreEl.textContent) || 0;
+  const duration = 600;
+  const startTime = performance.now();
+  const animateScore = (now) => {
+    const p = Math.min((now - startTime) / duration, 1);
+    const ease = 1 - Math.pow(1 - p, 3);
+    scoreEl.textContent = Math.round(start + (score - start) * ease);
+    if (p < 1) requestAnimationFrame(animateScore);
+  };
+  requestAnimationFrame(animateScore);
+
+  // Live "last tested" timestamp
+  document.getElementById('last-tested-ago').textContent = timeAgo(latestTest.date);
 
   // Clock
   const now = new Date();
@@ -1054,7 +1070,7 @@ function renderDashboard() {
     const col = statusColor(s);
     const pct = getBarPercent(c.key, c.value);
     return `
-      <div class="stat-card">
+      <div class="stat-card ${s}">
         <div class="sc-label">
           <div class="status-dot" style="background:${col}"></div>
           ${c.label}
