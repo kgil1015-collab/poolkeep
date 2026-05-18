@@ -666,6 +666,9 @@ select.sr-input{cursor:pointer}
       <button class="ob-back-btn" id="ob-back-btn" onclick="obBack()" style="visibility:hidden">← Back</button>
       <button class="btn btn-primary ob-next-btn" id="ob-next-btn" onclick="obNext()">Next →</button>
     </div>
+    <div style="text-align:center;margin-top:16px">
+      <button onclick="obSkip()" style="background:none;border:none;font:inherit;font-size:13px;color:var(--text3);cursor:pointer;text-decoration:underline">Skip setup for now</button>
+    </div>
   </div>
 </div>
 
@@ -1804,6 +1807,11 @@ function obBack() {
   obState.step--;
   document.getElementById(`ob-step-${obState.step}`).classList.add('active');
   obUpdateProgress();
+}
+
+function obSkip() {
+  localStorage.setItem('pk-onboarded', '1');
+  finishOnboarding();
 }
 
 function finishOnboarding() {
