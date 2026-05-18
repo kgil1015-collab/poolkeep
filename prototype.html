@@ -904,8 +904,22 @@ select.sr-input{cursor:pointer}
 
       <p class="settings-group-title">Notifications</p>
       <div class="settings-list">
-        <div class="settings-row"><span class="sr-label">Test Reminder</span><span class="sr-value">Every 3 days · Email &amp; SMS</span></div>
-        <div class="settings-row"><span class="sr-label">Maintenance Reminder</span><span class="sr-value">Weekly · Email</span></div>
+        <div class="settings-row" style="cursor:pointer" onclick="toggleNotif('testEmail')">
+          <div><span class="sr-label">Test Reminder — Email</span><div style="font-size:11px;color:var(--text3);margin-top:2px">Every 3 days</div></div>
+          <div class="toggle-switch on" id="notif-testEmail"></div>
+        </div>
+        <div class="settings-row" style="cursor:pointer" onclick="toggleNotif('testSms')">
+          <div><span class="sr-label">Test Reminder — SMS</span><div style="font-size:11px;color:var(--text3);margin-top:2px">Every 3 days</div></div>
+          <div class="toggle-switch on" id="notif-testSms"></div>
+        </div>
+        <div class="settings-row" style="cursor:pointer" onclick="toggleNotif('maintEmail')">
+          <div><span class="sr-label">Maintenance Reminder — Email</span><div style="font-size:11px;color:var(--text3);margin-top:2px">Weekly</div></div>
+          <div class="toggle-switch on" id="notif-maintEmail"></div>
+        </div>
+        <div class="settings-row" style="cursor:pointer" onclick="toggleNotif('maintSms')">
+          <div><span class="sr-label">Maintenance Reminder — SMS</span><div style="font-size:11px;color:var(--text3);margin-top:2px">Weekly</div></div>
+          <div class="toggle-switch" id="notif-maintSms"></div>
+        </div>
         <div class="settings-row editable" onclick="editSetting('user.phone', this)"><span class="sr-label">Phone Number</span><span class="sr-value">(480) 555-0142 <span class="sr-arrow">›</span></span></div>
       </div>
 
@@ -1793,6 +1807,20 @@ function showToast(msg, type) {
   toast.classList.remove('hidden');
   if (toastTimer) clearTimeout(toastTimer);
   toastTimer = setTimeout(() => toast.classList.add('hidden'), 2800);
+}
+
+
+// ══════════════════════════════════════════
+//  NOTIFICATIONS
+// ══════════════════════════════════════════
+
+const mockNotifs = { testEmail: true, testSms: true, maintEmail: true, maintSms: false };
+
+function toggleNotif(key) {
+  mockNotifs[key] = !mockNotifs[key];
+  const el = document.getElementById(`notif-${key}`);
+  if (el) el.classList.toggle('on', mockNotifs[key]);
+  showToast(mockNotifs[key] ? 'Notification enabled' : 'Notification disabled', 'success');
 }
 
 
