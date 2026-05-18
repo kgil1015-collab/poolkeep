@@ -560,6 +560,11 @@ textarea.input{resize:vertical;min-height:80px}
         <div class="page-title">Log Water Test</div>
         <div class="page-sub">Enter your test results from your kit. We'll calculate what to add.</div>
       </div>
+      <div id="last-test-ref" style="background:rgba(0,120,184,0.06);border:1px solid var(--border);border-radius:var(--r);padding:10px 14px;margin-bottom:16px;font-size:12px;color:var(--text2)">
+        <span style="font-weight:700;color:var(--text);margin-right:8px">Last test:</span>
+        <span id="last-test-ref-values"></span>
+        <span id="last-test-ref-time" style="margin-left:8px;color:var(--text3)"></span>
+      </div>
       <form id="form-log-test" onsubmit="submitLogTest(event)">
         <div class="card">
           <p class="form-section-title">Sanitizer</p>
@@ -1217,6 +1222,23 @@ function renderHistory() {
   }).join('');
 }
 
+function prefillLogTest() {
+  const t = latestTest;
+  const fields = { 'inp-fc': t.fc, 'inp-cc': t.cc, 'inp-ph': t.ph, 'inp-ta': t.ta, 'inp-cya': t.cya, 'inp-ch': t.ch };
+  Object.entries(fields).forEach(([id, val]) => {
+    const el = document.getElementById(id);
+    if (el && el.value === '') el.placeholder = val;
+  });
+  const statuses = ['fc','cc','ph','ta','cya','ch'].map(p => {
+    const s = getStatus(p, t[p]);
+    const col = s === 'good' ? 'var(--green)' : s === 'warn' ? 'var(--yellow)' : 'var(--red)';
+    const labels = { fc:'FC', cc:'CC', ph:'pH', ta:'TA', cya:'CYA', ch:'CH' };
+    return `<span style="margin-right:10px;font-family:'DM Mono',monospace"><span style="color:${col}">●</span> ${labels[p]}: ${t[p]}</span>`;
+  }).join('');
+  document.getElementById('last-test-ref-values').innerHTML = statuses;
+  document.getElementById('last-test-ref-time').textContent = '· ' + timeAgo(t.date);
+}
+
 function setHistoryFilter(filter, el) {
   state.historyFilter = filter;
   document.querySelectorAll('.ftab').forEach(t => t.classList.remove('active'));
@@ -1262,6 +1284,7 @@ function navigate(page) {
 
   if (page === 'dashboard') renderDashboard();
   if (page === 'history') renderHistory();
+  if (page === 'log-test') prefillLogTest();
 
   window.scrollTo(0, 0);
 }
