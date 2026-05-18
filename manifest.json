@@ -1,0 +1,17 @@
+{
+  "name": "PoolKeep",
+  "short_name": "PoolKeep",
+  "description": "Smart pool maintenance assistant for DIY homeowners",
+  "start_url": "./prototype.html",
+  "display": "standalone",
+  "background_color": "#003D5C",
+  "theme_color": "#003D5C",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
