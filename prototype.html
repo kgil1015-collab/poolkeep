@@ -778,7 +778,7 @@ select.sr-input{cursor:pointer}
     <div class="ob-logo">🏊 PoolKeep</div>
     <div class="ob-progress">
       <div class="ob-prog-bar"><div class="ob-prog-fill" id="ob-prog-fill"></div></div>
-      <span class="ob-step-label" id="ob-step-label">Step 1 of 4</span>
+      <span class="ob-step-label" id="ob-step-label">Step 1 of 5</span>
     </div>
 
     <!-- Step 1: Pool Name -->
@@ -827,6 +827,15 @@ select.sr-input{cursor:pointer}
       <input class="ob-input" id="ob-filter" type="text" placeholder="e.g. Pentair Sand Filter">
       <div class="ob-field-label" style="margin-top:12px">Pump</div>
       <input class="ob-input" id="ob-pump" type="text" placeholder="e.g. Pentair SuperFlo 1.5HP">
+    </div>
+
+    <!-- Step 5: Location -->
+    <div class="ob-step" id="ob-step-5">
+      <div class="ob-icon">📍</div>
+      <h2 class="ob-title">Where is your pool?</h2>
+      <p class="ob-sub">We'll tailor chemical recommendations to your climate — an Arizona summer pool needs a very different plan than Minnesota.</p>
+      <input class="ob-input" id="ob-location" type="text" placeholder="e.g. Phoenix, AZ" oninput="obPreviewClimate()">
+      <div id="ob-climate-preview" style="margin-top:14px;min-height:36px"></div>
     </div>
 
     <div class="ob-actions">
@@ -2224,7 +2233,7 @@ function navigate(page) {
 //  ONBOARDING
 // ══════════════════════════════════════════
 
-const obState = { step: 1, total: 4, type: 'Inground', surface: 'Plaster' };
+const obState = { step: 1, total: 5, type: 'Inground', surface: 'Plaster' };
 
 function selectObChip(field, value, el) {
   obState[field] = value;
@@ -2258,9 +2267,14 @@ function obNext() {
   }
   if (obState.step === 4) {
     const filter = document.getElementById('ob-filter').value.trim();
-    const pump = document.getElementById('ob-pump').value.trim();
+    const pump   = document.getElementById('ob-pump').value.trim();
     if (filter) mockPool.filter = filter;
-    if (pump) mockPool.pump = pump;
+    if (pump)   mockPool.pump   = pump;
+    // fall through to advance to step 5
+  }
+  if (obState.step === 5) {
+    const loc = document.getElementById('ob-location').value.trim();
+    if (loc) mockUser.location = loc;
     localStorage.setItem('pk-onboarded', '1');
     finishOnboarding();
     return;
@@ -2272,6 +2286,17 @@ function obNext() {
   obUpdateProgress();
   const firstInput = document.querySelector(`#ob-step-${obState.step} .ob-input`);
   if (firstInput) setTimeout(() => firstInput.focus(), 50);
+}
+
+function obPreviewClimate() {
+  const val = document.getElementById('ob-location').value.trim();
+  const el  = document.getElementById('ob-climate-preview');
+  if (!val) { el.innerHTML = ''; return; }
+  const saved = mockUser.location;
+  mockUser.location = val;
+  const c = getClimate();
+  mockUser.location = saved;
+  el.innerHTML = `<div style="display:inline-flex;align-items:center;gap:8px;background:${c.color}18;border:1px solid ${c.color}40;border-radius:10px;padding:8px 14px;font-size:13px;font-weight:600;color:${c.color}">${c.icon} ${c.label} detected<span style="font-size:12px;font-weight:400;color:var(--text2);margin-left:4px">— tips tailored for your area</span></div>`;
 }
 
 function obBack() {
