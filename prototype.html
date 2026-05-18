@@ -276,6 +276,10 @@ textarea.input{resize:vertical;min-height:80px}
 .tpill.w{background:#FEF0D9;color:#92610A}
 .tpill.d{background:#FDDDE3;color:#9B1627}
 .tpill.n{background:rgba(0,120,184,.08);color:var(--text2)}
+.spark-row{display:flex;gap:16px;margin-top:10px;padding-top:8px;border-top:1px solid var(--border);flex-wrap:wrap}
+.spark-item{display:flex;align-items:center;gap:6px}
+.spark-lbl{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;width:22px;flex-shrink:0}
+.spark-val{font-size:11px;font-family:'DM Mono',monospace;margin-left:3px}
 .issue-photo-mock{width:100%;height:120px;background:linear-gradient(135deg,#dff0ff,#b3d9f7);border-radius:4px;margin-top:10px;display:flex;align-items:center;justify-content:center;color:var(--pool-blue-dark);font-size:13px;font-weight:500;border:1px dashed rgba(0,120,184,.3)}
 
 /* ===== SHARE ===== */
@@ -1199,6 +1203,23 @@ function renderHistory() {
         <span class="tpill ${pc('ta',r.ta)}">TA: ${r.ta}</span>
         <span class="tpill ${pc('cya',r.cya)}">CYA: ${r.cya}</span>
         <span class="tpill ${pc('ch',r.ch)}">CH: ${r.ch}</span>
+      </div>
+      <div class="spark-row">
+        <div class="spark-item">
+          <span class="spark-lbl">FC</span>
+          ${buildSparkline('fc', ev.date)}
+          <span class="spark-val" style="color:${statusColor(getStatus('fc',r.fc))}">${r.fc}</span>
+        </div>
+        <div class="spark-item">
+          <span class="spark-lbl">pH</span>
+          ${buildSparkline('ph', ev.date)}
+          <span class="spark-val" style="color:${statusColor(getStatus('ph',r.ph))}">${r.ph}</span>
+        </div>
+        <div class="spark-item">
+          <span class="spark-lbl">TA</span>
+          ${buildSparkline('ta', ev.date)}
+          <span class="spark-val" style="color:${statusColor(getStatus('ta',r.ta))}">${r.ta}</span>
+        </div>
       </div>`;
     }
     if (ev.type === 'chemical') {
@@ -1221,6 +1242,36 @@ function renderHistory() {
         </div>
       </div>`;
   }).join('');
+}
+
+function buildSparkline(param, beforeDate) {
+  const W = 56, H = 18;
+  const tests = historyEvents
+    .filter(e => e.type === 'test' && e.readings && e.date <= beforeDate)
+    .slice(0, 5)
+    .reverse();
+  if (tests.length < 2) return `<svg width="${W}" height="${H}"></svg>`;
+
+  const vals = tests.map(t => t.readings[param]);
+  const { absLow, absHigh } = RANGES[param];
+  const lo = Math.min(...vals, absLow);
+  const hi = Math.max(...vals, absHigh);
+  const span = hi - lo || 1;
+
+  const pts = vals.map((v, i) => {
+    const x = (i / (vals.length - 1)) * W;
+    const y = H - ((v - lo) / span) * (H - 2) - 1;
+    return `${x.toFixed(1)},${y.toFixed(1)}`;
+  }).join(' ');
+
+  const lastStatus = getStatus(param, vals[vals.length - 1]);
+  const col = statusColor(lastStatus);
+  const lastPt = pts.split(' ').pop().split(',');
+
+  return `<svg width="${W}" height="${H}" style="overflow:visible">
+    <polyline points="${pts}" fill="none" stroke="${col}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.5"/>
+    <circle cx="${lastPt[0]}" cy="${lastPt[1]}" r="2.5" fill="${col}"/>
+  </svg>`;
 }
 
 function prefillLogTest() {
