@@ -1088,6 +1088,21 @@ select.sr-input{cursor:pointer}
   </div>
 </div>
 
+<!-- Test Confirm Sheet -->
+<div id="test-confirm" class="overlay hidden" onclick="closeTestConfirm(event)">
+  <div class="sheet" onclick="event.stopPropagation()" style="padding-bottom:32px">
+    <div class="sheet-handle"></div>
+    <div style="text-align:center;margin-bottom:20px">
+      <div style="font-size:36px;margin-bottom:8px">✅</div>
+      <div style="font-size:18px;font-weight:700;color:var(--text)">Test Saved!</div>
+      <div style="font-size:13px;color:var(--text2);margin-top:4px">Here's how your water changed</div>
+    </div>
+    <div id="test-confirm-rows" style="margin-bottom:20px"></div>
+    <button class="btn btn-primary btn-full" onclick="closeTestConfirm();navigate('dashboard')">See Dashboard →</button>
+    <button class="btn btn-secondary btn-full" style="margin-top:8px" onclick="closeTestConfirm();navigate('history')">View Full History</button>
+  </div>
+</div>
+
 <!-- Toast -->
 <div id="toast" class="toast hidden"></div>
 
@@ -1718,6 +1733,9 @@ function submitLogTest(event) {
     return;
   }
 
+  // Snapshot before values
+  const before = { fc:latestTest.fc, cc:latestTest.cc, ph:latestTest.ph, ta:latestTest.ta, cya:latestTest.cya, ch:latestTest.ch };
+
   if (!isNaN(fc))  latestTest.fc  = fc;
   if (!isNaN(parseFloat(document.getElementById('inp-cc').value)))  latestTest.cc  = parseFloat(document.getElementById('inp-cc').value);
   if (!isNaN(ph))  latestTest.ph  = ph;
@@ -1733,8 +1751,45 @@ function submitLogTest(event) {
   });
 
   document.getElementById('form-log-test').reset();
-  showToast('Test results saved! ✓', 'success');
-  setTimeout(() => navigate('dashboard'), 600);
+  showTestConfirm(before, latestTest);
+}
+
+function showTestConfirm(before, after) {
+  const params = [
+    { key:'fc',  label:'Free Chlorine', unit:' ppm' },
+    { key:'ph',  label:'pH',            unit:''      },
+    { key:'ta',  label:'Total Alk',     unit:' ppm'  },
+    { key:'cya', label:'CYA',           unit:' ppm'  },
+    { key:'ch',  label:'Calcium',       unit:' ppm'  },
+    { key:'cc',  label:'Combined Cl',   unit:' ppm'  },
+  ];
+
+  document.getElementById('test-confirm-rows').innerHTML = params.map(p => {
+    const bVal = before[p.key], aVal = after[p.key];
+    const diff = aVal - bVal;
+    const diffStr = diff === 0 ? 'no change' : (diff > 0 ? `+${diff.toFixed(1)}` : diff.toFixed(1));
+    const diffCol = diff === 0 ? 'var(--text3)' : diff > 0 ? 'var(--pool-blue)' : 'var(--yellow)';
+    const newStatus = getStatus(p.key, aVal);
+    const statusCol = statusColor(newStatus);
+    return `
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border)">
+        <span style="font-size:13px;color:var(--text2);width:90px">${p.label}</span>
+        <span style="font-family:'DM Mono',monospace;font-size:13px;color:var(--text3)">${bVal}${p.unit}</span>
+        <span style="color:var(--text3);font-size:12px">→</span>
+        <span style="font-family:'DM Mono',monospace;font-size:14px;font-weight:600;color:${statusCol}">${aVal}${p.unit}</span>
+        <span style="font-size:12px;font-weight:600;color:${diffCol};min-width:52px;text-align:right">${diffStr}</span>
+      </div>`;
+  }).join('');
+
+  document.getElementById('test-confirm').classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeTestConfirm(e) {
+  if (!e || e.target === document.getElementById('test-confirm')) {
+    document.getElementById('test-confirm').classList.add('hidden');
+    document.body.style.overflow = '';
+  }
 }
 
 function selectChem(el, name) {
@@ -2233,6 +2288,7 @@ document.addEventListener('DOMContentLoaded', () => {
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape') {
       document.getElementById('log-modal').classList.add('hidden');
+      document.getElementById('test-confirm').classList.add('hidden');
       document.body.style.overflow = '';
     }
   });
