@@ -2285,7 +2285,17 @@ function navigate(page) {
       if (el) { el.classList.remove('active'); el.style.opacity = ''; el.style.transition = ''; }
     });
     const target = document.getElementById(`page-${page}`);
-    if (target) target.classList.add('active');
+    if (target) {
+      target.classList.add('active');
+      target.style.opacity = '0';
+      target.style.transition = 'none';
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          target.style.transition = 'opacity 0.18s ease';
+          target.style.opacity = '1';
+        });
+      });
+    }
     state.page = page;
 
     ['dashboard','history','calc','shock','share','settings'].forEach(n => {
