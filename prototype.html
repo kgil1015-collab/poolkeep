@@ -1170,14 +1170,14 @@ select.sr-input{cursor:pointer}
   <div class="sheet" onclick="event.stopPropagation()" style="padding:0 0 32px">
     <div class="sheet-handle" style="margin-bottom:0"></div>
     <div class="pool-sheet-header">
-      <div class="pool-sheet-name">🏊 Backyard Pool</div>
+      <div class="pool-sheet-name" id="psi-name">🏊 Backyard Pool</div>
       <div class="pool-sheet-sub">Last tested <span id="pool-sheet-time"></span></div>
     </div>
-    <div class="pool-info-row"><span class="pool-info-label">Volume</span><span class="pool-info-value">15,000 gallons</span></div>
-    <div class="pool-info-row"><span class="pool-info-label">Type</span><span class="pool-info-value">Inground</span></div>
-    <div class="pool-info-row"><span class="pool-info-label">Surface</span><span class="pool-info-value">Plaster</span></div>
-    <div class="pool-info-row"><span class="pool-info-label">Filter</span><span class="pool-info-value">Pentair Sand Filter</span></div>
-    <div class="pool-info-row"><span class="pool-info-label">Pump</span><span class="pool-info-value">Pentair SuperFlo 1.5HP</span></div>
+    <div class="pool-info-row"><span class="pool-info-label">Volume</span><span class="pool-info-value" id="psi-volume">15,000 gal</span></div>
+    <div class="pool-info-row"><span class="pool-info-label">Type</span><span class="pool-info-value" id="psi-type">Inground</span></div>
+    <div class="pool-info-row"><span class="pool-info-label">Surface</span><span class="pool-info-value" id="psi-surface">Plaster</span></div>
+    <div class="pool-info-row"><span class="pool-info-label">Filter</span><span class="pool-info-value" id="psi-filter">Pentair Sand Filter</span></div>
+    <div class="pool-info-row"><span class="pool-info-label">Pump</span><span class="pool-info-value" id="psi-pump">Pentair SuperFlo 1.5HP</span></div>
     <div class="pool-info-row"><span class="pool-info-label">Heater</span><span class="pool-info-value">Hayward H250FDN</span></div>
     <div style="padding:16px 20px 0">
       <button class="btn btn-primary btn-full" onclick="closePoolSheet();navigate('settings')">Edit Pool Settings →</button>
@@ -1817,6 +1817,12 @@ function signOut() {
 
 function openPoolSheet() {
   document.getElementById('pool-sheet-time').textContent = timeAgo(latestTest.date);
+  document.getElementById('psi-name').textContent = '🏊 ' + mockPool.name;
+  document.getElementById('psi-volume').textContent = mockPool.volume.toLocaleString() + ' gal';
+  document.getElementById('psi-type').textContent = mockPool.type;
+  document.getElementById('psi-surface').textContent = mockPool.surface;
+  document.getElementById('psi-filter').textContent = mockPool.filter;
+  document.getElementById('psi-pump').textContent = mockPool.pump;
   document.getElementById('pool-sheet').classList.remove('hidden');
   document.body.style.overflow = 'hidden';
 }
