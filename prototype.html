@@ -324,6 +324,10 @@ textarea.input{resize:vertical;min-height:80px}
 .sr-label{font-weight:500;color:var(--text)}
 .sr-value{color:var(--text2);font-size:13px;text-align:right}
 .sr-arrow{color:var(--border-solid);font-size:16px;flex-shrink:0}
+.settings-row.editable{cursor:pointer}
+.settings-row.editing{cursor:default}
+.sr-input{flex:1;font:inherit;font-size:13px;color:var(--text);background:var(--surface);border:1.5px solid var(--pool-blue-dark);border-radius:6px;padding:3px 8px;outline:none;min-width:0;max-width:200px;text-align:right}
+select.sr-input{cursor:pointer}
 
 /* ===== LOG FORMS ===== */
 .form-back{display:flex;align-items:center;gap:8px;color:var(--text2);font-size:14px;font-weight:500;cursor:pointer;margin-bottom:20px;width:fit-content}
@@ -777,26 +781,26 @@ textarea.input{resize:vertical;min-height:80px}
 
       <p class="settings-group-title">Your Pool</p>
       <div class="settings-list">
-        <div class="settings-row"><span class="sr-label">Pool Name</span><span class="sr-value">Backyard Pool <span class="sr-arrow">›</span></span></div>
-        <div class="settings-row"><span class="sr-label">Volume</span><span class="sr-value">15,000 gallons <span class="sr-arrow">›</span></span></div>
-        <div class="settings-row"><span class="sr-label">Type</span><span class="sr-value">Inground <span class="sr-arrow">›</span></span></div>
-        <div class="settings-row"><span class="sr-label">Surface</span><span class="sr-value">Plaster <span class="sr-arrow">›</span></span></div>
-        <div class="settings-row"><span class="sr-label">Filter</span><span class="sr-value">Pentair Sand Filter <span class="sr-arrow">›</span></span></div>
-        <div class="settings-row"><span class="sr-label">Pump</span><span class="sr-value">Pentair SuperFlo 1.5HP <span class="sr-arrow">›</span></span></div>
+        <div class="settings-row editable" onclick="editSetting('pool.name', this)"><span class="sr-label">Pool Name</span><span class="sr-value">Backyard Pool <span class="sr-arrow">›</span></span></div>
+        <div class="settings-row editable" onclick="editSetting('pool.volume', this)"><span class="sr-label">Volume</span><span class="sr-value">15,000 gal <span class="sr-arrow">›</span></span></div>
+        <div class="settings-row editable" onclick="editSetting('pool.type', this)"><span class="sr-label">Type</span><span class="sr-value">Inground <span class="sr-arrow">›</span></span></div>
+        <div class="settings-row editable" onclick="editSetting('pool.surface', this)"><span class="sr-label">Surface</span><span class="sr-value">Plaster <span class="sr-arrow">›</span></span></div>
+        <div class="settings-row editable" onclick="editSetting('pool.filter', this)"><span class="sr-label">Filter</span><span class="sr-value">Pentair Sand Filter <span class="sr-arrow">›</span></span></div>
+        <div class="settings-row editable" onclick="editSetting('pool.pump', this)"><span class="sr-label">Pump</span><span class="sr-value">Pentair SuperFlo 1.5HP <span class="sr-arrow">›</span></span></div>
       </div>
 
       <p class="settings-group-title">Account</p>
       <div class="settings-list">
-        <div class="settings-row"><span class="sr-label">Full Name</span><span class="sr-value">Dave Miller <span class="sr-arrow">›</span></span></div>
-        <div class="settings-row"><span class="sr-label">Email</span><span class="sr-value">dave@example.com <span class="sr-arrow">›</span></span></div>
-        <div class="settings-row"><span class="sr-label">Address</span><span class="sr-value">123 Sunbelt Drive, Phoenix AZ <span class="sr-arrow">›</span></span></div>
+        <div class="settings-row editable" onclick="editSetting('user.full', this)"><span class="sr-label">Full Name</span><span class="sr-value">Dave Miller <span class="sr-arrow">›</span></span></div>
+        <div class="settings-row editable" onclick="editSetting('user.email', this)"><span class="sr-label">Email</span><span class="sr-value">dave@example.com <span class="sr-arrow">›</span></span></div>
+        <div class="settings-row editable" onclick="editSetting('user.address', this)"><span class="sr-label">Address</span><span class="sr-value">123 Sunbelt Drive, Phoenix AZ <span class="sr-arrow">›</span></span></div>
       </div>
 
       <p class="settings-group-title">Notifications</p>
       <div class="settings-list">
         <div class="settings-row"><span class="sr-label">Test Reminder</span><span class="sr-value">Every 3 days · Email &amp; SMS</span></div>
         <div class="settings-row"><span class="sr-label">Maintenance Reminder</span><span class="sr-value">Weekly · Email</span></div>
-        <div class="settings-row"><span class="sr-label">Phone Number</span><span class="sr-value">(480) 555-0142 <span class="sr-arrow">›</span></span></div>
+        <div class="settings-row editable" onclick="editSetting('user.phone', this)"><span class="sr-label">Phone Number</span><span class="sr-value">(480) 555-0142 <span class="sr-arrow">›</span></span></div>
       </div>
 
       <p class="settings-group-title">Billing</p>
@@ -912,7 +916,7 @@ const mockPool = {
   pump: 'Pentair SuperFlo 1.5HP', heater: 'Hayward H250FDN'
 };
 
-const mockUser = { name: 'Dave', full: 'Dave Miller', email: 'dave@example.com' };
+const mockUser = { name: 'Dave', full: 'Dave Miller', email: 'dave@example.com', address: '123 Sunbelt Drive, Phoenix AZ', phone: '(480) 555-0142' };
 
 const latestTest = {
   fc: 3.0, cc: 0.0, ph: 7.9, ta: 90, cya: 45, ch: 250,
@@ -1545,6 +1549,79 @@ function showToast(msg, type) {
   toast.classList.remove('hidden');
   if (toastTimer) clearTimeout(toastTimer);
   toastTimer = setTimeout(() => toast.classList.add('hidden'), 2800);
+}
+
+
+// ══════════════════════════════════════════
+//  SETTINGS EDIT
+// ══════════════════════════════════════════
+
+const SETTINGS_CFG = {
+  'pool.name':    { obj: mockPool, key: 'name',    type: 'text',   display: v => v },
+  'pool.volume':  { obj: mockPool, key: 'volume',  type: 'number', display: v => Number(v).toLocaleString() + ' gal' },
+  'pool.type':    { obj: mockPool, key: 'type',    type: 'select', opts: ['Inground','Above Ground','Semi-Inground'], display: v => v },
+  'pool.surface': { obj: mockPool, key: 'surface', type: 'select', opts: ['Plaster','Vinyl','Fiberglass','Pebble'], display: v => v },
+  'pool.filter':  { obj: mockPool, key: 'filter',  type: 'text',   display: v => v },
+  'pool.pump':    { obj: mockPool, key: 'pump',    type: 'text',   display: v => v },
+  'user.full':    { obj: mockUser, key: 'full',    type: 'text',   display: v => v },
+  'user.email':   { obj: mockUser, key: 'email',   type: 'email',  display: v => v },
+  'user.address': { obj: mockUser, key: 'address', type: 'text',   display: v => v },
+  'user.phone':   { obj: mockUser, key: 'phone',   type: 'tel',    display: v => v },
+};
+
+function editSetting(field, rowEl) {
+  if (rowEl.classList.contains('editing')) return;
+  const cfg = SETTINGS_CFG[field];
+  if (!cfg) return;
+
+  const valueEl = rowEl.querySelector('.sr-value');
+  const current = cfg.obj[cfg.key] != null ? cfg.obj[cfg.key] : '';
+
+  rowEl.classList.add('editing');
+  rowEl.onclick = null;
+
+  let input;
+  if (cfg.type === 'select') {
+    input = document.createElement('select');
+    input.className = 'sr-input';
+    cfg.opts.forEach(o => {
+      const opt = document.createElement('option');
+      opt.value = o; opt.textContent = o;
+      if (o === current) opt.selected = true;
+      input.appendChild(opt);
+    });
+  } else {
+    input = document.createElement('input');
+    input.type = cfg.type;
+    input.className = 'sr-input';
+    input.value = current;
+  }
+
+  valueEl.replaceWith(input);
+  input.focus();
+  if (input.select && cfg.type !== 'select') input.select();
+
+  const restoreDisplay = (save) => {
+    if (save) {
+      const raw = input.value.trim();
+      const val = cfg.type === 'number' ? (parseFloat(raw) || cfg.obj[cfg.key]) : raw;
+      cfg.obj[cfg.key] = val;
+      if (cfg.key === 'full') mockUser.name = val.split(' ')[0];
+    }
+    const display = document.createElement('span');
+    display.className = 'sr-value';
+    display.innerHTML = cfg.display(cfg.obj[cfg.key]) + ' <span class="sr-arrow">›</span>';
+    input.replaceWith(display);
+    rowEl.classList.remove('editing');
+    rowEl.onclick = () => editSetting(field, rowEl);
+    if (save) showToast('Saved!', 'success');
+  };
+
+  input.addEventListener('blur', () => restoreDisplay(true));
+  input.addEventListener('keydown', e => {
+    if (e.key === 'Enter') { e.preventDefault(); input.blur(); }
+    if (e.key === 'Escape') { e.preventDefault(); restoreDisplay(false); }
+  });
 }
 
 
