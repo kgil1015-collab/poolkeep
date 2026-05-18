@@ -977,6 +977,7 @@ select.sr-input{cursor:pointer}
 
       <!-- Recommendations -->
       <div class="rec-section">
+        <div id="wx-conditions-bar" style="display:none"></div>
         <div id="recs-all-clear" style="display:none"></div>
         <div id="recs-action-wrap">
           <div class="rec-section-title">Action Needed</div>
@@ -1788,9 +1789,25 @@ function calcAlkDose(gallons, currentTA, targetTA) {
   return Math.round(delta / 10 * 1.4 * (gallons / 10000) * 16);
 }
 
+function getSimulatedWeather() {
+  const climate = getClimate();
+  const month = new Date().getMonth();
+  // Monthly profiles [tempF, uvIndex, recentRainInches] Jan–Dec
+  const profiles = {
+    hot:       [[65,3,.3],[70,4,.4],[78,6,.5],[87,8,.3],[97,10,.2],[106,11,.1],[110,12,.8],[108,11,1.2],[100,9,.9],[88,6,.4],[74,4,.3],[66,3,.2]],
+    cold:      [[22,1,1.5],[26,2,1.2],[38,3,1.4],[52,5,1.6],[64,7,1.8],[74,8,1.5],[78,9,1.3],[76,8,1.2],[65,6,1.4],[52,4,1.3],[37,2,1.5],[25,1,1.6]],
+    temperate: [[45,2,2.1],[50,3,2.0],[58,5,2.2],[65,6,2.5],[74,8,2.3],[82,9,1.8],[87,10,1.4],[85,9,1.6],[78,7,2.0],[66,5,2.2],[54,3,2.4],[46,2,2.3]]
+  };
+  const zone = climate.zone || 'temperate';
+  const [tempF, uvIndex, recentRain] = profiles[zone][month];
+  const condition = tempF >= 95 ? 'Extreme Heat' : tempF >= 85 ? 'Hot' : tempF >= 70 ? 'Warm' : tempF >= 55 ? 'Mild' : 'Cool';
+  return { tempF, uvIndex, recentRain, condition, zone, climateLabel: climate.label };
+}
+
 function getRecommendations(test, pool) {
   const urgent = [];
   const ok = [];
+  const wx = getSimulatedWeather();
 
   if (test.ph > 7.8) {
     const oz = calcAcidDose(pool.volume, test.ph, 7.5);
@@ -1829,7 +1846,26 @@ function getRecommendations(test, pool) {
     ok.push({ id:'cya-ok', icon:'✅', bg:'#E6F9F1', title:'Stabilizer (CYA) good', sub:`CYA at ${test.cya} ppm — within the 30–50 ppm ideal range. Chlorine is properly protected from sunlight.`, borderColor:'rgba(29,184,105,0.2)' });
   }
 
-  return { urgent, ok };
+  // Weather-driven advisories
+  if (wx.tempF >= 95 && test.fc < 4) {
+    urgent.unshift({ id:'wx-heat-fc', icon:'🌡️', bg:'#FFE8E8', title:'Extreme heat — boost chlorine', sub:`At ${wx.tempF}°F chlorine burns off rapidly. Keep FC at <strong>4–5 ppm</strong> and retest every 2 days.`, tag:`${wx.condition} · ${wx.tempF}°F · UV ${wx.uvIndex}`, borderColor:'rgba(229,48,74,0.2)' });
+  } else if (wx.tempF >= 95) {
+    ok.push({ id:'wx-heat-ok', icon:'🌡️', bg:'#FFF5E0', title:'Heat watch — chlorine holding', sub:`At ${wx.tempF}°F UV is intense. FC at ${test.fc} ppm is adequate — recheck in 2 days.`, borderColor:'rgba(245,166,35,0.2)' });
+  }
+
+  if (wx.uvIndex >= 10 && test.cya < 50) {
+    urgent.push({ id:'wx-uv-cya', icon:'☀️', bg:'#FFF5E0', title:'High UV — raise stabilizer', sub:`UV index ${wx.uvIndex} is intense. CYA at ${test.cya} ppm won't protect your chlorine. Target <strong>50–70 ppm</strong> in these conditions.`, tag:'Add Cyanuric Acid · pre-dissolve first', borderColor:'rgba(245,166,35,0.25)' });
+  }
+
+  if (wx.recentRain >= 1.5) {
+    ok.push({ id:'wx-rain', icon:'🌧️', bg:'#EEF5FF', title:'Rain dilution — retest recommended', sub:`Recent rainfall (~${wx.recentRain}" avg for ${wx.climateLabel}) can dilute chemistry and introduce phosphates. Confirm balance with a full test.`, borderColor:'rgba(0,120,184,0.15)' });
+  }
+
+  if (wx.tempF >= 90 && test.cc <= 0.5) {
+    ok.push({ id:'wx-shock-freq', icon:'⚡', bg:'#FFF5E0', title:'Twice-weekly shocking recommended', sub:`In ${wx.tempF}°F heat, bacteria and algae thrive. Shocking twice a week prevents chloramine buildup before it starts.`, borderColor:'rgba(245,166,35,0.2)' });
+  }
+
+  return { urgent, ok, weather: wx };
 }
 
 
@@ -2025,7 +2061,15 @@ function renderDashboard() {
   }).join('');
 
   // Recommendations
-  const { urgent, ok } = getRecommendations(latestTest, mockPool);
+  const { urgent, ok, weather } = getRecommendations(latestTest, mockPool);
+
+  const wxBar = document.getElementById('wx-conditions-bar');
+  wxBar.style.display = '';
+  wxBar.innerHTML = `<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:4px 0 12px;font-size:11.5px;color:var(--text3);letter-spacing:.01em">
+    <span>📍 ${mockUser.location}</span><span>·</span>
+    <span style="color:var(--text2);font-weight:600">${weather.condition} · ${weather.tempF}°F · UV ${weather.uvIndex}</span><span>·</span>
+    <span>Recommendations adjusted for your conditions</span>
+  </div>`;
 
   const allClearEl = document.getElementById('recs-all-clear');
   const actionWrap = document.getElementById('recs-action-wrap');
