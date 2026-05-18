@@ -268,9 +268,15 @@ textarea.input{resize:vertical;min-height:80px}
 .dash-h1{font-size:22px;font-weight:600;color:#ffffff;letter-spacing:-.3px;margin-bottom:10px}
 .pool-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.1);border-radius:20px;padding:4px 12px 4px 8px;font-size:12px;border:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.72);cursor:pointer;transition:background .15s;user-select:none}
 .pool-badge:hover{background:rgba(255,255,255,.18)}
-.pool-sheet-header{background:var(--pool-deep);padding:20px 20px 16px;margin:-1px -1px 0}
+.pool-sheet-header{background:var(--pool-deep);margin:-1px -1px 0;position:relative;overflow:hidden}
+.pool-photo-cover{width:100%;height:150px;object-fit:cover;display:block}
+.pool-photo-empty{height:150px;background:linear-gradient(160deg,#003D5C,#005A8A);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;color:rgba(255,255,255,.35);cursor:pointer}
+.pool-photo-empty i{font-size:30px}
+.pool-photo-empty span{font-size:12px;font-weight:500}
+.pool-sheet-meta{padding:14px 20px 12px;background:var(--pool-deep)}
 .pool-sheet-name{font-size:18px;font-weight:700;color:#fff;margin-bottom:2px}
 .pool-sheet-sub{font-size:12px;color:rgba(255,255,255,.55)}
+.pool-photo-btn{position:absolute;top:10px;right:12px;background:rgba(0,0,0,.45);backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,.2);color:#fff;border-radius:50%;width:34px;height:34px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:15px}
 .pool-info-row{display:flex;justify-content:space-between;align-items:center;padding:12px 20px;border-bottom:1px solid var(--border);font-size:14px}
 .pool-info-row:last-of-type{border-bottom:none}
 .pool-info-label{color:var(--text2);font-weight:500}
@@ -1513,8 +1519,16 @@ select.sr-input{cursor:pointer}
   <div class="sheet" onclick="event.stopPropagation()" style="padding:0 0 32px">
     <div class="sheet-handle" style="margin-bottom:0"></div>
     <div class="pool-sheet-header">
-      <div class="pool-sheet-name" id="psi-name">🏊 Backyard Pool</div>
-      <div class="pool-sheet-sub">Last tested <span id="pool-sheet-time"></span></div>
+      <div id="pool-photo-area" class="pool-photo-empty" onclick="document.getElementById('pool-photo-input').click()">
+        <i class="ti ti-camera"></i><span>Tap to add a pool photo</span>
+      </div>
+      <img id="pool-photo-img" class="pool-photo-cover" style="display:none" alt="Pool photo">
+      <button class="pool-photo-btn" id="pool-photo-change-btn" style="display:none" onclick="document.getElementById('pool-photo-input').click()" title="Change photo"><i class="ti ti-camera"></i></button>
+      <input type="file" id="pool-photo-input" accept="image/*" style="display:none" onchange="handlePoolPhoto(this)">
+      <div class="pool-sheet-meta">
+        <div class="pool-sheet-name" id="psi-name">🏊 Backyard Pool</div>
+        <div class="pool-sheet-sub">Last tested <span id="pool-sheet-time"></span></div>
+      </div>
     </div>
     <div class="pool-info-row"><span class="pool-info-label">Volume</span><span class="pool-info-value" id="psi-volume">15,000 gal</span></div>
     <div class="pool-info-row"><span class="pool-info-label">Type</span><span class="pool-info-value" id="psi-type">Inground</span></div>
@@ -2281,6 +2295,35 @@ function signOut() {
 // ══════════════════════════════════════════
 //  LOG MODAL
 // ══════════════════════════════════════════
+
+function handlePoolPhoto(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    localStorage.setItem('pk-pool-photo', e.target.result);
+    applyPoolPhoto(e.target.result);
+    showToast('Pool photo saved', 'success');
+  };
+  reader.readAsDataURL(file);
+  input.value = '';
+}
+
+function applyPoolPhoto(dataURL) {
+  const img   = document.getElementById('pool-photo-img');
+  const empty = document.getElementById('pool-photo-area');
+  const btn   = document.getElementById('pool-photo-change-btn');
+  if (!img) return;
+  img.src = dataURL;
+  img.style.display = 'block';
+  empty.style.display = 'none';
+  btn.style.display = 'flex';
+}
+
+function initPoolPhoto() {
+  const saved = localStorage.getItem('pk-pool-photo');
+  if (saved) applyPoolPhoto(saved);
+}
 
 function openPoolSheet() {
   document.getElementById('pool-sheet-time').textContent = timeAgo(latestTest.date);
@@ -3505,6 +3548,7 @@ function toggleFAQ(i, qEl) {
 
 document.addEventListener('DOMContentLoaded', () => {
   initDarkMode();
+  initPoolPhoto();
   renderFAQ();
 
   // Animate spots counter on load
