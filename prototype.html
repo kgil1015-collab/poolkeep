@@ -379,6 +379,30 @@ select.sr-input{cursor:pointer}
 .trend-labels{display:flex;justify-content:space-between;margin-top:6px}
 .trend-lbl{font-size:10px;color:var(--text3);text-align:center}
 
+/* ===== SHOCK & ACID GUIDE ===== */
+.safety-banner{display:flex;gap:12px;border-radius:var(--r);padding:14px 16px;margin-bottom:16px}
+.danger-banner{background:rgba(229,48,74,.08);border:1px solid rgba(229,48,74,.3)}
+.warn-banner{background:rgba(245,166,35,.07);border:1px solid rgba(245,166,35,.3)}
+.safety-banner-icon{font-size:24px;flex-shrink:0;line-height:1.3}
+.safety-banner-title{font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px}
+.safety-banner-text{font-size:13px;color:var(--text2);line-height:1.65}
+.guide-section{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:16px}
+.guide-section-head{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+.guide-section-icon{width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+.guide-section-title{font-size:16px;font-weight:700;color:var(--text)}
+.guide-section-sub{font-size:12px;color:var(--text2);margin-top:2px}
+.guide-steps{margin-top:16px;border-top:1px solid var(--border);padding-top:14px}
+.guide-step-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text2);margin-bottom:10px}
+.guide-step{font-size:13px;color:var(--text);line-height:1.55;padding:4px 0}
+.shock-dose-wrap{padding:8px 0}
+.shock-target{font-size:13px;color:var(--text2);margin-bottom:12px}
+.shock-options{display:flex;align-items:center;gap:10px}
+.shock-option{flex:1;background:rgba(0,120,184,.07);border:1px solid rgba(0,120,184,.15);border-radius:8px;padding:10px 8px;text-align:center}
+.shock-opt-lbl{font-size:11px;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px}
+.shock-opt-val{font-family:'DM Mono',monospace;font-size:22px;font-weight:700;color:var(--pool-blue-dark);line-height:1.1}
+.shock-opt-sub{font-size:11px;color:var(--text3);margin-top:3px}
+.shock-opt-or{font-size:12px;color:var(--text3);font-weight:600;flex-shrink:0}
+
 /* ===== CALCULATOR ===== */
 .calc-pool-row{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--text2);margin-bottom:16px}
 .calc-pool-lbl{font-weight:500}
@@ -662,6 +686,9 @@ select.sr-input{cursor:pointer}
       <div class="sb-item" id="sb-calc" onclick="navigate('calc')">
         <i class="ti ti-calculator"></i> Dosage Calc
       </div>
+      <div class="sb-item" id="sb-shock" onclick="navigate('shock')">
+        <i class="ti ti-flask"></i> Shock &amp; Acid
+      </div>
       <div class="sb-item" id="sb-share" onclick="navigate('share')">
         <i class="ti ti-share"></i> Share with Pro
       </div>
@@ -737,6 +764,7 @@ select.sr-input{cursor:pointer}
         <button class="btn btn-secondary" onclick="navigate('log-test')">🧪 Log Water Test</button>
         <button class="btn btn-secondary" onclick="navigate('log-chemical')">🧴 Log Chemical</button>
         <button class="btn btn-secondary" onclick="navigate('calc')">⚗️ Dosage Calc</button>
+        <button class="btn btn-secondary" onclick="navigate('shock')">⚗️ Shock &amp; Acid</button>
         <button class="btn btn-secondary btn-full" onclick="navigate('log-issue')">📸 Log Issue / Note</button>
       </div>
     </div>
@@ -1638,7 +1666,7 @@ function setHistoryFilter(filter, el) {
 //  NAVIGATION
 // ══════════════════════════════════════════
 
-const pages = ['dashboard','history','log-test','log-chemical','log-issue','calc','share','settings'];
+const pages = ['dashboard','history','log-test','log-chemical','log-issue','calc','shock','share','settings'];
 const navIds = ['dashboard','history','share','pro'];
 
 function navigate(page) {
@@ -1653,7 +1681,7 @@ function navigate(page) {
     if (target) target.classList.add('active');
     state.page = page;
 
-    ['dashboard','history','calc','share','settings'].forEach(n => {
+    ['dashboard','history','calc','shock','share','settings'].forEach(n => {
       const sb = document.getElementById(`sb-${n}`);
       if (sb) sb.classList.toggle('active', n === page);
     });
@@ -1673,6 +1701,7 @@ function navigate(page) {
     if (page === 'log-test') prefillLogTest();
     if (page === 'share') renderShare();
     if (page === 'calc') renderCalc();
+    if (page === 'shock') renderShock();
 
     window.scrollTo(0, 0);
   };
@@ -2007,6 +2036,85 @@ function renderTrend() {
         ${labels.map(l => `<span class="trend-lbl">${l}</span>`).join('')}
       </div>
     </div>`;
+}
+
+
+// ══════════════════════════════════════════
+//  SHOCK & ACID GUIDE
+// ══════════════════════════════════════════
+
+function renderShock() {
+  const fc = document.getElementById('shock-fc');
+  const cc = document.getElementById('shock-cc');
+  if (fc && !fc.value) fc.placeholder = latestTest.fc;
+  if (cc && !cc.value) cc.placeholder = latestTest.cc;
+  const cur = document.getElementById('acid-ph-cur');
+  if (cur && !cur.value) cur.placeholder = latestTest.ph;
+  updateShock();
+  updateAcid();
+}
+
+function updateShock() {
+  const fcEl = document.getElementById('shock-fc');
+  const ccEl = document.getElementById('shock-cc');
+  const resEl = document.getElementById('shock-result');
+  if (!resEl) return;
+
+  const fc = parseFloat(fcEl.value !== '' ? fcEl.value : fcEl.placeholder) || 0;
+  const cc = parseFloat(ccEl.value !== '' ? ccEl.value : ccEl.placeholder) || 0;
+  const vol = mockPool.volume;
+
+  // TFP: shock to 10× CC minimum; if CC=0 use maintenance shock of 10 ppm
+  const targetFC = cc > 0 ? Math.max(cc * 10, 10) : 10;
+  const needed = Math.max(0, targetFC - fc);
+
+  if (needed <= 0) {
+    resEl.innerHTML = '<span class="calc-ok">✓ FC is already above shock level — no shock needed</span>';
+    return;
+  }
+
+  const ozLiquid = calcChlorineDose(vol, fc, targetFC);
+  // 1 lb of 65% Cal-Hypo raises FC ~7.6 ppm per 10,000 gal
+  const lbsCalHypo = ((needed / 7.6) * (vol / 10000)).toFixed(1);
+  const gallonsLiquid = (ozLiquid / 128).toFixed(1);
+
+  resEl.innerHTML = `
+    <div class="shock-dose-wrap">
+      <div class="shock-target">Shock target: FC <strong>${targetFC} ppm</strong> &nbsp;·&nbsp; Need <strong>+${needed.toFixed(1)} ppm</strong></div>
+      <div class="shock-options">
+        <div class="shock-option">
+          <div class="shock-opt-lbl">Liquid Chlorine (10%)</div>
+          <div class="shock-opt-val">${ozLiquid} oz</div>
+          <div class="shock-opt-sub">${gallonsLiquid} gallons</div>
+        </div>
+        <div class="shock-opt-or">or</div>
+        <div class="shock-option">
+          <div class="shock-opt-lbl">Cal-Hypo (65%)</div>
+          <div class="shock-opt-val">${lbsCalHypo} lbs</div>
+          <div class="shock-opt-sub">granular shock</div>
+        </div>
+      </div>
+    </div>`;
+}
+
+function updateAcid() {
+  const curEl = document.getElementById('acid-ph-cur');
+  const tgtEl = document.getElementById('acid-ph-tgt');
+  const resEl = document.getElementById('acid-result');
+  if (!resEl) return;
+
+  const cur = parseFloat(curEl.value !== '' ? curEl.value : curEl.placeholder);
+  const tgt = parseFloat(tgtEl.value !== '' ? tgtEl.value : tgtEl.placeholder);
+
+  if (isNaN(cur) || isNaN(tgt)) {
+    resEl.innerHTML = '<span class="calc-hint">Enter current and target pH values</span>'; return;
+  }
+  if (cur <= tgt) {
+    resEl.innerHTML = '<span class="calc-ok">✓ pH is already at or below target</span>'; return;
+  }
+
+  const oz = calcAcidDose(mockPool.volume, cur, tgt);
+  resEl.innerHTML = `<div class="calc-dose">Add <strong>${oz} oz</strong> of Muriatic Acid · Pour slowly around perimeter at dusk</div>`;
 }
 
 
