@@ -339,8 +339,17 @@ textarea.input{resize:vertical;min-height:80px}
 .es-desc{font-size:14px;color:var(--text2);line-height:1.65}
 
 /* Quick Actions strip */
-.dash-quick{padding:0 16px 24px;display:flex;gap:10px;flex-wrap:wrap}
-.dash-quick .btn{flex:1;min-width:140px}
+.dash-quick{padding:0 16px 24px}
+.qa-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.qa-card{border-radius:16px;padding:18px 16px;cursor:pointer;transition:transform .15s,box-shadow .15s;border:none;text-align:left;font-family:inherit;display:flex;flex-direction:column;gap:4px;width:100%}
+.qa-card:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.15)}
+.qa-card-icon{font-size:26px;margin-bottom:6px;display:block}
+.qa-card-title{font-size:14px;font-weight:700;color:#fff;line-height:1.2}
+.qa-card-sub{font-size:11px;color:rgba(255,255,255,.65);margin-top:2px}
+.qa-secondary{display:flex;gap:8px}
+.qa-sec-btn{flex:1;padding:11px 6px;border-radius:12px;border:1.5px solid var(--border-solid);background:var(--card);font-family:inherit;font-size:11.5px;font-weight:600;color:var(--text2);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:5px;transition:background .15s,border-color .15s}
+.qa-sec-btn:hover{background:var(--surface);border-color:var(--pool-blue-dark);color:var(--pool-blue-dark)}
+.qa-sec-icon{font-size:20px}
 
 /* ===== HISTORY ===== */
 .filter-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px}
@@ -1045,11 +1054,36 @@ select.sr-input{cursor:pointer}
 
       <!-- Quick Actions -->
       <div class="dash-quick">
-        <button class="btn btn-secondary" onclick="navigate('log-test')">🧪 Log Water Test</button>
-        <button class="btn btn-secondary" onclick="navigate('log-chemical')">🧴 Log Chemical</button>
-        <button class="btn btn-secondary" onclick="navigate('calc')">⚗️ Dosage Calc</button>
-        <button class="btn btn-secondary" onclick="navigate('shock')">⚗️ Shock &amp; Acid</button>
-        <button class="btn btn-secondary btn-full" onclick="navigate('log-issue')">📸 Log Issue / Note</button>
+        <div class="qa-grid">
+          <button class="qa-card" style="background:linear-gradient(135deg,#0078B8 0%,#005A8A 100%)" onclick="navigate('log-test')">
+            <span class="qa-card-icon">🧪</span>
+            <span class="qa-card-title">Log Water Test</span>
+            <span class="qa-card-sub">Enter your test results</span>
+          </button>
+          <button class="qa-card" style="background:linear-gradient(135deg,#00897A 0%,#006B5E 100%)" onclick="navigate('log-chemical')">
+            <span class="qa-card-icon">🧴</span>
+            <span class="qa-card-title">Add Chemical</span>
+            <span class="qa-card-sub">Record what you added</span>
+          </button>
+        </div>
+        <div class="qa-secondary">
+          <button class="qa-sec-btn" onclick="navigate('calc')">
+            <span class="qa-sec-icon">⚗️</span>
+            <span>Dosage Calc</span>
+          </button>
+          <button class="qa-sec-btn" onclick="navigate('shock')">
+            <span class="qa-sec-icon">⚡</span>
+            <span>Shock Guide</span>
+          </button>
+          <button class="qa-sec-btn" onclick="navigate('log-issue')">
+            <span class="qa-sec-icon">📸</span>
+            <span>Log Issue</span>
+          </button>
+          <button class="qa-sec-btn" onclick="navigate('guide')">
+            <span class="qa-sec-icon">📖</span>
+            <span>Chem Guide</span>
+          </button>
+        </div>
       </div>
     </div>
 
