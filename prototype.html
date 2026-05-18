@@ -187,7 +187,7 @@ textarea.input{resize:vertical;min-height:80px}
 .user-name{font-size:14px;font-weight:600;color:rgba(255,255,255,.9)}
 .user-plan{font-size:11px;color:var(--teal)}
 
-.main-content{flex:1;margin-left:240px;min-height:100vh}
+.main-content{flex:1;margin-left:240px;min-height:100vh;transition:background-color 0.35s ease}
 .page{display:none;padding:28px;max-width:740px}
 .page.active{display:block;animation:pageFadeIn .18s ease}
 @keyframes pageFadeIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
@@ -1782,6 +1782,38 @@ function setHistoryFilter(filter, el) {
 //  NAVIGATION
 // ══════════════════════════════════════════
 
+const PAGE_BG = {
+  light: {
+    'dashboard':    '#EAF4FF',
+    'history':      '#E3EEF7',
+    'log-test':     '#EDFAFF',
+    'log-chemical': '#EBFAF4',
+    'log-issue':    '#FFF5F0',
+    'calc':         '#E6F5F9',
+    'shock':        '#FFF1EE',
+    'share':        '#EDF4FF',
+    'settings':     '#F0F4F8',
+  },
+  dark: {
+    'dashboard':    '#091825',
+    'history':      '#0A1A22',
+    'log-test':     '#09202A',
+    'log-chemical': '#091F1A',
+    'log-issue':    '#1A100A',
+    'calc':         '#0A1D26',
+    'shock':        '#1A120A',
+    'share':        '#0B1B2C',
+    'settings':     '#0E1922',
+  }
+};
+
+function applyPageBg(page) {
+  const mc = document.querySelector('.main-content');
+  if (!mc) return;
+  const mode = document.body.classList.contains('dark') ? 'dark' : 'light';
+  mc.style.backgroundColor = PAGE_BG[mode][page] || '';
+}
+
 const pages = ['dashboard','history','log-test','log-chemical','log-issue','calc','shock','share','settings'];
 const navIds = ['dashboard','history','share','pro'];
 
@@ -1812,6 +1844,7 @@ function navigate(page) {
     const fab = document.querySelector('.fab');
     if (fab) fab.style.display = formPages.includes(page) ? 'none' : '';
 
+    applyPageBg(page);
     if (page === 'dashboard') { renderDashboard(); renderTrend(); }
     if (page === 'history') renderHistory();
     if (page === 'log-test') prefillLogTest();
@@ -2616,6 +2649,7 @@ function toggleDarkMode() {
   localStorage.setItem('pk-dark', isDark ? '1' : '0');
   const tog = document.getElementById('dark-toggle');
   if (tog) tog.classList.toggle('on', isDark);
+  applyPageBg(state.page);
 }
 
 function initDarkMode() {
