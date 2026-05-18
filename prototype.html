@@ -493,6 +493,27 @@ select.sr-input{cursor:pointer}
 .ob-back-btn:hover{color:var(--text)}
 .ob-next-btn{min-width:120px}
 
+/* ===== COSTS PAGE ===== */
+.bg-costs{background:radial-gradient(ellipse 95% 62% at 14% 8%,rgba(255,255,255,.55) 0%,transparent 50%),radial-gradient(ellipse 60% 45% at 85% 50%,rgba(255,255,255,.38) 0%,transparent 44%),linear-gradient(170deg,#f5f9ff 0%,#d8eaf8 28%,#a8ccf0 58%,#7aaee4 100%)}
+.dark .bg-costs{background:radial-gradient(ellipse 92% 60% at 12% 6%,rgba(0,100,200,.1) 0%,transparent 48%),linear-gradient(170deg,#0a1c2e 0%,#0d2340 28%,#102c50 58%,#0c2545 100%)}
+.cost-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px}
+.cost-stat{background:var(--card);border-radius:12px;padding:14px 12px;text-align:center;border:1px solid var(--border)}
+.cost-stat-label{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px}
+.cost-stat-val{font-family:'DM Mono',monospace;font-size:20px;font-weight:700;color:var(--text)}
+.cost-filter{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px}
+.cost-pill{padding:5px 13px;border-radius:20px;font-size:12px;font-weight:500;cursor:pointer;background:var(--card);color:var(--text2);border:1px solid var(--border);transition:all .15s}
+.cost-pill.active{background:var(--pool-blue-dark);color:#fff;border-color:var(--pool-blue-dark)}
+.cost-item{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;margin-bottom:8px;gap:10px}
+.cost-item-left{flex:1;min-width:0}
+.cost-item-name{font-size:14px;font-weight:500;color:var(--text);margin:3px 0 2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cost-item-date{font-size:11px;color:var(--text3)}
+.cost-badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600}
+.cost-amount{font-family:'DM Mono',monospace;font-size:16px;font-weight:700;color:var(--text);flex-shrink:0}
+.cost-form{padding:18px;margin-bottom:16px}
+.btn-add-cost{background:var(--pool-blue-dark);color:#fff;border:none;border-radius:20px;padding:7px 16px;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:5px}
+.btn-outline-sm{background:transparent;border:1px solid var(--border-solid);color:var(--text2);border-radius:8px;padding:7px 16px;font-size:13px;cursor:pointer}
+.btn-primary-sm{background:var(--pool-blue-dark);color:#fff;border:none;border-radius:8px;padding:7px 16px;font-size:13px;font-weight:600;cursor:pointer}
+
 /* ===== RESPONSIVE ===== */
 @media(max-width:767px){
   .sidebar{display:none}
@@ -774,6 +795,9 @@ select.sr-input{cursor:pointer}
       </div>
       <div class="sb-item" id="sb-share" onclick="navigate('share')">
         <i class="ti ti-share"></i> Share with Pro
+      </div>
+      <div class="sb-item" id="sb-costs" onclick="navigate('costs')">
+        <i class="ti ti-receipt"></i> Spending
       </div>
       <div class="sb-item" id="sb-settings" onclick="navigate('settings')">
         <i class="ti ti-settings"></i> Settings
@@ -1228,6 +1252,46 @@ select.sr-input{cursor:pointer}
       <p style="text-align:center;color:var(--text3);font-size:12px;margin-top:24px">PoolKeep v1.0 · 30-day money-back guarantee</p>
     </div>
 
+    <!-- ─── COSTS ─── -->
+    <div id="page-costs" class="page">
+      <div class="page-head">
+        <div class="page-title">Spending</div>
+        <button class="btn-add-cost" onclick="toggleCostForm()"><i class="ti ti-plus"></i> Log Expense</button>
+      </div>
+
+      <div id="cost-add-form" class="card cost-form" style="display:none">
+        <p style="font-weight:600;margin:0 0 12px;color:var(--text)">New Expense</p>
+        <div class="form-group">
+          <label class="form-label">Item / Description</label>
+          <input id="cost-item-input" class="form-input" type="text" placeholder="e.g. Liquid Chlorine 4 gal">
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div class="form-group">
+            <label class="form-label">Category</label>
+            <select id="cost-cat-input" class="form-input">
+              <option>Chemicals</option><option>Equipment</option><option>Supplies</option><option>Maintenance</option><option>Other</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Amount ($)</label>
+            <input id="cost-amt-input" class="form-input" type="number" min="0" step="0.01" placeholder="0.00">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Date</label>
+          <input id="cost-date-input" class="form-input" type="date">
+        </div>
+        <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:4px">
+          <button class="btn-outline-sm" onclick="toggleCostForm()">Cancel</button>
+          <button class="btn-primary-sm" onclick="submitExpense()">Save</button>
+        </div>
+      </div>
+
+      <div class="cost-summary" id="cost-summary"></div>
+      <div class="cost-filter" id="cost-filter"></div>
+      <div id="cost-list"></div>
+    </div>
+
   </main>
 
   <!-- Bottom Nav (mobile — 5 tabs) -->
@@ -1381,7 +1445,7 @@ const historyEvents = [
   { id:9, type:'test', date:new Date(Date.now()-8*86400*1000), title:'Water Test', detail:'pH slightly elevated. Dosed muriatic acid next day.', readings:{fc:3.5,cc:0.0,ph:7.8,ta:92,cya:42,ch:250} }
 ];
 
-const state = { page:'dashboard', historyFilter:'all', checkedRecs:new Set(), selectedChem:null, issueSeverity:'Moderate' };
+const state = { page:'dashboard', historyFilter:'all', checkedRecs:new Set(), selectedChem:null, issueSeverity:'Moderate', costsFilter:'all' };
 
 
 // ══════════════════════════════════════════
@@ -1802,7 +1866,7 @@ function setHistoryFilter(filter, el) {
 //  NAVIGATION
 // ══════════════════════════════════════════
 
-const BG_PAGES = ['dashboard','history','log-test','log-chemical','log-issue','calc','shock','share','settings'];
+const BG_PAGES = ['dashboard','history','log-test','log-chemical','log-issue','calc','shock','share','settings','costs'];
 
 function applyPageBg(page) {
   const mc = document.querySelector('.main-content');
@@ -1812,7 +1876,7 @@ function applyPageBg(page) {
   if (BG_PAGES.includes(page)) mc.classList.add('bg-' + page);
 }
 
-const pages = ['dashboard','history','log-test','log-chemical','log-issue','calc','shock','share','settings'];
+const pages = ['dashboard','history','log-test','log-chemical','log-issue','calc','shock','share','settings','costs'];
 const navIds = ['dashboard','history','share','pro'];
 
 function navigate(page) {
@@ -1849,6 +1913,7 @@ function navigate(page) {
     if (page === 'share') renderShare();
     if (page === 'calc') renderCalc();
     if (page === 'shock') renderShock();
+    if (page === 'costs') renderCosts();
 
     window.scrollTo(0, 0);
   };
@@ -2629,6 +2694,90 @@ function showToast(msg, type) {
 // ══════════════════════════════════════════
 
 const mockNotifs = { testEmail: true, testSms: true, maintEmail: true, maintSms: false };
+
+const COST_COLORS = { Chemicals:'#00A8F0', Equipment:'#00E0B0', Supplies:'#F5A623', Maintenance:'#E5304A', Other:'#8AAABB' };
+let spendingNextId = 13;
+const mockSpending = [
+  { id:1,  date:new Date('2026-05-15'), item:'Liquid Chlorine (4 gal)',     category:'Chemicals',   amount:24.99 },
+  { id:2,  date:new Date('2026-05-10'), item:'pH Down (10 lb)',             category:'Chemicals',   amount:18.50 },
+  { id:3,  date:new Date('2026-05-08'), item:'Pool Brush',                  category:'Supplies',    amount:22.99 },
+  { id:4,  date:new Date('2026-05-01'), item:'Algaecide (32 oz)',           category:'Chemicals',   amount:14.99 },
+  { id:5,  date:new Date('2026-04-28'), item:'Filter Sand (50 lb)',         category:'Equipment',   amount:45.00 },
+  { id:6,  date:new Date('2026-04-20'), item:'Shock Treatment (6 pk)',      category:'Chemicals',   amount:32.99 },
+  { id:7,  date:new Date('2026-04-15'), item:'Test Kit Reagents',           category:'Supplies',    amount:16.50 },
+  { id:8,  date:new Date('2026-04-05'), item:'Pump O-Ring Kit',             category:'Maintenance', amount:12.99 },
+  { id:9,  date:new Date('2026-03-28'), item:'Stabilizer / CYA (4 lb)',     category:'Chemicals',   amount:28.75 },
+  { id:10, date:new Date('2026-03-20'), item:'Pump Seal Replacement',       category:'Maintenance', amount:89.00 },
+  { id:11, date:new Date('2026-03-10'), item:'Pool Net / Skimmer',          category:'Supplies',    amount:18.99 },
+  { id:12, date:new Date('2026-02-15'), item:'Calcium Hardness Up (10 lb)', category:'Chemicals',   amount:22.50 },
+];
+
+function renderCosts() {
+  const now = new Date();
+  const thisMonth = mockSpending.filter(e => e.date.getMonth()===now.getMonth() && e.date.getFullYear()===now.getFullYear());
+  const thisYear  = mockSpending.filter(e => e.date.getFullYear()===now.getFullYear());
+  const sumMonth = thisMonth.reduce((a,e)=>a+e.amount,0);
+  const sumYear  = thisYear.reduce((a,e)=>a+e.amount,0);
+  const sumAll   = mockSpending.reduce((a,e)=>a+e.amount,0);
+  document.getElementById('cost-summary').innerHTML =
+    `<div class="cost-stat"><div class="cost-stat-label">This Month</div><div class="cost-stat-val">$${sumMonth.toFixed(2)}</div></div>` +
+    `<div class="cost-stat"><div class="cost-stat-label">This Year</div><div class="cost-stat-val">$${sumYear.toFixed(2)}</div></div>` +
+    `<div class="cost-stat"><div class="cost-stat-label">All Time</div><div class="cost-stat-val">$${sumAll.toFixed(2)}</div></div>`;
+  const cats = ['All','Chemicals','Equipment','Supplies','Maintenance','Other'];
+  document.getElementById('cost-filter').innerHTML = cats.map(c =>
+    `<span class="cost-pill${state.costsFilter===c.toLowerCase()?' active':''}" onclick="setCostsFilter('${c.toLowerCase()}')">${c}</span>`
+  ).join('');
+  const filtered = state.costsFilter==='all' ? mockSpending : mockSpending.filter(e=>e.category.toLowerCase()===state.costsFilter);
+  const sorted = [...filtered].sort((a,b)=>b.date-a.date);
+  if (!sorted.length) {
+    document.getElementById('cost-list').innerHTML = `<div style="text-align:center;padding:40px 0;color:var(--text3)"><i class="ti ti-receipt-off" style="font-size:32px;display:block;margin-bottom:8px"></i>No expenses yet</div>`;
+    return;
+  }
+  let html='', lastMo='';
+  sorted.forEach(e => {
+    const mo = e.date.toLocaleDateString('en-US',{month:'long',year:'numeric'});
+    if (mo!==lastMo) {
+      if (lastMo) html+='</div>';
+      const moTotal = sorted.filter(x=>x.date.toLocaleDateString('en-US',{month:'long',year:'numeric'})===mo).reduce((a,x)=>a+x.amount,0);
+      html+=`<div class="hist-month-group"><div class="hist-month-label">${mo}<span style="float:right;font-family:'DM Mono',monospace;font-weight:500">$${moTotal.toFixed(2)}</span></div>`;
+      lastMo=mo;
+    }
+    const col = COST_COLORS[e.category]||'#8AAABB';
+    html+=`<div class="card cost-item">
+      <div class="cost-item-left">
+        <span class="cost-badge" style="background:${col}20;color:${col}">${e.category}</span>
+        <div class="cost-item-name">${e.item}</div>
+        <div class="cost-item-date">${e.date.toLocaleDateString('en-US',{month:'short',day:'numeric'})}</div>
+      </div>
+      <div class="cost-amount">$${e.amount.toFixed(2)}</div>
+    </div>`;
+  });
+  html+='</div>';
+  document.getElementById('cost-list').innerHTML=html;
+}
+
+function setCostsFilter(cat) { state.costsFilter=cat; renderCosts(); }
+
+function toggleCostForm() {
+  const f=document.getElementById('cost-add-form');
+  const showing=f.style.display!=='none';
+  f.style.display=showing?'none':'block';
+  if (!showing) document.getElementById('cost-date-input').value=new Date().toISOString().split('T')[0];
+}
+
+function submitExpense() {
+  const item=document.getElementById('cost-item-input').value.trim();
+  const cat=document.getElementById('cost-cat-input').value;
+  const amt=parseFloat(document.getElementById('cost-amt-input').value);
+  const ds=document.getElementById('cost-date-input').value;
+  if (!item||isNaN(amt)||amt<=0||!ds){showToast('Please fill in all fields','error');return;}
+  mockSpending.push({id:spendingNextId++,date:new Date(ds+'T12:00:00'),item,category:cat,amount:amt});
+  document.getElementById('cost-item-input').value='';
+  document.getElementById('cost-amt-input').value='';
+  document.getElementById('cost-add-form').style.display='none';
+  showToast(`$${amt.toFixed(2)} logged`,'success');
+  renderCosts();
+}
 
 function toggleNotif(key) {
   mockNotifs[key] = !mockNotifs[key];
