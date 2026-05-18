@@ -187,7 +187,27 @@ textarea.input{resize:vertical;min-height:80px}
 .user-name{font-size:14px;font-weight:600;color:rgba(255,255,255,.9)}
 .user-plan{font-size:11px;color:var(--teal)}
 
-.main-content{flex:1;margin-left:240px;min-height:100vh;transition:background-color 0.35s ease}
+.main-content{flex:1;margin-left:240px;min-height:100vh;transition:background .4s ease}
+/* ── Water gradient backgrounds ──────────────────────────────── */
+.bg-dashboard{background:radial-gradient(ellipse 140% 70% at -8% 0%,rgba(255,255,255,.72) 0%,transparent 46%),radial-gradient(ellipse 55% 44% at 94% 28%,rgba(255,255,255,.58) 0%,transparent 40%),radial-gradient(ellipse 42% 34% at 52% 80%,rgba(0,168,240,.09) 0%,transparent 44%),linear-gradient(172deg,#f0f9ff 0%,#d2ecfd 28%,#a8d6f8 58%,#7bc2f3 100%)}
+.bg-history{background:radial-gradient(ellipse 105% 64% at 10% 6%,rgba(255,255,255,.58) 0%,transparent 50%),radial-gradient(ellipse 62% 48% at 84% 44%,rgba(255,255,255,.38) 0%,transparent 44%),linear-gradient(170deg,#e8f2f8 0%,#bcd6ec 32%,#88b2d0 62%,#568db4 100%)}
+.bg-log-test{background:radial-gradient(ellipse 112% 68% at 74% 0%,rgba(255,255,255,.68) 0%,transparent 54%),radial-gradient(ellipse 48% 36% at 6% 70%,rgba(255,255,255,.44) 0%,transparent 42%),linear-gradient(162deg,#edfbff 0%,#beedfb 30%,#74d6f4 58%,#28b6e8 100%)}
+.bg-log-chemical{background:radial-gradient(ellipse 92% 58% at 20% 10%,rgba(255,255,255,.58) 0%,transparent 50%),radial-gradient(ellipse 58% 44% at 80% 70%,rgba(255,255,255,.38) 0%,transparent 44%),linear-gradient(172deg,#eaf9f4 0%,#b6ebd6 32%,#6ecaa8 62%,#36a684 100%)}
+.bg-log-issue{background:radial-gradient(ellipse 82% 54% at 33% 6%,rgba(255,248,238,.68) 0%,transparent 50%),linear-gradient(168deg,#fff4ea 0%,#fcdbb4 30%,#efae6c 60%,#d87e3c 100%)}
+.bg-calc{background:radial-gradient(ellipse 122% 68% at 50% -10%,rgba(255,255,255,.68) 0%,transparent 52%),radial-gradient(ellipse 54% 40% at 90% 64%,rgba(255,255,255,.38) 0%,transparent 42%),linear-gradient(178deg,#e8f6ff 0%,#b6daf5 30%,#76b6e8 58%,#3690cc 100%)}
+.bg-shock{background:radial-gradient(ellipse 78% 54% at 70% 6%,rgba(255,244,236,.62) 0%,transparent 48%),linear-gradient(165deg,#fff0e6 0%,#fbcea4 28%,#ee8e56 58%,#c65822 100%)}
+.bg-share{background:radial-gradient(ellipse 102% 66% at 16% 16%,rgba(255,255,255,.52) 0%,transparent 52%),radial-gradient(ellipse 68% 50% at 84% 74%,rgba(178,218,255,.34) 0%,transparent 50%),linear-gradient(172deg,#daeeff 0%,#96c2ec 28%,#4886cc 58%,#1252a4 100%)}
+.bg-settings{background:radial-gradient(ellipse 88% 56% at 64% 10%,rgba(255,255,255,.42) 0%,transparent 50%),linear-gradient(175deg,#d6e2f0 0%,#98b2cc 32%,#5676a0 62%,#2e4668 100%)}
+/* Dark variants */
+.dark .bg-dashboard{background:radial-gradient(ellipse 130% 72% at -6% 0%,rgba(0,168,240,.1) 0%,transparent 46%),radial-gradient(ellipse 54% 44% at 92% 30%,rgba(0,120,184,.09) 0%,transparent 40%),linear-gradient(172deg,#091825 0%,#0c2133 28%,#0e2f50 58%,#0a2a46 100%)}
+.dark .bg-history{background:radial-gradient(ellipse 98% 60% at 8% 6%,rgba(0,120,184,.09) 0%,transparent 48%),linear-gradient(170deg,#0a1a24 0%,#0d1f30 32%,#10283e 62%,#0c2236 100%)}
+.dark .bg-log-test{background:radial-gradient(ellipse 108% 66% at 72% 0%,rgba(0,168,240,.11) 0%,transparent 52%),linear-gradient(162deg,#09202a 0%,#0c2838 30%,#0e3248 58%,#083852 100%)}
+.dark .bg-log-chemical{background:radial-gradient(ellipse 90% 56% at 18% 8%,rgba(0,200,160,.09) 0%,transparent 48%),linear-gradient(172deg,#091f18 0%,#0d2820 32%,#0f3228 62%,#0a2820 100%)}
+.dark .bg-log-issue{background:radial-gradient(ellipse 80% 50% at 30% 4%,rgba(200,100,50,.09) 0%,transparent 48%),linear-gradient(168deg,#1a100a 0%,#200e08 30%,#280e0a 60%,#1e0c08 100%)}
+.dark .bg-calc{background:radial-gradient(ellipse 118% 66% at 48% -8%,rgba(0,120,184,.11) 0%,transparent 50%),linear-gradient(178deg,#0a1d28 0%,#0d2535 30%,#102e48 58%,#0e2a42 100%)}
+.dark .bg-shock{background:radial-gradient(ellipse 74% 50% at 68% 4%,rgba(200,80,40,.09) 0%,transparent 46%),linear-gradient(165deg,#1a1208 0%,#20120a 28%,#280e08 58%,#1e0c06 100%)}
+.dark .bg-share{background:radial-gradient(ellipse 98% 62% at 14% 14%,rgba(0,80,168,.11) 0%,transparent 50%),linear-gradient(172deg,#0b1b2e 0%,#0e2240 28%,#122a52 58%,#0e2248 100%)}
+.dark .bg-settings{background:radial-gradient(ellipse 84% 54% at 62% 8%,rgba(50,80,120,.09) 0%,transparent 48%),linear-gradient(175deg,#0e1922 0%,#121e28 32%,#152438 62%,#101c2c 100%)}
 .page{display:none;padding:28px;max-width:740px}
 .page.active{display:block;animation:pageFadeIn .18s ease}
 @keyframes pageFadeIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
@@ -1782,36 +1802,14 @@ function setHistoryFilter(filter, el) {
 //  NAVIGATION
 // ══════════════════════════════════════════
 
-const PAGE_BG = {
-  light: {
-    'dashboard':    '#EAF4FF',
-    'history':      '#E3EEF7',
-    'log-test':     '#EDFAFF',
-    'log-chemical': '#EBFAF4',
-    'log-issue':    '#FFF5F0',
-    'calc':         '#E6F5F9',
-    'shock':        '#FFF1EE',
-    'share':        '#EDF4FF',
-    'settings':     '#F0F4F8',
-  },
-  dark: {
-    'dashboard':    '#091825',
-    'history':      '#0A1A22',
-    'log-test':     '#09202A',
-    'log-chemical': '#091F1A',
-    'log-issue':    '#1A100A',
-    'calc':         '#0A1D26',
-    'shock':        '#1A120A',
-    'share':        '#0B1B2C',
-    'settings':     '#0E1922',
-  }
-};
+const BG_PAGES = ['dashboard','history','log-test','log-chemical','log-issue','calc','shock','share','settings'];
 
 function applyPageBg(page) {
   const mc = document.querySelector('.main-content');
   if (!mc) return;
-  const mode = document.body.classList.contains('dark') ? 'dark' : 'light';
-  mc.style.backgroundColor = PAGE_BG[mode][page] || '';
+  mc.style.background = '';
+  BG_PAGES.forEach(p => mc.classList.remove('bg-' + p));
+  if (BG_PAGES.includes(page)) mc.classList.add('bg-' + page);
 }
 
 const pages = ['dashboard','history','log-test','log-chemical','log-issue','calc','shock','share','settings'];
@@ -2649,7 +2647,6 @@ function toggleDarkMode() {
   localStorage.setItem('pk-dark', isDark ? '1' : '0');
   const tog = document.getElementById('dark-toggle');
   if (tog) tog.classList.toggle('on', isDark);
-  applyPageBg(state.page);
 }
 
 function initDarkMode() {
