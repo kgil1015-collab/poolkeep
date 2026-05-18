@@ -137,6 +137,14 @@ textarea.input{resize:vertical;min-height:80px}
 .spots-progress-fill{height:100%;border-radius:var(--r-full);background:linear-gradient(90deg,var(--pool-blue-dark),var(--teal));transition:width 1.2s cubic-bezier(.4,0,.2,1)}
 .pulse-dot{width:8px;height:8px;border-radius:50%;background:var(--red);animation:pulse 1.5s ease-in-out infinite;flex-shrink:0}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.testimonials-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
+.testimonial-card{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);border-radius:var(--r-lg);padding:24px}
+.t-stars{color:var(--teal);font-size:14px;margin-bottom:12px;letter-spacing:2px}
+.t-quote{font-size:14px;color:rgba(255,255,255,.85);line-height:1.7;margin-bottom:20px;font-style:italic}
+.t-author{display:flex;align-items:center;gap:12px}
+.t-avatar{width:36px;height:36px;border-radius:50%;background:rgba(0,168,240,.3);color:var(--teal);font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.t-name{font-size:13px;font-weight:600;color:#fff}
+.t-loc{font-size:11px;color:rgba(255,255,255,.45);margin-top:2px}
 .countdown-wrap{margin:4px 0 20px;text-align:center}
 .countdown-label{font-size:12px;color:var(--text2);font-weight:500;margin-bottom:10px;text-transform:uppercase;letter-spacing:.05em}
 .countdown-tiles{display:inline-flex;align-items:center;gap:6px}
@@ -552,6 +560,39 @@ select.sr-input{cursor:pointer}
         <div class="feat-card"><div class="feat-icon">📊</div><h3>Full Maintenance Log</h3><p>Never forget what you added. A complete history of every test, chemical addition, and service event—with photos attached.</p></div>
         <div class="feat-card"><div class="feat-icon">🔗</div><h3>One-Tap Pro Handoff</h3><p>When you need a pro, send them a perfect service report with one tap. Your pool tech will have everything they need before they arrive.</p></div>
         <div class="feat-card"><div class="feat-icon">⏰</div><h3>Maintenance Reminders</h3><p>Get email and SMS reminders before problems start. "Time for your weekly pool check-up!"—so nothing falls through the cracks.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section-wrap" style="background:var(--pool-deep);padding:56px 24px">
+    <div class="section-inner">
+      <p class="section-label" style="color:var(--teal);text-align:center">What Homeowners Say</p>
+      <h2 class="section-title" style="color:white;text-align:center;margin-bottom:36px">Real pool owners. Real results.</h2>
+      <div class="testimonials-grid">
+        <div class="testimonial-card">
+          <div class="t-stars">★★★★★</div>
+          <p class="t-quote">"We had a green pool after Memorial Day weekend. PoolKeep walked us through shocking it step by step — crystal clear in 48 hours. Worth every penny."</p>
+          <div class="t-author">
+            <div class="t-avatar">JR</div>
+            <div><div class="t-name">James R.</div><div class="t-loc">Scottsdale, AZ · 18,000 gal inground</div></div>
+          </div>
+        </div>
+        <div class="testimonial-card">
+          <div class="t-stars">★★★★★</div>
+          <p class="t-quote">"I was spending $180/month on weekly service. Now I test twice a week myself and only call a pro when I actually need one. Saved over $1,200 this year."</p>
+          <div class="t-author">
+            <div class="t-avatar">ML</div>
+            <div><div class="t-name">Maria L.</div><div class="t-loc">Tampa, FL · 12,000 gal inground</div></div>
+          </div>
+        </div>
+        <div class="testimonial-card">
+          <div class="t-stars">★★★★★</div>
+          <p class="t-quote">"The Share with Pro feature alone is genius. Sent my tech the report before he arrived — he showed up with exactly the right chemicals. Zero wasted time."</p>
+          <div class="t-author">
+            <div class="t-avatar">DK</div>
+            <div><div class="t-name">Derek K.</div><div class="t-loc">Austin, TX · 22,000 gal inground</div></div>
+          </div>
+        </div>
       </div>
     </div>
   </section>
