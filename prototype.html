@@ -405,6 +405,10 @@ select.sr-input{cursor:pointer}
 .shock-opt-sub{font-size:11px;color:var(--text3);margin-top:3px}
 .shock-opt-or{font-size:12px;color:var(--text3);font-weight:600;flex-shrink:0}
 .chem-confirm-tip{background:rgba(0,120,184,.07);border:1px solid rgba(0,120,184,.15);border-radius:var(--r);padding:12px 14px;font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:16px}
+.severity-badge{display:inline-block;font-size:11px;font-weight:700;padding:2px 8px;border-radius:var(--r-full);margin-top:6px}
+.severity-badge.Minor{background:rgba(245,166,35,.12);color:#C07800}
+.severity-badge.Moderate{background:rgba(229,100,48,.12);color:#C04800}
+.severity-badge.Serious{background:rgba(229,48,74,.14);color:var(--red)}
 
 /* ===== CALCULATOR ===== */
 .calc-pool-row{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--text2);margin-bottom:16px}
@@ -924,6 +928,14 @@ select.sr-input{cursor:pointer}
             </div>
           </div>
           <div class="form-group">
+            <label class="form-label">Severity</label>
+            <div class="ob-chips" id="severity-chips" style="justify-content:flex-start">
+              <button type="button" class="ob-chip" onclick="selectSeverity('Minor', this)">🟡 Minor</button>
+              <button type="button" class="ob-chip selected" onclick="selectSeverity('Moderate', this)">🟠 Moderate</button>
+              <button type="button" class="ob-chip" onclick="selectSeverity('Serious', this)">🔴 Serious</button>
+            </div>
+          </div>
+          <div class="form-group">
             <label class="form-label">Notes (optional)</label>
             <input type="text" class="input" id="inp-issue-notes" placeholder="e.g. Steps show slight green tint.">
           </div>
@@ -1273,14 +1285,14 @@ const historyEvents = [
   { id:2, type:'chemical', date:new Date(Date.now()-26*3600*1000), title:'Chemical Addition', detail:'Added 1 gallon of Liquid Chlorine (10%). Poured into skimmer with pump running.', chemical:'Liquid Chlorine (10%)', amount:1, unit:'gallon' },
   { id:3, type:'test', date:new Date(Date.now()-3*86400*1000), title:'Water Test', detail:'All parameters within ideal range.', readings:{fc:4.5,cc:0.0,ph:7.6,ta:88,cya:44,ch:248} },
   { id:4, type:'chemical', date:new Date(Date.now()-4*86400*1000), title:'Chemical Addition', detail:'Added 1 lb Cyanuric Acid stabilizer. Dissolved in bucket first.', chemical:'Cyanuric Acid (Stabilizer)', amount:1, unit:'lb' },
-  { id:5, type:'issue', date:new Date(Date.now()-5*86400*1000), title:'Issue Logged', detail:'Pool is cloudy after Memorial Day party. Water has a milky appearance—visibility drops off at about 3ft. Approximately 30 people swam.', hasPhoto:true },
+  { id:5, type:'issue', date:new Date(Date.now()-5*86400*1000), title:'Issue Logged', detail:'Pool is cloudy after Memorial Day party. Water has a milky appearance—visibility drops off at about 3ft. Approximately 30 people swam.', hasPhoto:true, severity:'Moderate' },
   { id:6, type:'chemical', date:new Date(Date.now()-5*86400*1000-2*3600*1000), title:'Chemical Addition', detail:'Added 2 lbs Calcium Hypochlorite Shock to combat cloudy water.', chemical:'Calcium Hypochlorite (Shock)', amount:2, unit:'lbs' },
   { id:7, type:'test', date:new Date(Date.now()-5*86400*1000-4*3600*1000), title:'Water Test', detail:'FC very low after party. Shocked immediately.', readings:{fc:1.5,cc:0.4,ph:7.6,ta:88,cya:42,ch:248} },
   { id:8, type:'chemical', date:new Date(Date.now()-7*86400*1000), title:'Chemical Addition', detail:'Added 32 oz Muriatic Acid to lower pH from 7.8.', chemical:'Muriatic Acid', amount:32, unit:'oz' },
   { id:9, type:'test', date:new Date(Date.now()-8*86400*1000), title:'Water Test', detail:'pH slightly elevated. Dosed muriatic acid next day.', readings:{fc:3.5,cc:0.0,ph:7.8,ta:92,cya:42,ch:250} }
 ];
 
-const state = { page:'dashboard', historyFilter:'all', checkedRecs:new Set(), selectedChem:null };
+const state = { page:'dashboard', historyFilter:'all', checkedRecs:new Set(), selectedChem:null, issueSeverity:'Moderate' };
 
 
 // ══════════════════════════════════════════
@@ -1619,8 +1631,12 @@ function renderHistory() {
     if (ev.type === 'chemical') {
       detailHTML = `<div class="tl-detail"><strong>${ev.amount} ${ev.unit}</strong> of ${ev.chemical}</div><div class="tl-detail" style="margin-top:4px">${ev.detail}</div>`;
     }
-    if (ev.type === 'issue' && ev.hasPhoto) {
-      detailHTML += `<div class="issue-photo-mock">📷 Photo attached — tap to view full size</div>`;
+    if (ev.type === 'issue') {
+      if (ev.severity) {
+        const icons = { Minor:'🟡', Moderate:'🟠', Serious:'🔴' };
+        detailHTML = `<span class="severity-badge ${ev.severity}">${icons[ev.severity] || ''} ${ev.severity}</span>` + detailHTML;
+      }
+      if (ev.hasPhoto) detailHTML += `<div class="issue-photo-mock">📷 Photo attached — tap to view full size</div>`;
     }
 
     return `
@@ -2012,6 +2028,12 @@ function closeChemConfirm(e) {
   }
 }
 
+function selectSeverity(val, el) {
+  state.issueSeverity = val;
+  document.querySelectorAll('#severity-chips .ob-chip').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
 function submitLogIssue(event) {
   event.preventDefault();
   const desc  = document.getElementById('inp-issue-desc').value.trim();
@@ -2025,10 +2047,16 @@ function submitLogIssue(event) {
   historyEvents.unshift({
     id:Date.now(), type:'issue', date:new Date(), title:'Issue Logged',
     detail:desc + (notes ? ` Notes: ${notes}` : ''),
-    hasPhoto:false
+    hasPhoto:false, severity: state.issueSeverity
   });
 
   document.getElementById('form-log-issue').reset();
+  // Reset severity chips to default
+  document.querySelectorAll('#severity-chips .ob-chip').forEach(c => c.classList.remove('selected'));
+  const modChip = document.querySelector('#severity-chips .ob-chip:nth-child(2)');
+  if (modChip) modChip.classList.add('selected');
+  state.issueSeverity = 'Moderate';
+
   showToast('Issue logged! Consider sharing with a pro.', 'success');
   setTimeout(() => navigate('history'), 700);
 }
