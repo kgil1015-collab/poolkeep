@@ -145,6 +145,9 @@ textarea.input{resize:vertical;min-height:80px}
 .t-avatar{width:36px;height:36px;border-radius:50%;background:rgba(0,168,240,.3);color:var(--teal);font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .t-name{font-size:13px;font-weight:600;color:#fff}
 .t-loc{font-size:11px;color:rgba(255,255,255,.45);margin-top:2px}
+.share-other-wrap{margin-top:16px;border-top:1px solid var(--border);padding-top:16px}
+.share-other-title{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text2);margin-bottom:10px}
+.share-other-row{display:flex;gap:8px}
 .countdown-wrap{margin:4px 0 20px;text-align:center}
 .countdown-label{font-size:12px;color:var(--text2);font-weight:500;margin-bottom:10px;text-transform:uppercase;letter-spacing:.05em}
 .countdown-tiles{display:inline-flex;align-items:center;gap:6px}
@@ -1116,9 +1119,18 @@ select.sr-input{cursor:pointer}
           <input class="share-url" readonly value="https://poolkeep.app/share/dave/backyard-pool-k2f9a7" id="share-url-input">
           <button class="btn btn-primary" onclick="copyShareLink()">Copy Link</button>
         </div>
-        <div style="display:flex;gap:10px">
-          <button class="btn btn-secondary" style="flex:1" onclick="showToast('Opening share sheet...', '')">📤 Share via...</button>
-          <button class="btn btn-secondary" style="flex:1" onclick="window.print()">🖨️ Print Report</button>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <button class="btn btn-secondary" onclick="shareViaEmail()">📧 Email Report</button>
+          <button class="btn btn-secondary" onclick="shareViaSMS()">💬 Text via SMS</button>
+          <button class="btn btn-secondary" onclick="shareNative()">📤 Share via...</button>
+          <button class="btn btn-secondary" onclick="window.print()">🖨️ Print Report</button>
+        </div>
+        <div class="share-other-wrap">
+          <div class="share-other-title">Share with another user</div>
+          <div class="share-other-row">
+            <input class="share-url" id="share-email-input" type="email" placeholder="friend@example.com">
+            <button class="btn btn-primary" onclick="sendToUser()">Send</button>
+          </div>
         </div>
       </div>
 
@@ -2500,6 +2512,57 @@ function renderShare() {
         ${historyHTML || '<div style="color:var(--text2);font-size:13px;padding:8px 0">No activity in the last 30 days.</div>'}
       </div>
     </div>`;
+}
+
+function getShareURL() {
+  return document.getElementById('share-url-input').value;
+}
+
+function getShareBody() {
+  const t = latestTest;
+  const date = t.date.toLocaleDateString('en-US', { month:'long', day:'numeric', year:'numeric' });
+  return `Hi, I'm sharing my pool health report from PoolKeep.\n\n` +
+    `Pool: ${mockPool.name} (${mockPool.volume.toLocaleString()} gal ${mockPool.type})\n` +
+    `Report date: ${date}\n\n` +
+    `Latest test results:\n` +
+    `  Free Chlorine: ${t.fc} ppm\n` +
+    `  Combined Chlorine: ${t.cc} ppm\n` +
+    `  pH: ${t.ph}\n` +
+    `  Total Alkalinity: ${t.ta} ppm\n` +
+    `  CYA (Stabilizer): ${t.cya} ppm\n` +
+    `  Calcium Hardness: ${t.ch} ppm\n\n` +
+    `View full report: ${getShareURL()}`;
+}
+
+function shareViaEmail() {
+  const subject = encodeURIComponent(`Pool Health Report — ${mockPool.name}`);
+  const body    = encodeURIComponent(getShareBody());
+  window.open(`mailto:?subject=${subject}&body=${body}`);
+}
+
+function shareViaSMS() {
+  const msg = encodeURIComponent(`My pool report from PoolKeep: ${getShareURL()}`);
+  window.open(`sms:?body=${msg}`);
+}
+
+function shareNative() {
+  if (navigator.share) {
+    navigator.share({ title: `${mockPool.name} — PoolKeep Report`, text: `Check out my pool health report`, url: getShareURL() })
+      .catch(() => {});
+  } else {
+    copyShareLink();
+    showToast('Link copied — paste to share!', 'success');
+  }
+}
+
+function sendToUser() {
+  const email = document.getElementById('share-email-input').value.trim();
+  if (!email || !email.includes('@')) { showToast('Enter a valid email address', 'error'); return; }
+  const subject = encodeURIComponent(`${mockUser.full} shared a pool report with you`);
+  const body    = encodeURIComponent(`${mockUser.full} has shared their pool health report with you via PoolKeep.\n\n${getShareBody()}`);
+  window.open(`mailto:${encodeURIComponent(email)}?subject=${subject}&body=${body}`);
+  document.getElementById('share-email-input').value = '';
+  showToast(`Report sent to ${email}`, 'success');
 }
 
 function copyShareLink() {
