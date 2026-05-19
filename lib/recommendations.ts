@@ -256,7 +256,7 @@ function buildTreatmentPlan(test: TestInput, v: number): TreatmentStep[] {
         order: 4,
         urgency: 'soon',
         param: 'cya',
-        title: 'Add CYA (Cyanuric Acid / Stabilizer)',
+        title: 'Add Cyanuric Acid (CYA)',
         chemical: 'Cyanuric Acid (Stabilizer)',
         amount: oz(dose, 'lbs'),
         why: `CYA at ${cya} ppm is too low. Here is what Cyanuric Acid actually does: it forms a temporary bond with chlorine molecules and acts as a shield against UV radiation. Without that shield, direct sunlight can destroy up to 90% of your pool's chlorine within 2 hours on a clear day. With CYA at the proper level (30–50 ppm), that same chlorine lasts significantly longer — meaning fewer treatments, more consistent protection, and lower chemical costs over the season. This is why CYA is called a stabilizer. Add it after establishing your chlorine level so there is something worth protecting.`,
@@ -269,7 +269,7 @@ function buildTreatmentPlan(test: TestInput, v: number): TreatmentStep[] {
         order: 4,
         urgency: 'routine',
         param: 'cya',
-        title: 'Add a small CYA (Stabilizer) top-up',
+        title: 'Add Cyanuric Acid (CYA) — small top-up',
         chemical: 'Cyanuric Acid (Stabilizer)',
         amount: oz(dose, 'lbs'),
         why: `CYA at ${cya} ppm is slightly below the ideal 30–50 ppm range. Without enough stabilizer, UV light shortens the lifespan of every chlorine dose you add — you end up adding chlorine more frequently and spending more than you need to. A small top-up now will extend your chlorine's staying power.`,
@@ -294,7 +294,7 @@ function buildTreatmentPlan(test: TestInput, v: number): TreatmentStep[] {
         order: 4,
         urgency: 'routine',
         param: 'cya',
-        title: 'CYA slightly elevated — monitor',
+        title: 'Cyanuric Acid (CYA) slightly elevated — monitor',
         chemical: null,
         amount: null,
         why: `CYA at ${cya} ppm is slightly above the ideal range but is not yet causing problems. It will naturally dilute over time through splash-out, backwashing, and rain. No action needed now, but be aware that continuing to use trichlor tabs or dichlor shock will push it higher.`,
@@ -372,7 +372,7 @@ export function calculateRecommendations(test: TestInput, volumeGallons: number)
     ph: { status: 'unknown', param: 'ph', title: 'pH not tested', desc: 'pH controls chlorine effectiveness and swimmer comfort. If too low (< 7.2) it corrodes equipment and irritates skin. If too high (> 7.8) chlorine becomes ineffective and scale forms.', tags: ['Ideal: 7.2 – 7.6', 'Test soon'] },
     free_chlorine: { status: 'unknown', param: 'free_chlorine', title: 'Free chlorine not tested', desc: "Chlorine is your primary defense against bacteria and algae. Below 1 ppm the water is unsafe to swim in. Above 5 ppm it causes eye and skin irritation. HTH strips typically don't include free chlorine — consider a separate liquid or tablet test.", tags: ['Ideal: 1 – 3 ppm', 'Test separately if possible'] },
     total_alkalinity: { status: 'unknown', param: 'total_alkalinity', title: 'Alkalinity not tested', desc: 'Total alkalinity acts as a pH buffer — it keeps pH from swinging wildly with every chemical addition or rain event. When low, pH becomes unpredictable. When high, pH gets stuck and is hard to adjust.', tags: ['Ideal: 80 – 120 ppm', 'Test monthly'] },
-    cya: { status: 'unknown', param: 'cya', title: 'CYA / Stabilizer not tested', desc: 'Cyanuric Acid (CYA) is your pool\'s stabilizer — it shields chlorine from being broken down by UV sunlight. Without it, sunlight can destroy 90% of your chlorine within hours. If CYA gets too high (> 80 ppm) it blocks chlorine from sanitizing, called "chlorine lock."', tags: ['Ideal: 30 – 50 ppm', 'Test monthly'] },
+    cya: { status: 'unknown', param: 'cya', title: 'Cyanuric Acid (CYA) not tested', desc: 'Cyanuric Acid (CYA) is your pool\'s stabilizer — it shields chlorine from being broken down by UV sunlight. Without it, sunlight can destroy 90% of your chlorine within hours. If CYA gets too high (> 80 ppm) it blocks chlorine from sanitizing, called "chlorine lock."', tags: ['Ideal: 30 – 50 ppm', 'Test monthly'] },
     calcium_hardness: { status: 'unknown', param: 'calcium_hardness', title: 'Calcium hardness not tested', desc: 'Low calcium (< 200 ppm) causes water to aggressively leach calcium from your pool surface, leading to etching and pitting over time. High calcium (> 400 ppm) causes white scale deposits on walls, tiles, and equipment.', tags: ['Ideal: 200 – 400 ppm', 'Test monthly'] },
   }
 
@@ -429,16 +429,16 @@ export function calculateRecommendations(test: TestInput, volumeGallons: number)
   if (test.cya === null) { recs.push(MISSING.cya) }
   else if (test.cya < 20) {
     const dose = ((40 - test.cya) / 10) * 1.3 * v
-    recs.push({ status: 'action', param: 'cya', title: 'Add CYA / Stabilizer', desc: `CYA at ${test.cya} ppm — too low. Cyanuric Acid is your pool's stabilizer, and without enough of it, UV sunlight burns off chlorine within hours.`, tags: [`Cyanuric Acid · ${oz(dose, 'lbs')}`, 'Add to skimmer', 'Re-test in 5 days'] })
+    recs.push({ status: 'action', param: 'cya', title: 'Cyanuric Acid (CYA) too low', desc: `CYA at ${test.cya} ppm — too low. Cyanuric Acid is your pool's stabilizer, and without enough of it, UV sunlight burns off chlorine within hours.`, tags: [`Cyanuric Acid · ${oz(dose, 'lbs')}`, 'Add to skimmer', 'Re-test in 5 days'] })
   } else if (test.cya < 30) {
     const dose = ((40 - test.cya) / 10) * 1.3 * v
-    recs.push({ status: 'monitor', param: 'cya', title: 'CYA / Stabilizer slightly low', desc: `CYA at ${test.cya} ppm. Cyanuric Acid protects chlorine from UV — a small dose will keep your chlorine from burning off in sunlight.`, tags: [`Cyanuric Acid · ${oz(dose, 'lbs')}`, 'Monitor weekly'] })
+    recs.push({ status: 'monitor', param: 'cya', title: 'Cyanuric Acid (CYA) slightly low', desc: `CYA at ${test.cya} ppm. Cyanuric Acid protects chlorine from UV — a small dose will keep your chlorine from burning off in sunlight.`, tags: [`Cyanuric Acid · ${oz(dose, 'lbs')}`, 'Monitor weekly'] })
   } else if (test.cya > 80) {
     recs.push({ status: 'action', param: 'cya', title: 'CYA too high — dilute', desc: `CYA at ${test.cya} ppm. High stabilizer blocks chlorine from working (chlorine lock). Drain and refill 20–30% of the pool.`, tags: ['Partial drain & refill', 'No chemical fix', 'Re-test after refill'] })
   } else if (test.cya > 60) {
-    recs.push({ status: 'monitor', param: 'cya', title: 'CYA / Stabilizer slightly elevated', desc: `CYA at ${test.cya} ppm. Dilute by replacing ~10% of pool water over the next week.`, tags: ['Monitor weekly'] })
+    recs.push({ status: 'monitor', param: 'cya', title: 'Cyanuric Acid (CYA) slightly elevated', desc: `CYA at ${test.cya} ppm. Dilute by replacing ~10% of pool water over the next week.`, tags: ['Monitor weekly'] })
   } else {
-    recs.push({ status: 'good', param: 'cya', title: 'CYA / Stabilizer in range', desc: `CYA at ${test.cya} ppm. Cyanuric Acid is your pool's stabilizer — it protects chlorine from being broken down by UV sunlight. Your chlorine is well-shielded.`, tags: [] })
+    recs.push({ status: 'good', param: 'cya', title: 'Cyanuric Acid (CYA) in range', desc: `CYA at ${test.cya} ppm. Cyanuric Acid (CYA) is your pool's stabilizer — it protects chlorine from being broken down by UV sunlight. Your chlorine is well-shielded.`, tags: [] })
   }
 
   // Calcium Hardness
