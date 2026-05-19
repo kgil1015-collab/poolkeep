@@ -68,7 +68,7 @@ export default function LandingPage() {
       <section className="py-16 px-6 bg-white">
         <div className="max-w-4xl mx-auto text-center">
           <p className="text-pool-dark text-sm font-bold uppercase tracking-widest mb-3">How It Works</p>
-          <h2 className="text-3xl font-extrabold text-text-primary tracking-tight mb-12">Crystal clear water in three steps.</h2>
+          <h2 className="text-3xl font-bold tracking-tight mb-12" style={{fontFamily:"'Oswald',sans-serif"}}>Crystal clear water in three steps.</h2>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-8">
             {[
               { n: '1', title: 'Test Your Water', desc: 'Use any test kit or strips. Enter your 6 readings in under 30 seconds.' },
@@ -77,7 +77,7 @@ export default function LandingPage() {
             ].map(s => (
               <div key={s.n} className="text-center px-2">
                 <div className="w-13 h-13 rounded-full bg-pool-dark text-white text-xl font-extrabold flex items-center justify-center mx-auto mb-4" style={{width:52,height:52}}>{s.n}</div>
-                <h3 className="text-lg font-bold text-text-primary mb-2">{s.title}</h3>
+                <h3 className="text-xl font-bold text-text-primary mb-2" style={{fontFamily:"'Oswald',sans-serif"}}>{s.title}</h3>
                 <p className="text-text-muted text-sm leading-relaxed">{s.desc}</p>
               </div>
             ))}
@@ -87,7 +87,7 @@ export default function LandingPage() {
 
       {/* CTA */}
       <section className="bg-pool-deep py-16 px-6 text-center">
-        <h2 className="text-3xl font-extrabold text-white tracking-tight mb-4">Ready to take back your weekends?</h2>
+        <h2 className="text-3xl font-bold text-white tracking-tight mb-4" style={{fontFamily:"'Oswald',sans-serif"}}>Ready to take back your weekends?</h2>
         <p className="text-white/70 mb-8 max-w-md mx-auto">Join 127 homeowners who stopped guessing and started swimming.</p>
         <Link href="/signup" className="inline-block bg-teal text-pool-deep text-lg font-bold px-9 py-4 rounded-xl hover:opacity-90 transition-all">
           Get Started Free →
