@@ -185,7 +185,7 @@ export default function DashboardPage() {
                   <span style={{color: a.iconColor}}>{a.icon}</span>
                 </div>
                 <div className="flex-1">
-                  <p className="font-bold text-sm mb-1" style={{color: a.iconColor}}>{a.title}</p>
+                  <p className="font-bold text-sm mb-1 text-text-primary">{a.title}</p>
                   <p className="text-text-muted text-xs leading-relaxed">{a.desc}</p>
                 </div>
               </div>
@@ -195,8 +195,8 @@ export default function DashboardPage() {
       </div>
 
       {/* Bottom tab bar */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 px-2 pb-safe" style={{maxWidth:480,margin:'0 auto',left:'50%',transform:'translateX(-50%)'}}>
-        <div className="flex items-center justify-around py-2">
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 px-2">
+        <div className="flex items-center justify-around py-2 max-w-md mx-auto">
           {[
             { id: 'dashboard', label: 'Dashboard', icon: <IconDashboard /> },
             { id: 'history', label: 'History', icon: <IconHistory /> },
