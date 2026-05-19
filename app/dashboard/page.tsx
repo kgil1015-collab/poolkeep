@@ -13,10 +13,10 @@ const IconSun = ({ size = 18 }: { size?: number }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
 )
 const IconCheck = ({ size = 18 }: { size?: number }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
 )
 const IconFlask = ({ size = 18 }: { size?: number }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 3h6l1 7H8L9 3z"/><path d="M8 10l-4 9a1 1 0 0 0 .9 1.4h14.2a1 1 0 0 0 .9-1.4L16 10"/></svg>
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor"><path d="M10 3h4v7l4.5 9.5A1 1 0 0 1 17.6 21H6.4a1 1 0 0 1-.9-1.5L10 10V3zM9 3a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1H9z" opacity=".9"/></svg>
 )
 const IconHistory = ({ size = 20 }: { size?: number }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><polyline points="12 8 12 12 14 14"/><path d="M3.05 11a9 9 0 1 1 .5 4m-.5 5v-5h5"/></svg>
@@ -107,7 +107,7 @@ export default function DashboardPage() {
     <div className="min-h-screen bg-surface flex flex-col" style={{maxWidth:480,margin:'0 auto'}}>
 
       {/* Header */}
-      <div className="bg-pool-deep px-5 pt-5 pb-14" style={{borderBottomLeftRadius:32,borderBottomRightRadius:32}}>
+      <div className="bg-pool-deep px-5 pt-5 pb-6">
         <div className="flex items-center justify-between mb-5">
           <div className="flex items-center gap-2">
             <svg viewBox="28 8 144 175" width="16" height="22" xmlns="http://www.w3.org/2000/svg">
@@ -139,7 +139,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Health score */}
-        <div className="text-center">
+        <div className="text-center pb-4">
           <p className="text-white/50 text-xs font-semibold uppercase tracking-widest mb-1">Health Score</p>
           <p className="text-white font-bold leading-none mb-2" style={{fontSize:72,fontFamily:"'Oswald',sans-serif"}}>82</p>
           <div className="inline-flex items-center gap-1.5">
@@ -149,8 +149,15 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Cards — overlap header */}
-      <div className="flex-1 px-4 -mt-8 pb-24">
+      {/* Wave transition */}
+      <div className="bg-pool-deep">
+        <svg viewBox="0 0 480 48" xmlns="http://www.w3.org/2000/svg" className="w-full block" style={{display:'block',marginBottom:-1}}>
+          <path d="M0,0 Q120,48 240,32 Q360,16 480,40 L480,48 L0,48 Z" fill="#F0F6FA"/>
+        </svg>
+      </div>
+
+      {/* Cards */}
+      <div className="flex-1 px-4 pt-3 pb-24 bg-surface">
 
         {/* Action needed */}
         <p className="text-xs font-bold uppercase tracking-widest text-text-muted mb-3">Action Needed</p>
@@ -158,7 +165,7 @@ export default function DashboardPage() {
           {demoActions.map((a, i) => (
             <div key={i} className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
               <div className="flex items-start gap-3">
-                <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 mt-0.5" style={{background: a.iconBg}}>
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 mt-0.5" style={{background: a.iconBg}}>
                   <span style={{color: a.iconColor}}>{a.icon}</span>
                 </div>
                 <div className="flex-1 min-w-0">
@@ -181,7 +188,7 @@ export default function DashboardPage() {
           {demoGood.map((a, i) => (
             <div key={i} className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
               <div className="flex items-start gap-3">
-                <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 mt-0.5" style={{background: a.iconBg}}>
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 mt-0.5" style={{background: a.iconBg}}>
                   <span style={{color: a.iconColor}}>{a.icon}</span>
                 </div>
                 <div className="flex-1">
