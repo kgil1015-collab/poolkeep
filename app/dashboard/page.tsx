@@ -46,7 +46,7 @@ export default function DashboardPage() {
   const router = useRouter()
   const [user, setUser] = useState<User | null>(null)
   const [pool, setPool] = useState<{ id: string; name: string } | null>(null)
-  const [lastTest, setLastTest] = useState<{ health_score: number; recommendations: { action: unknown[]; monitor: unknown[]; good: unknown[] }; tested_at: string } | null>(null)
+  const [lastTest, setLastTest] = useState<{ health_score: number; recommendations: { unknown: unknown[]; action: unknown[]; monitor: unknown[]; good: unknown[] }; tested_at: string } | null>(null)
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState('dashboard')
 
@@ -202,7 +202,7 @@ export default function DashboardPage() {
             {lastTest.recommendations.good.length > 0 && (
               <>
                 <p className="text-xs font-bold uppercase tracking-widest text-text-muted mb-3">Looking Good</p>
-                <div className="space-y-3">
+                <div className="space-y-3 mb-5">
                   {(lastTest.recommendations.good as {title:string;desc:string}[]).map((a, i) => (
                     <div key={i} className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
                       <div className="flex items-start gap-3">
@@ -212,6 +212,29 @@ export default function DashboardPage() {
                         <div className="flex-1">
                           <p className="font-bold text-sm mb-1 text-text-primary">{a.title}</p>
                           <p className="text-text-muted text-xs leading-relaxed">{a.desc}</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+            {lastTest.recommendations.unknown && lastTest.recommendations.unknown.length > 0 && (
+              <>
+                <p className="text-xs font-bold uppercase tracking-widest text-text-muted mb-3">Not Tested</p>
+                <div className="space-y-3">
+                  {(lastTest.recommendations.unknown as {title:string;desc:string;tags:string[]}[]).map((a, i) => (
+                    <div key={i} className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 opacity-80">
+                      <div className="flex items-start gap-3">
+                        <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 mt-0.5" style={{background:'rgba(138,170,187,0.15)'}}>
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8AAABB" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-bold text-sm mb-1 text-text-primary">{a.title}</p>
+                          <p className="text-text-muted text-xs leading-relaxed mb-2.5">{a.desc}</p>
+                          <div className="flex flex-wrap gap-1.5">
+                            {a.tags.map((t:string) => <span key={t} className="text-xs font-medium px-2.5 py-1 rounded-full" style={{background:'#F0F6FA',color:'#8AAABB'}}>{t}</span>)}
+                          </div>
                         </div>
                       </div>
                     </div>
