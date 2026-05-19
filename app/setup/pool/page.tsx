@@ -101,7 +101,7 @@ export default function PoolSetupPage() {
       {/* Wave */}
       <div className="bg-pool-deep">
         <svg viewBox="0 0 480 32" xmlns="http://www.w3.org/2000/svg" className="w-full block" style={{display:'block',marginBottom:-1}}>
-          <path d="M0,26 C120,8 360,8 480,26 L480,32 L0,32 Z" fill="#F0F6FA"/>
+          <path d="M0,28 C160,30 300,6 480,12 L480,32 L0,32 Z" fill="#F0F6FA"/>
         </svg>
       </div>
 
