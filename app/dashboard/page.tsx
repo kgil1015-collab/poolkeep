@@ -151,8 +151,8 @@ export default function DashboardPage() {
 
       {/* Wave transition */}
       <div className="bg-pool-deep">
-        <svg viewBox="0 0 480 48" xmlns="http://www.w3.org/2000/svg" className="w-full block" style={{display:'block',marginBottom:-1}}>
-          <path d="M0,0 Q120,48 240,32 Q360,16 480,40 L480,48 L0,48 Z" fill="#F0F6FA"/>
+        <svg viewBox="0 0 480 32" xmlns="http://www.w3.org/2000/svg" className="w-full block" style={{display:'block',marginBottom:-1}}>
+          <path d="M0,20 C120,32 360,8 480,22 L480,32 L0,32 Z" fill="#F0F6FA"/>
         </svg>
       </div>
 
