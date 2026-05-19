@@ -60,19 +60,38 @@ function buildTreatmentPlan(test: TestInput, v: number): TreatmentStep[] {
   const cya = test.cya
   const ca = test.calcium_hardness
 
-  // ── SHOCK (critically low chlorine — safety first) ──────────────────────────
+  // ── SHOCK (critically low chlorine — acid first, then shock) ────────────────
   if (fc !== null && fc < 0.5) {
     const dose = Math.round(v * 2 * Math.max(1, 3 - fc))
+    const phHigh = ph !== null && ph > 7.2
+    const phUnknown = ph === null
+    const acidDose = ph !== null && ph > 7.2
+      ? Math.round(v * 13 * ((ph - 7.2) / 0.6))
+      : Math.round(v * 8)
+    const needsAcid = phHigh || phUnknown
     raw.push({
       order: 0,
       urgency: 'urgent',
       param: 'chlorine',
-      title: 'Shock the pool — do not swim yet',
-      chemical: 'Pool Shock',
-      amount: oz(dose, 'lbs'),
-      why: `Free chlorine is at ${fc} ppm — below the safe minimum of 1 ppm. This is your first priority. Other chemistry adjustments can wait until the water is safe.`,
-      how: 'Add shock to the deep end in the evening (UV sunlight destroys shock during the day). If using granular cal-hypo, broadcast it directly — do not pre-dissolve. Run the pump the entire night.',
-      lookFor: 'Retest in 2 hours and again in the morning. Do not swim until chlorine reads above 1 ppm. Levels may spike high before dropping to a safe range — that is normal.',
+      title: needsAcid ? 'Lower pH first, then shock' : 'Shock the pool — do not swim yet',
+      chemical: needsAcid ? 'pH Reducer (Muriatic Acid) → then Pool Shock' : 'Pool Shock',
+      amount: needsAcid
+        ? `${oz(acidDose, 'oz')} acid · then ${oz(dose, 'lbs')} shock`
+        : oz(dose, 'lbs'),
+      why: `Free chlorine is at ${fc} ppm — water is unsafe to swim in. ${
+        phHigh
+          ? `At your current pH of ${ph}, shock is only partially effective — chlorine's active form drops sharply as pH rises. Lowering pH first means 2–3× more active sanitizer per dollar of shock you add.`
+          : phUnknown
+          ? `Since pH is untested, add a small acid dose first as a precaution — shock works far better at pH 7.2 or below, and if your pH is elevated you could waste most of the product.`
+          : `With pH already in the ideal range, you can go straight to shocking.`
+      }`,
+      how: `${needsAcid
+        ? `Step 1 — Add muriatic acid (${oz(acidDose, 'oz')}) to the deep end with the pump running. Wear gloves and eye protection. Wait 30–60 minutes for it to fully circulate.\n\nStep 2 — `
+        : ``}Add shock in the evening so UV sunlight does not destroy it before it can work. Pour around the deep end with the pump running.\n\nLiquid chlorine is faster-acting — it starts working within minutes and is best when you need quick recovery. Granular shock (cal-hypo) dissolves more slowly but lasts longer in the water — better for an overnight treatment. Both work well. Avoid dichlor shock if your CYA is already in range, since dichlor adds CYA with every dose.`,
+      lookFor: `Retest in 2 hours and again in the morning. Do not swim until chlorine reads above 1 ppm. Levels will spike high before settling — that is expected. If chlorine drops back near zero within a day or two, low CYA (stabilizer) is likely the cause — sunlight burns it off without protection.`,
+      note: phUnknown
+        ? `Test pH before adding acid if possible. If pH is already at or below 7.2, skip the acid step and go straight to shocking.`
+        : undefined,
     })
   }
 
