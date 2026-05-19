@@ -272,19 +272,22 @@ export default function DashboardPage() {
               </div>
             ) : null}
 
-            {/* Looking good — compact */}
+            {/* Looking good — with descriptions */}
             {lastTest.recommendations.good.length > 0 && (
               <div className="mb-5">
                 <p className="text-xs font-bold uppercase tracking-widest text-text-muted mb-2">Looking Good</p>
-                <div className="bg-white rounded-2xl px-4 py-3 shadow-sm border border-gray-100">
-                  <div className="flex flex-wrap gap-2">
-                    {lastTest.recommendations.good.map((a, i) => (
-                      <div key={i} className="flex items-center gap-1.5">
-                        <IconCheck size={12} style={{color:'#1DB869'}} />
-                        <span className="text-xs font-medium text-text-primary">{a.title}</span>
+                <div className="space-y-2">
+                  {lastTest.recommendations.good.map((a, i) => (
+                    <div key={i} className="bg-white rounded-2xl px-4 py-3 shadow-sm border border-gray-100 flex items-start gap-3">
+                      <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 mt-0.5" style={{background:'rgba(29,184,105,0.1)'}}>
+                        <IconCheck size={13} style={{color:'#1DB869'}} />
                       </div>
-                    ))}
-                  </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-bold text-text-primary">{a.title}</p>
+                        <p className="text-xs text-text-muted leading-relaxed mt-0.5">{a.desc}</p>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
             )}
