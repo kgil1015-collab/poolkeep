@@ -6,17 +6,28 @@ import { createClient } from '@/lib/supabase'
 
 type User = { email: string; user_metadata: { full_name?: string } }
 
-const IconDroplet = ({ size = 18 }: { size?: number }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C12 2 4 10.5 4 15a8 8 0 0 0 16 0C20 10.5 12 2 12 2z"/></svg>
+function timeAgo(iso: string) {
+  const diff = Math.floor((Date.now() - new Date(iso).getTime()) / 60000)
+  if (diff < 60) return `${diff}m ago`
+  if (diff < 1440) return `${Math.floor(diff/60)}h ago`
+  return `${Math.floor(diff/1440)}d ago`
+}
+
+function scoreLabel(score: number) {
+  if (score >= 90) return 'Excellent condition'
+  if (score >= 75) return 'Good condition'
+  if (score >= 55) return 'Needs attention'
+  return 'Action required'
+}
+
+const IconDroplet = ({ size = 18, style }: { size?: number; style?: React.CSSProperties }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" style={style}><path d="M12 2C12 2 4 10.5 4 15a8 8 0 0 0 16 0C20 10.5 12 2 12 2z"/></svg>
 )
-const IconSun = ({ size = 18 }: { size?: number }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+const IconSun = ({ size = 18, style }: { size?: number; style?: React.CSSProperties }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" style={style}><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
 )
-const IconCheck = ({ size = 18 }: { size?: number }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-)
-const IconFlask = ({ size = 18 }: { size?: number }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor"><path d="M10 3h4v7l4.5 9.5A1 1 0 0 1 17.6 21H6.4a1 1 0 0 1-.9-1.5L10 10V3zM9 3a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1H9z" opacity=".9"/></svg>
+const IconCheck = ({ size = 18, style }: { size?: number; style?: React.CSSProperties }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" style={style}><polyline points="20 6 9 17 4 12"/></svg>
 )
 const IconHistory = ({ size = 20 }: { size?: number }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><polyline points="12 8 12 12 14 14"/><path d="M3.05 11a9 9 0 1 1 .5 4m-.5 5v-5h5"/></svg>
@@ -31,48 +42,11 @@ const IconDashboard = ({ size = 20 }: { size?: number }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
 )
 
-// Demo data — will be replaced with real test data
-const demoActions = [
-  {
-    type: 'warn',
-    icon: <IconDroplet size={18} />,
-    iconColor: '#E5304A',
-    iconBg: 'rgba(229,48,74,0.12)',
-    title: 'Lower your pH',
-    desc: 'pH is at 7.9 — slightly high. Add 14 oz of Muriatic Acid this evening after sunset.',
-    tags: ['Re-test tomorrow', 'Muriatic Acid · 14 oz'],
-  },
-  {
-    type: 'warn',
-    icon: <IconSun size={18} />,
-    iconColor: '#F5A623',
-    iconBg: 'rgba(245,166,35,0.12)',
-    title: 'CYA slightly elevated',
-    desc: 'Cyanuric acid at 62 ppm. Dilute by replacing ~10% of pool water over the next week.',
-    tags: ['Monitor weekly'],
-  },
-]
-
-const demoGood = [
-  {
-    icon: <IconCheck size={18} />,
-    iconColor: '#1DB869',
-    iconBg: 'rgba(29,184,105,0.12)',
-    title: 'Chlorine is perfect',
-    desc: 'Free chlorine at 3.2 ppm. No action needed. Check again in 3 days.',
-  },
-  {
-    icon: <IconFlask size={18} />,
-    iconColor: '#0078B8',
-    iconBg: 'rgba(0,120,184,0.12)',
-    title: 'Alkalinity on target',
-    desc: 'Total alkalinity at 95 ppm. Right in range.',
-  },
-]
-
 export default function DashboardPage() {
   const router = useRouter()
   const [user, setUser] = useState<User | null>(null)
+  const [pool, setPool] = useState<{ id: string; name: string } | null>(null)
+  const [lastTest, setLastTest] = useState<{ health_score: number; recommendations: { action: unknown[]; monitor: unknown[]; good: unknown[] }; tested_at: string } | null>(null)
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState('dashboard')
 
@@ -81,8 +55,11 @@ export default function DashboardPage() {
     supabase.auth.getUser().then(async ({ data }) => {
       if (!data.user) { router.push('/login'); return }
       setUser(data.user as User)
-      const { data: pools } = await supabase.from('pools').select('id').limit(1)
+      const { data: pools } = await supabase.from('pools').select('id,name').limit(1)
       if (!pools || pools.length === 0) { router.push('/setup/pool'); return }
+      setPool(pools[0])
+      const { data: tests } = await supabase.from('test_results').select('health_score,recommendations,tested_at').eq('pool_id', pools[0].id).order('tested_at', { ascending: false }).limit(1)
+      if (tests && tests.length > 0) setLastTest(tests[0])
       setLoading(false)
     })
   }, [router])
@@ -137,16 +114,22 @@ export default function DashboardPage() {
         {/* Pool pill */}
         <div className="inline-flex items-center gap-1.5 bg-white/10 rounded-full px-3 py-1.5 mb-6">
           <div className="w-1.5 h-1.5 rounded-full bg-teal" />
-          <span className="text-white/80 text-xs font-medium">Backyard Pool · Last tested 2h ago</span>
+          <span className="text-white/80 text-xs font-medium">
+            {pool?.name ?? 'My Pool'} · {lastTest ? `Last tested ${timeAgo(lastTest.tested_at)}` : 'No tests yet'}
+          </span>
         </div>
 
         {/* Health score */}
         <div className="text-center pb-4">
           <p className="text-white/50 text-xs font-semibold uppercase tracking-widest mb-1">Health Score</p>
-          <p className="text-white font-bold leading-none mb-2" style={{fontSize:72,fontFamily:"'Oswald',sans-serif"}}>82</p>
+          <p className="text-white font-bold leading-none mb-2" style={{fontSize:72,fontFamily:"'Oswald',sans-serif"}}>
+            {lastTest ? lastTest.health_score : '—'}
+          </p>
           <div className="inline-flex items-center gap-1.5">
             <div className="w-2 h-2 rounded-full bg-teal" />
-            <span className="text-teal text-sm font-semibold">Good condition</span>
+            <span className="text-teal text-sm font-semibold">
+              {lastTest ? scoreLabel(lastTest.health_score) : 'Log your first test'}
+            </span>
           </div>
         </div>
       </div>
@@ -160,47 +143,84 @@ export default function DashboardPage() {
 
       {/* Cards */}
       <div className="flex-1 px-4 pt-3 pb-24 bg-surface">
-
-        {/* Action needed */}
-        <p className="text-xs font-bold uppercase tracking-widest text-text-muted mb-3">Action Needed</p>
-        <div className="space-y-3 mb-5">
-          {demoActions.map((a, i) => (
-            <div key={i} className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
-              <div className="flex items-start gap-3">
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 mt-0.5" style={{background: a.iconBg}}>
-                  <span style={{color: a.iconColor}}>{a.icon}</span>
+        {!lastTest ? (
+          <div className="bg-white rounded-2xl p-6 shadow-sm text-center">
+            <p className="text-text-primary font-semibold mb-1">No tests logged yet</p>
+            <p className="text-text-muted text-sm mb-4">Tap the + button below to log your first water test.</p>
+            <button onClick={() => router.push('/log')} className="bg-pool-dark text-white text-sm font-bold px-5 py-2.5 rounded-xl hover:opacity-90 transition-opacity">
+              Log First Test →
+            </button>
+          </div>
+        ) : (
+          <>
+            {lastTest.recommendations.action.length > 0 && (
+              <>
+                <p className="text-xs font-bold uppercase tracking-widest text-text-muted mb-3">Action Needed</p>
+                <div className="space-y-3 mb-5">
+                  {(lastTest.recommendations.action as {title:string;desc:string;tags:string[]}[]).map((a, i) => (
+                    <div key={i} className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+                      <div className="flex items-start gap-3">
+                        <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 mt-0.5" style={{background:'rgba(229,48,74,0.1)'}}>
+                          <IconDroplet size={18} style={{color:'#E5304A'}} />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-bold text-text-primary text-sm mb-1">{a.title}</p>
+                          <p className="text-text-muted text-xs leading-relaxed mb-2.5">{a.desc}</p>
+                          <div className="flex flex-wrap gap-1.5">
+                            {a.tags.map((t:string) => <span key={t} className="text-xs font-medium px-2.5 py-1 rounded-full" style={{background:'#F0F6FA',color:'#0078B8'}}>{t}</span>)}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className="font-bold text-text-primary text-sm mb-1">{a.title}</p>
-                  <p className="text-text-muted text-xs leading-relaxed mb-2.5">{a.desc}</p>
-                  <div className="flex flex-wrap gap-1.5">
-                    {a.tags.map(t => (
-                      <span key={t} className="text-xs font-medium px-2.5 py-1 rounded-full" style={{background:'#F0F6FA',color:'#0078B8'}}>{t}</span>
-                    ))}
-                  </div>
+              </>
+            )}
+            {lastTest.recommendations.monitor.length > 0 && (
+              <>
+                <p className="text-xs font-bold uppercase tracking-widest text-text-muted mb-3">Keep an Eye On</p>
+                <div className="space-y-3 mb-5">
+                  {(lastTest.recommendations.monitor as {title:string;desc:string;tags:string[]}[]).map((a, i) => (
+                    <div key={i} className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+                      <div className="flex items-start gap-3">
+                        <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 mt-0.5" style={{background:'rgba(245,166,35,0.1)'}}>
+                          <IconSun size={18} style={{color:'#F5A623'}} />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-bold text-text-primary text-sm mb-1">{a.title}</p>
+                          <p className="text-text-muted text-xs leading-relaxed mb-2.5">{a.desc}</p>
+                          <div className="flex flex-wrap gap-1.5">
+                            {a.tags.map((t:string) => <span key={t} className="text-xs font-medium px-2.5 py-1 rounded-full" style={{background:'#F0F6FA',color:'#0078B8'}}>{t}</span>)}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Looking good */}
-        <p className="text-xs font-bold uppercase tracking-widest text-text-muted mb-3">Looking Good</p>
-        <div className="space-y-3">
-          {demoGood.map((a, i) => (
-            <div key={i} className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
-              <div className="flex items-start gap-3">
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 mt-0.5" style={{background: a.iconBg}}>
-                  <span style={{color: a.iconColor}}>{a.icon}</span>
+              </>
+            )}
+            {lastTest.recommendations.good.length > 0 && (
+              <>
+                <p className="text-xs font-bold uppercase tracking-widest text-text-muted mb-3">Looking Good</p>
+                <div className="space-y-3">
+                  {(lastTest.recommendations.good as {title:string;desc:string}[]).map((a, i) => (
+                    <div key={i} className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+                      <div className="flex items-start gap-3">
+                        <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 mt-0.5" style={{background:'rgba(29,184,105,0.1)'}}>
+                          <IconCheck size={18} style={{color:'#1DB869'}} />
+                        </div>
+                        <div className="flex-1">
+                          <p className="font-bold text-sm mb-1 text-text-primary">{a.title}</p>
+                          <p className="text-text-muted text-xs leading-relaxed">{a.desc}</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-                <div className="flex-1">
-                  <p className="font-bold text-sm mb-1 text-text-primary">{a.title}</p>
-                  <p className="text-text-muted text-xs leading-relaxed">{a.desc}</p>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
+              </>
+            )}
+          </>
+        )}
       </div>
 
       {/* Bottom tab bar */}
@@ -214,7 +234,7 @@ export default function DashboardPage() {
             { id: 'pro', label: 'Pro', icon: <IconPro /> },
           ].map(tab => {
             if (tab.id === 'log') return (
-              <button key="log" className="w-14 h-14 rounded-full bg-pool-dark flex items-center justify-center shadow-lg -mt-5 border-4 border-white">
+              <button key="log" onClick={() => router.push('/log')} className="w-14 h-14 rounded-full bg-pool-dark flex items-center justify-center shadow-lg -mt-5 border-4 border-white">
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
               </button>
             )
