@@ -226,8 +226,8 @@ export default function DashboardPage() {
                   {(lastTest.recommendations.unknown as {title:string;desc:string;tags:string[]}[]).map((a, i) => (
                     <div key={i} className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 opacity-80">
                       <div className="flex items-start gap-3">
-                        <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 mt-0.5" style={{background:'rgba(138,170,187,0.15)'}}>
-                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8AAABB" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                        <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 mt-0.5" style={{background:'rgba(74,106,124,0.12)'}}>
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4A6A7C" strokeWidth="2.2" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="font-bold text-sm mb-1 text-text-primary">{a.title}</p>
