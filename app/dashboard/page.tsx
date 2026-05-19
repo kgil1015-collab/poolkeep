@@ -107,7 +107,7 @@ export default function DashboardPage() {
     <div className="min-h-screen bg-surface flex flex-col" style={{maxWidth:480,margin:'0 auto'}}>
 
       {/* Header */}
-      <div className="bg-pool-deep px-5 pt-5 pb-10">
+      <div className="bg-pool-deep px-5 pt-5 pb-14" style={{borderBottomLeftRadius:32,borderBottomRightRadius:32}}>
         <div className="flex items-center justify-between mb-5">
           <div className="flex items-center gap-2">
             <svg viewBox="28 8 144 175" width="16" height="22" xmlns="http://www.w3.org/2000/svg">
@@ -150,7 +150,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Cards — overlap header */}
-      <div className="flex-1 px-4 -mt-4 pb-24">
+      <div className="flex-1 px-4 -mt-8 pb-24">
 
         {/* Action needed */}
         <p className="text-xs font-bold uppercase tracking-widest text-text-muted mb-3">Action Needed</p>
