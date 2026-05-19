@@ -2,10 +2,48 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import Link from 'next/link'
 import { createClient } from '@/lib/supabase'
 
 type User = { email: string; user_metadata: { full_name?: string } }
+
+function IconTest() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M9 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V8l-5-5z"/>
+      <polyline points="9 3 9 8 19 8"/>
+      <line x1="8" y1="13" x2="16" y2="13"/>
+      <line x1="8" y1="17" x2="12" y2="17"/>
+    </svg>
+  )
+}
+
+function IconHistory() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="12 8 12 12 14 14"/>
+      <path d="M3.05 11a9 9 0 1 1 .5 4m-.5 5v-5h5"/>
+    </svg>
+  )
+}
+
+function IconShare() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
+      <polyline points="16 6 12 2 8 6"/>
+      <line x1="12" y1="2" x2="12" y2="15"/>
+    </svg>
+  )
+}
+
+function IconSettings() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="3"/>
+      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+    </svg>
+  )
+}
 
 export default function DashboardPage() {
   const router = useRouter()
@@ -29,20 +67,27 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{background:'#F0F6FA'}}>
-        <div className="text-text-muted text-sm">Loading…</div>
+      <div className="min-h-screen flex items-center justify-center bg-surface">
+        <div className="w-5 h-5 border-2 border-pool-dark border-t-transparent rounded-full animate-spin" />
       </div>
     )
   }
 
   const firstName = user?.user_metadata?.full_name?.split(' ')[0] || 'there'
 
+  const actions = [
+    { icon: <IconTest />, label: 'Log a Test', sub: 'Enter your readings', color: '#0078B8' },
+    { icon: <IconHistory />, label: 'History', sub: 'Past results', color: '#0078B8' },
+    { icon: <IconShare />, label: 'Share Report', sub: 'Send to your pro', color: '#0078B8' },
+    { icon: <IconSettings />, label: 'Settings', sub: 'Pool & account', color: '#0078B8' },
+  ]
+
   return (
-    <div className="min-h-screen" style={{background:'#F0F6FA'}}>
+    <div className="min-h-screen bg-surface">
       {/* Nav */}
       <nav className="bg-pool-deep px-5 py-4 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <svg viewBox="28 8 144 175" width="20" height="26" xmlns="http://www.w3.org/2000/svg">
+          <svg viewBox="28 8 144 175" width="18" height="24" xmlns="http://www.w3.org/2000/svg">
             <defs>
               <linearGradient id="dd" x1=".35" y1="0" x2=".65" y2="1"><stop offset="0%" stopColor="#92D5F5"/><stop offset="42%" stopColor="#3A8AC8"/><stop offset="100%" stopColor="#052C4E"/></linearGradient>
               <radialGradient id="dg" cx="42%" cy="25%" r="40%"><stop offset="0%" stopColor="#fff" stopOpacity=".5"/><stop offset="100%" stopColor="#fff" stopOpacity="0"/></radialGradient>
@@ -56,59 +101,49 @@ export default function DashboardPage() {
               <path d="M50 173Q100 152 150 173" strokeWidth="3.5" opacity=".42"/>
             </g>
           </svg>
-          <span className="text-white text-lg tracking-tight" style={{fontFamily:"'Space Grotesk',sans-serif"}}>
+          <span className="text-white text-base tracking-tight" style={{fontFamily:"'Space Grotesk',sans-serif"}}>
             <span style={{fontWeight:300}}>Pool</span><span style={{fontWeight:800}}>Keep</span>
           </span>
         </div>
-        <button onClick={handleSignOut} className="text-white/60 text-xs hover:text-white transition-colors">
+        <button onClick={handleSignOut} className="text-white/50 text-xs hover:text-white/80 transition-colors">
           Sign out
         </button>
       </nav>
 
-      <div className="max-w-lg mx-auto px-4 py-8">
+      <div className="max-w-md mx-auto px-4 pt-7 pb-12">
         {/* Greeting */}
-        <div className="mb-8">
-          <h1 className="text-2xl font-bold text-text-primary" style={{fontFamily:"'Oswald',sans-serif"}}>
-            Hey, {firstName} 👋
-          </h1>
-          <p className="text-text-muted text-sm mt-1">Ready to check on your pool?</p>
+        <div className="mb-7">
+          <p className="text-xs font-semibold uppercase tracking-widest text-text-muted mb-1">Dashboard</p>
+          <h1 className="text-2xl font-bold text-text-primary">Hey, {firstName}</h1>
         </div>
 
-        {/* No pool yet */}
-        <div className="bg-white rounded-2xl p-6 shadow-sm mb-6 text-center border border-dashed border-gray-200">
-          <div className="text-4xl mb-3">🏊</div>
-          <h2 className="font-bold text-text-primary mb-1">No pool set up yet</h2>
-          <p className="text-text-muted text-sm mb-4">Add your pool to start getting personalized chemical recommendations.</p>
-          <button className="bg-pool-dark text-white text-sm font-bold px-5 py-2.5 rounded-xl hover:opacity-90 transition-opacity">
-            Add My Pool
+        {/* Add pool CTA */}
+        <div className="bg-pool-deep rounded-2xl p-5 mb-6 flex items-center gap-4">
+          <div className="flex-1">
+            <p className="text-white font-semibold text-sm mb-0.5">Set up your pool</p>
+            <p className="text-white/60 text-xs leading-relaxed">Add your pool size and type to get personalized chemical doses.</p>
+          </div>
+          <button className="shrink-0 bg-teal text-pool-deep text-xs font-bold px-4 py-2 rounded-xl hover:opacity-90 transition-opacity whitespace-nowrap">
+            Add Pool
           </button>
+        </div>
+
+        {/* Last test placeholder */}
+        <div className="bg-white rounded-2xl p-5 mb-6 shadow-sm">
+          <p className="text-xs font-semibold uppercase tracking-widest text-text-muted mb-4">Last Test</p>
+          <p className="text-text-muted text-sm text-center py-4">No tests logged yet.</p>
         </div>
 
         {/* Quick Actions */}
-        <h2 className="text-xs font-bold uppercase tracking-widest text-text-muted mb-3">Quick Actions</h2>
-        <div className="grid grid-cols-2 gap-3 mb-3">
-          <button className="bg-white rounded-2xl p-5 shadow-sm text-left hover:shadow-md transition-shadow">
-            <div className="text-2xl mb-2">🧪</div>
-            <div className="font-bold text-text-primary text-sm">Log a Test</div>
-            <div className="text-text-muted text-xs mt-0.5">Enter your readings</div>
-          </button>
-          <button className="bg-white rounded-2xl p-5 shadow-sm text-left hover:shadow-md transition-shadow">
-            <div className="text-2xl mb-2">📋</div>
-            <div className="font-bold text-text-primary text-sm">View History</div>
-            <div className="text-text-muted text-xs mt-0.5">Past test results</div>
-          </button>
-        </div>
+        <p className="text-xs font-semibold uppercase tracking-widest text-text-muted mb-3">Actions</p>
         <div className="grid grid-cols-2 gap-3">
-          <button className="bg-white rounded-2xl p-5 shadow-sm text-left hover:shadow-md transition-shadow">
-            <div className="text-2xl mb-2">📤</div>
-            <div className="font-bold text-text-primary text-sm">Share Report</div>
-            <div className="text-text-muted text-xs mt-0.5">Send to your pro</div>
-          </button>
-          <Link href="/" className="bg-white rounded-2xl p-5 shadow-sm text-left hover:shadow-md transition-shadow block">
-            <div className="text-2xl mb-2">⚙️</div>
-            <div className="font-bold text-text-primary text-sm">Settings</div>
-            <div className="text-text-muted text-xs mt-0.5">Pool & account</div>
-          </Link>
+          {actions.map(a => (
+            <button key={a.label} className="bg-white rounded-2xl p-4 shadow-sm text-left hover:shadow-md active:scale-95 transition-all">
+              <div className="text-pool-dark mb-3">{a.icon}</div>
+              <p className="font-semibold text-text-primary text-sm">{a.label}</p>
+              <p className="text-text-muted text-xs mt-0.5">{a.sub}</p>
+            </button>
+          ))}
         </div>
       </div>
     </div>
