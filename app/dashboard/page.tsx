@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import Link from 'next/link'
 import { createClient } from '@/lib/supabase'
 
 type User = { email: string; user_metadata: { full_name?: string } }
@@ -79,9 +78,11 @@ export default function DashboardPage() {
 
   useEffect(() => {
     const supabase = createClient()
-    supabase.auth.getUser().then(({ data }) => {
+    supabase.auth.getUser().then(async ({ data }) => {
       if (!data.user) { router.push('/login'); return }
       setUser(data.user as User)
+      const { data: pools } = await supabase.from('pools').select('id').limit(1)
+      if (!pools || pools.length === 0) { router.push('/setup/pool'); return }
       setLoading(false)
     })
   }, [router])
@@ -159,15 +160,6 @@ export default function DashboardPage() {
 
       {/* Cards */}
       <div className="flex-1 px-4 pt-3 pb-24 bg-surface">
-
-        {/* Setup CTA */}
-        <Link href="/setup/pool" className="flex items-center gap-3 bg-pool-deep rounded-2xl p-4 mb-5 hover:opacity-90 transition-opacity">
-          <div className="flex-1">
-            <p className="text-white font-semibold text-sm">Set up your pool</p>
-            <p className="text-white/55 text-xs mt-0.5">Add size and type for real recommendations.</p>
-          </div>
-          <div className="bg-teal text-pool-deep text-xs font-bold px-3 py-1.5 rounded-lg whitespace-nowrap">Add Pool</div>
-        </Link>
 
         {/* Action needed */}
         <p className="text-xs font-bold uppercase tracking-widest text-text-muted mb-3">Action Needed</p>
