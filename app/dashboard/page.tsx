@@ -4,7 +4,27 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 
+import type { TreatmentStep } from '@/lib/recommendations'
+
 type User = { email: string; user_metadata: { full_name?: string } }
+
+type TestResult = {
+  health_score: number
+  tested_at: string
+  ph: number | null
+  free_chlorine: number | null
+  total_alkalinity: number | null
+  cya: number | null
+  calcium_hardness: number | null
+  salt: number | null
+  recommendations: {
+    treatment_plan?: TreatmentStep[]
+    unknown: { title: string; desc: string; tags: string[] }[]
+    action: { title: string; desc: string; tags: string[] }[]
+    monitor: { title: string; desc: string; tags: string[] }[]
+    good: { title: string; desc: string }[]
+  }
+}
 
 function timeAgo(iso: string) {
   const diff = Math.floor((Date.now() - new Date(iso).getTime()) / 60000)
@@ -20,12 +40,7 @@ function scoreLabel(score: number) {
   return 'Action required'
 }
 
-const IconDroplet = ({ size = 18, style }: { size?: number; style?: React.CSSProperties }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" style={style}><path d="M12 2C12 2 4 10.5 4 15a8 8 0 0 0 16 0C20 10.5 12 2 12 2z"/></svg>
-)
-const IconSun = ({ size = 18, style }: { size?: number; style?: React.CSSProperties }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" style={style}><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
-)
+
 const IconCheck = ({ size = 18, style }: { size?: number; style?: React.CSSProperties }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" style={style}><polyline points="20 6 9 17 4 12"/></svg>
 )
@@ -46,9 +61,8 @@ export default function DashboardPage() {
   const router = useRouter()
   const [user, setUser] = useState<User | null>(null)
   const [pool, setPool] = useState<{ id: string; name: string } | null>(null)
-  const [lastTest, setLastTest] = useState<{ health_score: number; recommendations: { unknown: unknown[]; action: unknown[]; monitor: unknown[]; good: unknown[] }; tested_at: string } | null>(null)
+  const [lastTest, setLastTest] = useState<TestResult | null>(null)
   const [loading, setLoading] = useState(true)
-  const [activeTab, setActiveTab] = useState('dashboard')
 
   useEffect(() => {
     const supabase = createClient()
@@ -58,7 +72,7 @@ export default function DashboardPage() {
       const { data: pools } = await supabase.from('pools').select('id,name').limit(1)
       if (!pools || pools.length === 0) { router.push('/setup/pool'); return }
       setPool(pools[0])
-      const { data: tests } = await supabase.from('test_results').select('health_score,recommendations,tested_at').eq('pool_id', pools[0].id).order('tested_at', { ascending: false }).limit(1)
+      const { data: tests } = await supabase.from('test_results').select('health_score,recommendations,tested_at,ph,free_chlorine,total_alkalinity,cya,calcium_hardness,salt').eq('pool_id', pools[0].id).order('tested_at', { ascending: false }).limit(1)
       if (tests && tests.length > 0) setLastTest(tests[0])
       setLoading(false)
     })
@@ -141,7 +155,7 @@ export default function DashboardPage() {
         </svg>
       </div>
 
-      {/* Cards */}
+      {/* Content */}
       <div className="flex-1 px-4 pt-3 pb-24 bg-surface">
         {!lastTest ? (
           <div className="bg-white rounded-2xl p-6 shadow-sm text-center">
@@ -153,77 +167,134 @@ export default function DashboardPage() {
           </div>
         ) : (
           <>
-            {lastTest.recommendations.action.length > 0 && (
+            {/* Results at a glance */}
+            <p className="text-xs font-bold uppercase tracking-widest text-text-muted mb-3">Results</p>
+            <div className="grid grid-cols-3 gap-2 mb-6">
+              {[
+                { key: 'ph', label: 'pH', fmt: (v: number) => v.toFixed(1) },
+                { key: 'free_chlorine', label: 'Chlorine', fmt: (v: number) => `${v} ppm` },
+                { key: 'total_alkalinity', label: 'Alkalinity', fmt: (v: number) => `${v} ppm` },
+                { key: 'cya', label: 'CYA', fmt: (v: number) => `${v} ppm` },
+                { key: 'calcium_hardness', label: 'Calcium', fmt: (v: number) => `${v} ppm` },
+                { key: 'salt', label: 'Salt', fmt: (v: number) => `${v} ppm` },
+              ].map(p => {
+                const raw = lastTest[p.key as keyof TestResult]
+                const val = typeof raw === 'number' ? raw : null
+                const paramKey = { ph: 'ph', free_chlorine: 'chlorine', total_alkalinity: 'alkalinity', cya: 'cya', calcium_hardness: 'calcium', salt: 'salt' }[p.key]
+                const isAction = lastTest.recommendations.action.some(r => r && (r as {title:string;desc:string;tags:string[]}&{param?:string}).param === paramKey || lastTest.recommendations.action.some(r2 => r2.title.toLowerCase().includes(p.label.toLowerCase())))
+                const isMonitor = !isAction && lastTest.recommendations.monitor.some(r => r.title.toLowerCase().includes(p.label.toLowerCase()))
+                const isGood = !isAction && !isMonitor && val !== null && lastTest.recommendations.good.some(r => r.title.toLowerCase().includes(p.label.toLowerCase()))
+                const color = val === null ? '#8AAABB' : isAction ? '#E5304A' : isMonitor ? '#D48800' : isGood ? '#1DB869' : '#8AAABB'
+                const dot = val === null ? '#C5D8E4' : isAction ? '#E5304A' : isMonitor ? '#F5A623' : isGood ? '#1DB869' : '#C5D8E4'
+                const statusLabel = val === null ? 'Not tested' : isAction ? 'Action' : isMonitor ? 'Monitor' : isGood ? 'Good' : '—'
+                return (
+                  <div key={p.key} className="bg-white rounded-xl px-3 py-2.5 shadow-sm">
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-text-muted">{p.label}</p>
+                    <p className="text-sm font-bold mt-0.5 leading-tight" style={{fontFamily:"'DM Mono',monospace", color}}>
+                      {val !== null ? p.fmt(val) : '—'}
+                    </p>
+                    <div className="flex items-center gap-1 mt-1">
+                      <div className="w-1.5 h-1.5 rounded-full shrink-0" style={{background: dot}} />
+                      <span className="text-[9px] font-medium text-text-faint">{statusLabel}</span>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+
+            {/* Treatment plan */}
+            {lastTest.recommendations.treatment_plan && lastTest.recommendations.treatment_plan.length > 0 ? (
               <>
-                <p className="text-xs font-bold uppercase tracking-widest text-text-muted mb-3">Action Needed</p>
-                <div className="space-y-3 mb-5">
-                  {(lastTest.recommendations.action as {title:string;desc:string;tags:string[]}[]).map((a, i) => (
-                    <div key={i} className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
-                      <div className="flex items-start gap-3">
-                        <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 mt-0.5" style={{background:'rgba(229,48,74,0.1)'}}>
-                          <IconDroplet size={18} style={{color:'#E5304A'}} />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="font-bold text-text-primary text-sm mb-1">{a.title}</p>
-                          <p className="text-text-muted text-xs leading-relaxed mb-2.5">{a.desc}</p>
-                          <div className="flex flex-wrap gap-1.5">
-                            {a.tags.map((t:string) => <span key={t} className="text-xs font-medium px-2.5 py-1 rounded-full" style={{background:'#F0F6FA',color:'#0078B8'}}>{t}</span>)}
+                <p className="text-xs font-bold uppercase tracking-widest text-text-muted mb-3">Treatment Plan</p>
+                <div className="space-y-4 mb-6">
+                  {lastTest.recommendations.treatment_plan.map(step => {
+                    const urgencyStyle = step.urgency === 'urgent'
+                      ? { badge: '#E5304A', badgeBg: 'rgba(229,48,74,0.1)', label: 'Urgent' }
+                      : step.urgency === 'soon'
+                      ? { badge: '#D48800', badgeBg: 'rgba(245,166,35,0.1)', label: 'Soon' }
+                      : { badge: '#0078B8', badgeBg: 'rgba(0,120,184,0.08)', label: 'Routine' }
+                    return (
+                      <div key={step.step} className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                        {/* Step header */}
+                        <div className="px-4 pt-4 pb-3 flex items-start gap-3">
+                          <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 font-bold text-sm text-white" style={{background: urgencyStyle.badge, fontFamily:"'Oswald',sans-serif"}}>
+                            {step.step}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full" style={{background: urgencyStyle.badgeBg, color: urgencyStyle.badge}}>{urgencyStyle.label}</span>
+                            </div>
+                            <p className="font-bold text-text-primary text-sm leading-snug">{step.title}</p>
+                            {step.chemical && (
+                              <div className="mt-2 inline-flex items-center gap-1.5 bg-surface rounded-lg px-2.5 py-1.5">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#0078B8" strokeWidth="2.2" strokeLinecap="round"><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18"/></svg>
+                                <span className="text-xs font-bold" style={{color:'#0078B8'}}>{step.chemical}</span>
+                                {step.amount && <span className="text-xs font-bold text-text-muted">· {step.amount}</span>}
+                              </div>
+                            )}
                           </div>
                         </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </>
-            )}
-            {lastTest.recommendations.monitor.length > 0 && (
-              <>
-                <p className="text-xs font-bold uppercase tracking-widest text-text-muted mb-3">Keep an Eye On</p>
-                <div className="space-y-3 mb-5">
-                  {(lastTest.recommendations.monitor as {title:string;desc:string;tags:string[]}[]).map((a, i) => (
-                    <div key={i} className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
-                      <div className="flex items-start gap-3">
-                        <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 mt-0.5" style={{background:'rgba(245,166,35,0.1)'}}>
-                          <IconSun size={18} style={{color:'#F5A623'}} />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="font-bold text-text-primary text-sm mb-1">{a.title}</p>
-                          <p className="text-text-muted text-xs leading-relaxed mb-2.5">{a.desc}</p>
-                          <div className="flex flex-wrap gap-1.5">
-                            {a.tags.map((t:string) => <span key={t} className="text-xs font-medium px-2.5 py-1 rounded-full" style={{background:'#F0F6FA',color:'#0078B8'}}>{t}</span>)}
+                        {/* Details */}
+                        <div className="px-4 pb-4 space-y-3 border-t border-gray-50 pt-3">
+                          <div>
+                            <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{color:'#0078B8'}}>Why</p>
+                            <p className="text-xs text-text-muted leading-relaxed">{step.why}</p>
                           </div>
+                          <div>
+                            <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{color:'#0078B8'}}>How to apply</p>
+                            <p className="text-xs text-text-muted leading-relaxed">{step.how}</p>
+                          </div>
+                          <div>
+                            <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{color:'#0078B8'}}>What to look for</p>
+                            <p className="text-xs text-text-muted leading-relaxed">{step.lookFor}</p>
+                          </div>
+                          {step.note && (
+                            <div className="bg-amber-50 rounded-xl px-3 py-2.5 flex gap-2">
+                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#D48800" strokeWidth="2.2" strokeLinecap="round" className="shrink-0 mt-0.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                              <p className="text-[11px] text-amber-800 leading-relaxed">{step.note}</p>
+                            </div>
+                          )}
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    )
+                  })}
                 </div>
               </>
-            )}
+            ) : lastTest.recommendations.action.length === 0 && lastTest.recommendations.monitor.length === 0 ? (
+              <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 flex items-center gap-3 mb-6">
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{background:'rgba(29,184,105,0.1)'}}>
+                  <IconCheck size={20} style={{color:'#1DB869'}} />
+                </div>
+                <div>
+                  <p className="font-bold text-text-primary text-sm">Water is balanced</p>
+                  <p className="text-text-muted text-xs mt-0.5">All tested parameters are in range. No action needed.</p>
+                </div>
+              </div>
+            ) : null}
+
+            {/* Looking good — compact */}
             {lastTest.recommendations.good.length > 0 && (
-              <>
-                <p className="text-xs font-bold uppercase tracking-widest text-text-muted mb-3">Looking Good</p>
-                <div className="space-y-3 mb-5">
-                  {(lastTest.recommendations.good as {title:string;desc:string}[]).map((a, i) => (
-                    <div key={i} className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
-                      <div className="flex items-start gap-3">
-                        <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 mt-0.5" style={{background:'rgba(29,184,105,0.1)'}}>
-                          <IconCheck size={18} style={{color:'#1DB869'}} />
-                        </div>
-                        <div className="flex-1">
-                          <p className="font-bold text-sm mb-1 text-text-primary">{a.title}</p>
-                          <p className="text-text-muted text-xs leading-relaxed">{a.desc}</p>
-                        </div>
+              <div className="mb-5">
+                <p className="text-xs font-bold uppercase tracking-widest text-text-muted mb-2">Looking Good</p>
+                <div className="bg-white rounded-2xl px-4 py-3 shadow-sm border border-gray-100">
+                  <div className="flex flex-wrap gap-2">
+                    {lastTest.recommendations.good.map((a, i) => (
+                      <div key={i} className="flex items-center gap-1.5">
+                        <IconCheck size={12} style={{color:'#1DB869'}} />
+                        <span className="text-xs font-medium text-text-primary">{a.title}</span>
                       </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
-              </>
+              </div>
             )}
+
+            {/* Not tested */}
             {lastTest.recommendations.unknown && lastTest.recommendations.unknown.length > 0 && (
               <>
                 <p className="text-xs font-bold uppercase tracking-widest text-text-muted mb-3">Not Tested</p>
                 <div className="space-y-3">
-                  {(lastTest.recommendations.unknown as {title:string;desc:string;tags:string[]}[]).map((a, i) => (
+                  {lastTest.recommendations.unknown.map((a, i) => (
                     <div key={i} className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 opacity-80">
                       <div className="flex items-start gap-3">
                         <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 mt-0.5" style={{background:'rgba(74,106,124,0.12)'}}>
@@ -261,9 +332,9 @@ export default function DashboardPage() {
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
               </button>
             )
-            const active = activeTab === tab.id
+            const active = tab.id === 'dashboard'
             return (
-              <button key={tab.id} onClick={() => setActiveTab(tab.id)} className="flex flex-col items-center gap-1 px-3 py-1 min-w-0">
+              <button key={tab.id} onClick={() => router.push(`/${tab.id === 'dashboard' ? 'dashboard' : tab.id}`)} className="flex flex-col items-center gap-1 px-3 py-1 min-w-0">
                 <span style={{color: active ? '#0078B8' : '#8AAABB'}}>{tab.icon}</span>
                 <span className="text-[10px] font-medium" style={{color: active ? '#0078B8' : '#8AAABB'}}>{tab.label}</span>
               </button>
