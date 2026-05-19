@@ -7,27 +7,9 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 
 const POOL_TYPES = [
-  { id: 'inground', label: 'In-Ground', icon: (
-    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="2" y="8" width="20" height="12" rx="2"/>
-      <path d="M6 8V6a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v2"/>
-      <path d="M6 14 Q9 11 12 14 Q15 17 18 14" strokeWidth="1.4"/>
-    </svg>
-  )},
-  { id: 'above_ground', label: 'Above-Ground', icon: (
-    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-      <ellipse cx="12" cy="10" rx="9" ry="4"/>
-      <path d="M3 10v6a9 4 0 0 0 18 0v-6"/>
-      <path d="M7 13 Q10 11 12 13 Q14 15 17 13" strokeWidth="1.4"/>
-    </svg>
-  )},
-  { id: 'spa', label: 'Spa / Hot Tub', icon: (
-    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M4 12 Q6 8 8 12 Q10 16 12 12 Q14 8 16 12"/>
-      <rect x="2" y="14" width="20" height="6" rx="2"/>
-      <path d="M7 14v-2M12 14v-3M17 14v-2"/>
-    </svg>
-  )},
+  { id: 'inground', label: 'In-Ground', sub: 'Standard in-ground pool' },
+  { id: 'above_ground', label: 'Above-Ground', sub: 'Above-ground or semi-inground' },
+  { id: 'spa', label: 'Spa / Hot Tub', sub: 'Spa, hot tub, or plunge pool' },
 ]
 
 const SIZES = [
@@ -40,7 +22,7 @@ const SIZES = [
 export default function PoolSetupPage() {
   const router = useRouter()
   const [step, setStep] = useState(1)
-  const [poolName, setPoolName] = useState('My Pool')
+  const [poolName, setPoolName] = useState('')
   const [poolType, setPoolType] = useState('')
   const [volumeGallons, setVolumeGallons] = useState<number | null>(null)
   const [customVolume, setCustomVolume] = useState('')
@@ -71,59 +53,89 @@ export default function PoolSetupPage() {
     router.push('/dashboard')
   }
 
+  const titles = ['Pool Type', 'Pool Size', 'Final Details']
+  const subtitles = ['What kind of pool do you have?', 'Roughly how many gallons?', 'Give your pool a name']
+
   return (
     <div className="min-h-screen bg-surface flex flex-col" style={{maxWidth:480,margin:'0 auto'}}>
+
       {/* Header */}
-      <div className="bg-pool-deep px-5 pt-5 pb-8">
-        <div className="flex items-center gap-3 mb-6">
-          <button onClick={() => step > 1 ? setStep(s => s - 1) : router.push('/dashboard')} className="text-white/60 hover:text-white transition-colors">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
-          </button>
-          <div className="flex gap-1.5 flex-1">
-            {[1,2,3].map(n => (
-              <div key={n} className="h-1 flex-1 rounded-full transition-all" style={{background: n <= step ? '#00E0B0' : 'rgba(255,255,255,0.2)'}} />
-            ))}
+      <div className="bg-pool-deep px-5 pt-5 pb-6">
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-2">
+            <svg viewBox="28 8 144 175" width="16" height="22" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <linearGradient id="hg" x1=".35" y1="0" x2=".65" y2="1"><stop offset="0%" stopColor="#92D5F5"/><stop offset="42%" stopColor="#3A8AC8"/><stop offset="100%" stopColor="#052C4E"/></linearGradient>
+                <clipPath id="hc"><path d="M100 8C100 8 28 88 28 124C28 163 61 183 100 183C139 183 172 163 172 124C172 88 100 8 100 8Z"/></clipPath>
+              </defs>
+              <path d="M100 8C100 8 28 88 28 124C28 163 61 183 100 183C139 183 172 163 172 124C172 88 100 8 100 8Z" fill="url(#hg)"/>
+              <g clipPath="url(#hc)" fill="none" stroke="white" strokeLinecap="round">
+                <path d="M46 145Q100 122 154 145" strokeWidth="5" opacity=".8"/>
+                <path d="M38 160Q100 136 162 160" strokeWidth="4.5" opacity=".6"/>
+                <path d="M50 173Q100 152 150 173" strokeWidth="4" opacity=".4"/>
+              </g>
+            </svg>
+            <span className="text-white text-base" style={{fontFamily:"'Space Grotesk',sans-serif",fontWeight:300}}>
+              Pool<span style={{fontWeight:800}}>Keep</span>
+            </span>
           </div>
-          <span className="text-white/40 text-xs">{step} of 3</span>
+          {step > 1 && (
+            <button onClick={() => setStep(s => s - 1)} className="text-white/50 text-xs hover:text-white/80 transition-colors">
+              ← Back
+            </button>
+          )}
         </div>
-        <h1 className="text-white text-2xl font-bold" style={{fontFamily:"'Oswald',sans-serif"}}>
-          {step === 1 ? 'Pool Type' : step === 2 ? 'Pool Size' : 'Last Details'}
-        </h1>
-        <p className="text-white/55 text-sm mt-1">
-          {step === 1 ? 'What kind of pool do you have?' : step === 2 ? 'How many gallons does it hold?' : 'Almost done!'}
-        </p>
+
+        {/* Progress dots */}
+        <div className="flex gap-1.5 mb-5">
+          {[1,2,3].map(n => (
+            <div key={n} className="h-1 flex-1 rounded-full transition-all duration-300" style={{background: n <= step ? '#00E0B0' : 'rgba(255,255,255,0.2)'}} />
+          ))}
+        </div>
+
+        <p className="text-white/50 text-xs font-semibold uppercase tracking-widest mb-1">Step {step} of 3</p>
+        <h1 className="text-white text-2xl font-bold" style={{fontFamily:"'Oswald',sans-serif",letterSpacing:'-.01em'}}>{titles[step-1]}</h1>
+        <p className="text-white/55 text-sm mt-1">{subtitles[step-1]}</p>
       </div>
 
-      <div className="flex-1 px-4 pt-6 pb-10">
+      {/* Wave */}
+      <div className="bg-pool-deep">
+        <svg viewBox="0 0 480 32" xmlns="http://www.w3.org/2000/svg" className="w-full block" style={{display:'block',marginBottom:-1}}>
+          <path d="M0,20 C120,32 360,8 480,22 L480,32 L0,32 Z" fill="#F0F6FA"/>
+        </svg>
+      </div>
+
+      {/* Content */}
+      <div className="flex-1 px-4 pt-4 pb-10 bg-surface">
         {error && <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl px-4 py-3 mb-4">{error}</div>}
 
         {/* Step 1: Pool type */}
         {step === 1 && (
           <div className="space-y-3">
-            {POOL_TYPES.map(t => (
-              <button
-                key={t.id}
-                onClick={() => setPoolType(t.id)}
-                className="w-full bg-white rounded-2xl p-4 flex items-center gap-4 text-left transition-all border-2"
-                style={{borderColor: poolType === t.id ? '#0078B8' : 'transparent', boxShadow: poolType === t.id ? '0 0 0 0' : '0 1px 3px rgba(0,0,0,0.07)'}}
-              >
-                <div className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0" style={{background: poolType === t.id ? 'rgba(0,120,184,0.1)' : '#F0F6FA', color: poolType === t.id ? '#0078B8' : '#4A6A7C'}}>
-                  {t.icon}
-                </div>
-                <div>
-                  <p className="font-semibold text-text-primary">{t.label}</p>
-                </div>
-                {poolType === t.id && (
-                  <div className="ml-auto w-5 h-5 rounded-full bg-pool-dark flex items-center justify-center">
-                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            {POOL_TYPES.map(t => {
+              const active = poolType === t.id
+              return (
+                <button
+                  key={t.id}
+                  onClick={() => setPoolType(t.id)}
+                  className="w-full bg-white rounded-2xl p-4 flex items-center justify-between text-left transition-all border-2 shadow-sm"
+                  style={{borderColor: active ? '#0078B8' : 'transparent'}}
+                >
+                  <div>
+                    <p className="font-semibold text-text-primary text-sm">{t.label}</p>
+                    <p className="text-text-muted text-xs mt-0.5">{t.sub}</p>
                   </div>
-                )}
-              </button>
-            ))}
+                  <div className="w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 ml-3 transition-all"
+                    style={{borderColor: active ? '#0078B8' : '#D1D9DD', background: active ? '#0078B8' : 'transparent'}}>
+                    {active && <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>}
+                  </div>
+                </button>
+              )
+            })}
             <button
               disabled={!poolType}
               onClick={() => setStep(2)}
-              className="w-full bg-pool-dark text-white font-bold py-3.5 rounded-xl mt-4 hover:opacity-90 transition-opacity disabled:opacity-40 text-sm"
+              className="w-full bg-pool-dark text-white font-bold py-3.5 rounded-xl mt-2 hover:opacity-90 transition-opacity disabled:opacity-40 text-sm"
             >
               Continue →
             </button>
@@ -134,26 +146,29 @@ export default function PoolSetupPage() {
         {step === 2 && (
           <div>
             <div className="grid grid-cols-2 gap-3 mb-4">
-              {SIZES.map(s => (
-                <button
-                  key={s.value}
-                  onClick={() => { setVolumeGallons(s.value); setCustomVolume('') }}
-                  className="bg-white rounded-2xl p-4 text-left border-2 transition-all"
-                  style={{borderColor: volumeGallons === s.value ? '#0078B8' : 'transparent', boxShadow: volumeGallons === s.value ? 'none' : '0 1px 3px rgba(0,0,0,0.07)'}}
-                >
-                  <p className="font-bold text-text-primary">{s.label}</p>
-                  <p className="text-text-muted text-xs mt-0.5">{s.sub}</p>
-                </button>
-              ))}
+              {SIZES.map(s => {
+                const active = volumeGallons === s.value
+                return (
+                  <button
+                    key={s.value}
+                    onClick={() => { setVolumeGallons(s.value); setCustomVolume('') }}
+                    className="bg-white rounded-2xl p-4 text-left border-2 transition-all shadow-sm"
+                    style={{borderColor: active ? '#0078B8' : 'transparent'}}
+                  >
+                    <p className="font-bold text-text-primary text-sm">{s.label}</p>
+                    <p className="text-text-muted text-xs mt-0.5">{s.sub}</p>
+                  </button>
+                )
+              })}
             </div>
-            <div className="bg-white rounded-2xl p-4 shadow-sm mb-5">
+            <div className="bg-white rounded-2xl p-4 shadow-sm mb-5 border-2 transition-all" style={{borderColor: customVolume ? '#0078B8' : 'transparent'}}>
               <label className="text-xs font-semibold uppercase tracking-widest text-text-muted block mb-2">Custom Gallons</label>
               <input
                 type="number"
                 value={customVolume}
                 onChange={e => { setCustomVolume(e.target.value); setVolumeGallons(null) }}
-                placeholder="e.g. 18500"
-                className="w-full text-sm outline-none text-text-primary bg-transparent border-b border-gray-200 pb-1 focus:border-pool-dark transition-colors"
+                placeholder="e.g. 18,500"
+                className="w-full text-sm outline-none text-text-primary bg-transparent"
               />
             </div>
             <button
@@ -168,32 +183,35 @@ export default function PoolSetupPage() {
 
         {/* Step 3: Name + zip */}
         {step === 3 && (
-          <div className="space-y-4">
+          <div className="space-y-3">
             <div className="bg-white rounded-2xl p-4 shadow-sm">
-              <label className="text-xs font-semibold uppercase tracking-widest text-text-muted block mb-2">Pool Name</label>
+              <label className="text-xs font-semibold uppercase tracking-widest text-text-muted block mb-2">Pool Nickname</label>
               <input
                 type="text"
                 value={poolName}
                 onChange={e => setPoolName(e.target.value)}
-                placeholder="My Pool"
-                className="w-full text-sm outline-none text-text-primary bg-transparent border-b border-gray-200 pb-1 focus:border-pool-dark transition-colors"
+                placeholder="Backyard Pool"
+                className="w-full text-sm outline-none text-text-primary bg-transparent border-b border-gray-100 pb-1 focus:border-pool-dark transition-colors"
               />
             </div>
             <div className="bg-white rounded-2xl p-4 shadow-sm">
-              <label className="text-xs font-semibold uppercase tracking-widest text-text-muted block mb-2">Zip Code <span className="normal-case font-normal text-text-muted">(for weather)</span></label>
+              <label className="text-xs font-semibold uppercase tracking-widest text-text-muted block mb-2">
+                Zip Code <span className="normal-case font-normal text-text-faint">— used for local weather</span>
+              </label>
               <input
                 type="text"
                 value={zipCode}
                 onChange={e => setZipCode(e.target.value)}
                 placeholder="e.g. 85001"
                 maxLength={5}
-                className="w-full text-sm outline-none text-text-primary bg-transparent border-b border-gray-200 pb-1 focus:border-pool-dark transition-colors"
+                className="w-full text-sm outline-none text-text-primary bg-transparent border-b border-gray-100 pb-1 focus:border-pool-dark transition-colors"
               />
             </div>
             <button
               disabled={loading}
               onClick={handleSave}
-              className="w-full bg-pool-dark text-white font-bold py-3.5 rounded-xl hover:opacity-90 transition-opacity disabled:opacity-60 text-sm mt-2"
+              className="w-full text-white font-bold py-3.5 rounded-xl hover:opacity-90 transition-opacity disabled:opacity-60 text-sm mt-1"
+              style={{background:'#00E0B0',color:'#003D5C'}}
             >
               {loading ? 'Saving…' : 'Save My Pool →'}
             </button>
