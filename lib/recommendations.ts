@@ -1,9 +1,9 @@
 export type TestInput = {
-  ph: number
-  free_chlorine: number
-  total_alkalinity: number
-  cya: number
-  calcium_hardness: number
+  ph: number | null
+  free_chlorine: number | null
+  total_alkalinity: number | null
+  cya: number | null
+  calcium_hardness: number | null
   salt: number | null
 }
 
@@ -34,7 +34,8 @@ export function calculateRecommendations(test: TestInput, volumeGallons: number)
   const recs: Rec[] = []
 
   // pH — ideal 7.2–7.6
-  if (test.ph < 7.0) {
+  if (test.ph === null) { /* skipped */ }
+  else if (test.ph < 7.0) {
     const dose = Math.round(v * 12)
     recs.push({ status: 'action', param: 'ph', title: 'Raise your pH', desc: `pH is at ${test.ph} — too low. Add soda ash to protect your equipment and swimmer comfort.`, tags: [`Soda Ash · ${oz(dose, 'oz')}`, 'Re-test in 4 hours'] })
   } else if (test.ph < 7.2) {
@@ -50,8 +51,9 @@ export function calculateRecommendations(test: TestInput, volumeGallons: number)
     recs.push({ status: 'good', param: 'ph', title: 'pH is perfect', desc: `pH at ${test.ph} — right in the ideal range of 7.2–7.6.`, tags: [] })
   }
 
-  // Free Chlorine — ideal 1–3 ppm (adjusted for CYA)
-  if (test.free_chlorine < 0.5) {
+  // Free Chlorine — ideal 1–3 ppm
+  if (test.free_chlorine === null) { /* skipped */ }
+  else if (test.free_chlorine < 0.5) {
     const dose = Math.round(v * 2 * Math.max(1, 3 - test.free_chlorine))
     recs.push({ status: 'action', param: 'chlorine', title: 'Chlorine critically low', desc: `Free chlorine at ${test.free_chlorine} ppm — unsafe for swimming. Shock the pool immediately.`, tags: [`Shock · ${oz(dose, 'lbs')}`, 'Do not swim until 1+ ppm', 'Re-test in 2 hours'] })
   } else if (test.free_chlorine < 1) {
@@ -64,7 +66,8 @@ export function calculateRecommendations(test: TestInput, volumeGallons: number)
   }
 
   // Total Alkalinity — ideal 80–120 ppm
-  if (test.total_alkalinity < 60) {
+  if (test.total_alkalinity === null) { /* skipped */ }
+  else if (test.total_alkalinity < 60) {
     const dose = ((80 - test.total_alkalinity) / 10) * 1.5 * v
     recs.push({ status: 'action', param: 'alkalinity', title: 'Raise total alkalinity', desc: `Alkalinity at ${test.total_alkalinity} ppm — too low. This causes pH to swing unpredictably.`, tags: [`Baking Soda · ${oz(dose, 'lbs')}`, 'Add in small doses', 'Re-test next day'] })
   } else if (test.total_alkalinity < 80) {
@@ -80,7 +83,8 @@ export function calculateRecommendations(test: TestInput, volumeGallons: number)
   }
 
   // CYA — ideal 30–50 ppm
-  if (test.cya < 20) {
+  if (test.cya === null) { /* skipped */ }
+  else if (test.cya < 20) {
     const dose = ((40 - test.cya) / 10) * 1.3 * v
     recs.push({ status: 'action', param: 'cya', title: 'Add stabilizer', desc: `CYA at ${test.cya} ppm — too low. Chlorine is burning off fast in sunlight without stabilizer.`, tags: [`Stabilizer · ${oz(dose, 'lbs')}`, 'Add to skimmer', 'Re-test in 5 days'] })
   } else if (test.cya < 30) {
@@ -95,7 +99,8 @@ export function calculateRecommendations(test: TestInput, volumeGallons: number)
   }
 
   // Calcium Hardness — ideal 200–400 ppm
-  if (test.calcium_hardness < 150) {
+  if (test.calcium_hardness === null) { /* skipped */ }
+  else if (test.calcium_hardness < 150) {
     const dose = ((200 - test.calcium_hardness) / 10) * 1.25 * v
     recs.push({ status: 'action', param: 'calcium', title: 'Raise calcium hardness', desc: `Calcium at ${test.calcium_hardness} ppm — too low. Soft water etches plaster and corrodes equipment.`, tags: [`Calcium Chloride · ${oz(dose, 'lbs')}`, 'Add in small doses', 'Re-test next day'] })
   } else if (test.calcium_hardness < 200) {

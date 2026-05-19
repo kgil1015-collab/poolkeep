@@ -39,21 +39,24 @@ export default function LogTestPage() {
 
   async function handleSubmit() {
     setError('')
-    const ph = parseFloat(values.ph)
-    const free_chlorine = parseFloat(values.free_chlorine)
-    const total_alkalinity = parseInt(values.total_alkalinity)
-    const cya = parseInt(values.cya)
-    const calcium_hardness = parseInt(values.calcium_hardness)
-
-    if (isNaN(ph) || isNaN(free_chlorine) || isNaN(total_alkalinity) || isNaN(cya) || isNaN(calcium_hardness)) {
-      setError('Please enter the first 5 readings. Salt is optional.')
-      return
+    const parse = (key: string, fn: (v: string) => number) => {
+      const v = values[key]
+      return v && v.trim() !== '' ? fn(v) : null
     }
 
+    const testInput = {
+      ph: parse('ph', parseFloat),
+      free_chlorine: parse('free_chlorine', parseFloat),
+      total_alkalinity: parse('total_alkalinity', parseInt),
+      cya: parse('cya', parseInt),
+      calcium_hardness: parse('calcium_hardness', parseInt),
+      salt: parse('salt', parseInt),
+    }
+
+    const hasAny = Object.values(testInput).some(v => v !== null)
+    if (!hasAny) { setError('Enter at least one reading.'); return }
     if (!pool) return
     setLoading(true)
-
-    const testInput = { ph, free_chlorine, total_alkalinity, cya, calcium_hardness, salt: values.salt ? parseInt(values.salt) : null }
     const result = calculateRecommendations(testInput, pool.volume_gallons)
 
     const supabase = createClient()
