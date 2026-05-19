@@ -10,7 +10,6 @@ import { useRouter } from 'next/navigation'
 
 export default function LoginPage() {
   const router = useRouter()
-  const supabase = createClient()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
@@ -22,6 +21,7 @@ export default function LoginPage() {
     if (!email || !password) { setError('Please enter your email and password.'); return }
     setLoading(true)
 
+    const supabase = createClient()
     const { error: signInError } = await supabase.auth.signInWithPassword({ email, password })
 
     setLoading(false)

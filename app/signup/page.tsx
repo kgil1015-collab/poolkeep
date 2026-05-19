@@ -10,7 +10,6 @@ import { useRouter } from 'next/navigation'
 
 export default function SignupPage() {
   const router = useRouter()
-  const supabase = createClient()
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -25,6 +24,7 @@ export default function SignupPage() {
     if (password.length < 8) { setError('Password must be at least 8 characters.'); return }
     setLoading(true)
 
+    const supabase = createClient()
     const { error: signUpError } = await supabase.auth.signUp({
       email,
       password,
