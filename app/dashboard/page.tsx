@@ -84,62 +84,66 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-surface">
-      {/* Nav */}
-      <nav className="bg-pool-deep px-5 py-4 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <svg viewBox="28 8 144 175" width="18" height="24" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-              <linearGradient id="dd" x1=".35" y1="0" x2=".65" y2="1"><stop offset="0%" stopColor="#92D5F5"/><stop offset="42%" stopColor="#3A8AC8"/><stop offset="100%" stopColor="#052C4E"/></linearGradient>
-              <radialGradient id="dg" cx="42%" cy="25%" r="40%"><stop offset="0%" stopColor="#fff" stopOpacity=".5"/><stop offset="100%" stopColor="#fff" stopOpacity="0"/></radialGradient>
-              <clipPath id="dc"><path d="M100 8C100 8 28 88 28 124C28 163 61 183 100 183C139 183 172 163 172 124C172 88 100 8 100 8Z"/></clipPath>
-            </defs>
-            <path d="M100 8C100 8 28 88 28 124C28 163 61 183 100 183C139 183 172 163 172 124C172 88 100 8 100 8Z" fill="url(#dd)"/>
-            <path d="M100 8C100 8 28 88 28 124C28 163 61 183 100 183C139 183 172 163 172 124C172 88 100 8 100 8Z" fill="url(#dg)"/>
-            <g clipPath="url(#dc)" fill="none" stroke="white" strokeLinecap="round">
-              <path d="M46 145Q100 122 154 145" strokeWidth="4.5" opacity=".82"/>
-              <path d="M38 160Q100 136 162 160" strokeWidth="4" opacity=".62"/>
-              <path d="M50 173Q100 152 150 173" strokeWidth="3.5" opacity=".42"/>
-            </g>
-          </svg>
-          <span className="text-white text-base tracking-tight" style={{fontFamily:"'Space Grotesk',sans-serif"}}>
-            <span style={{fontWeight:300}}>Pool</span><span style={{fontWeight:800}}>Keep</span>
-          </span>
+      {/* Header — navy, includes greeting */}
+      <div className="bg-pool-deep px-5 pt-4 pb-8">
+        <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center gap-2">
+            <svg viewBox="28 8 144 175" width="18" height="24" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <linearGradient id="dd" x1=".35" y1="0" x2=".65" y2="1"><stop offset="0%" stopColor="#92D5F5"/><stop offset="42%" stopColor="#3A8AC8"/><stop offset="100%" stopColor="#052C4E"/></linearGradient>
+                <radialGradient id="dg" cx="42%" cy="25%" r="40%"><stop offset="0%" stopColor="#fff" stopOpacity=".5"/><stop offset="100%" stopColor="#fff" stopOpacity="0"/></radialGradient>
+                <clipPath id="dc"><path d="M100 8C100 8 28 88 28 124C28 163 61 183 100 183C139 183 172 163 172 124C172 88 100 8 100 8Z"/></clipPath>
+              </defs>
+              <path d="M100 8C100 8 28 88 28 124C28 163 61 183 100 183C139 183 172 163 172 124C172 88 100 8 100 8Z" fill="url(#dd)"/>
+              <path d="M100 8C100 8 28 88 28 124C28 163 61 183 100 183C139 183 172 163 172 124C172 88 100 8 100 8Z" fill="url(#dg)"/>
+              <g clipPath="url(#dc)" fill="none" stroke="white" strokeLinecap="round">
+                <path d="M46 145Q100 122 154 145" strokeWidth="4.5" opacity=".82"/>
+                <path d="M38 160Q100 136 162 160" strokeWidth="4" opacity=".62"/>
+                <path d="M50 173Q100 152 150 173" strokeWidth="3.5" opacity=".42"/>
+              </g>
+            </svg>
+            <span className="text-white text-base tracking-tight" style={{fontFamily:"'Space Grotesk',sans-serif"}}>
+              <span style={{fontWeight:300}}>Pool</span><span style={{fontWeight:800}}>Keep</span>
+            </span>
+          </div>
+          <button onClick={handleSignOut} className="text-white/40 text-xs hover:text-white/70 transition-colors">
+            Sign out
+          </button>
         </div>
-        <button onClick={handleSignOut} className="text-white/50 text-xs hover:text-white/80 transition-colors">
-          Sign out
-        </button>
-      </nav>
+        <p className="text-white/50 text-xs font-medium uppercase tracking-widest mb-1">Welcome back</p>
+        <h1 className="text-white text-2xl font-bold">{firstName}</h1>
+      </div>
 
-      <div className="max-w-md mx-auto px-4 pt-7 pb-12">
-        {/* Greeting */}
-        <div className="mb-7">
-          <p className="text-xs font-semibold uppercase tracking-widest text-text-muted mb-1">Dashboard</p>
-          <h1 className="text-2xl font-bold text-text-primary">Hey, {firstName}</h1>
-        </div>
+      {/* Content lifts over header */}
+      <div className="max-w-md mx-auto px-4 -mt-4 pb-12">
 
         {/* Add pool CTA */}
-        <div className="bg-pool-deep rounded-2xl p-5 mb-6 flex items-center gap-4">
+        <div className="bg-white rounded-2xl p-4 mb-4 shadow-md flex items-center gap-4 border-l-4 border-teal">
           <div className="flex-1">
-            <p className="text-white font-semibold text-sm mb-0.5">Set up your pool</p>
-            <p className="text-white/60 text-xs leading-relaxed">Add your pool size and type to get personalized chemical doses.</p>
+            <p className="text-text-primary font-semibold text-sm mb-0.5">Set up your pool</p>
+            <p className="text-text-muted text-xs leading-relaxed">Add size and type for personalized doses.</p>
           </div>
-          <button className="shrink-0 bg-teal text-pool-deep text-xs font-bold px-4 py-2 rounded-xl hover:opacity-90 transition-opacity whitespace-nowrap">
+          <button className="shrink-0 bg-pool-dark text-white text-xs font-bold px-4 py-2 rounded-xl hover:opacity-90 transition-opacity whitespace-nowrap">
             Add Pool
           </button>
         </div>
 
-        {/* Last test placeholder */}
-        <div className="bg-white rounded-2xl p-5 mb-6 shadow-sm">
-          <p className="text-xs font-semibold uppercase tracking-widest text-text-muted mb-4">Last Test</p>
-          <p className="text-text-muted text-sm text-center py-4">No tests logged yet.</p>
+        {/* Last test */}
+        <div className="bg-white rounded-2xl p-5 mb-4 shadow-sm">
+          <p className="text-xs font-semibold uppercase tracking-widest text-text-muted mb-3">Last Test</p>
+          <div className="flex items-center justify-center py-5">
+            <p className="text-text-muted text-sm">No tests logged yet</p>
+          </div>
         </div>
 
         {/* Quick Actions */}
-        <p className="text-xs font-semibold uppercase tracking-widest text-text-muted mb-3">Actions</p>
+        <p className="text-xs font-semibold uppercase tracking-widest text-text-muted mb-3 mt-2">Actions</p>
         <div className="grid grid-cols-2 gap-3">
           {actions.map(a => (
-            <button key={a.label} className="bg-white rounded-2xl p-4 shadow-sm text-left hover:shadow-md active:scale-95 transition-all">
-              <div className="text-pool-dark mb-3">{a.icon}</div>
+            <button key={a.label} className="bg-white rounded-2xl p-4 shadow-sm text-left active:scale-95 transition-transform border border-gray-100">
+              <div className="w-9 h-9 rounded-xl bg-surface flex items-center justify-center text-pool-dark mb-3">
+                {a.icon}
+              </div>
               <p className="font-semibold text-text-primary text-sm">{a.label}</p>
               <p className="text-text-muted text-xs mt-0.5">{a.sub}</p>
             </button>
