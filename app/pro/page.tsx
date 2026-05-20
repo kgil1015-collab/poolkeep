@@ -2,6 +2,7 @@
 
 export const dynamic = 'force-dynamic'
 
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 
 const FREE_FEATURES = [
@@ -30,8 +31,31 @@ const SERVICE_FEATURES = [
   'Everything in Pro',
 ]
 
+const PRICE_MONTHLY = process.env.NEXT_PUBLIC_STRIPE_PRICE_MONTHLY ?? ''
+const PRICE_ANNUAL = process.env.NEXT_PUBLIC_STRIPE_PRICE_ANNUAL ?? ''
+
 export default function ProPage() {
   const router = useRouter()
+  const [billing, setBilling] = useState<'monthly' | 'annual'>('annual')
+  const [loading, setLoading] = useState(false)
+
+  async function handleUpgrade() {
+    const priceId = billing === 'annual' ? PRICE_ANNUAL : PRICE_MONTHLY
+    if (!priceId) return
+    setLoading(true)
+    try {
+      const res = await fetch('/api/stripe/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ priceId }),
+      })
+      const { url, error } = await res.json()
+      if (error) throw new Error(error)
+      window.location.href = url
+    } catch {
+      setLoading(false)
+    }
+  }
 
   return (
     <div className="min-h-screen bg-surface flex flex-col" style={{maxWidth:480,margin:'0 auto'}}>
@@ -69,6 +93,25 @@ export default function ProPage() {
           <span className="text-[11px] font-bold uppercase tracking-widest px-3 py-1 rounded-full" style={{background:'#F0F6FA',color:'#8AAABB'}}>Free</span>
         </div>
 
+        {/* Billing toggle */}
+        <div className="flex gap-2 bg-white rounded-2xl p-1 shadow-sm border border-gray-100">
+          <button
+            onClick={() => setBilling('monthly')}
+            className="flex-1 py-2 text-xs font-bold rounded-xl transition-all"
+            style={billing === 'monthly' ? {background:'#003D5C',color:'white'} : {background:'transparent',color:'#8AAABB'}}
+          >
+            Monthly
+          </button>
+          <button
+            onClick={() => setBilling('annual')}
+            className="flex-1 py-2 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1.5"
+            style={billing === 'annual' ? {background:'#003D5C',color:'white'} : {background:'transparent',color:'#8AAABB'}}
+          >
+            Annual
+            <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full" style={{background:'rgba(0,224,176,0.2)',color:'#00C49A'}}>Save $21</span>
+          </button>
+        </div>
+
         {/* Pro card */}
         <div className="bg-pool-deep rounded-2xl overflow-hidden shadow-lg">
           {/* Badge */}
@@ -79,9 +122,19 @@ export default function ProPage() {
                 <h2 className="text-white text-xl font-bold mt-2" style={{fontFamily:"'Oswald',sans-serif"}}>Pro</h2>
               </div>
               <div className="text-right">
-                <p className="text-white/40 text-xs font-semibold uppercase tracking-widest">Starting at</p>
-                <p className="text-white text-3xl font-bold leading-none mt-1" style={{fontFamily:"'Oswald',sans-serif"}}>$4.99</p>
-                <p className="text-white/50 text-xs mt-0.5">per month</p>
+                {billing === 'annual' ? (
+                  <>
+                    <p className="text-white/40 text-xs font-semibold uppercase tracking-widest">Billed annually</p>
+                    <p className="text-white text-3xl font-bold leading-none mt-1" style={{fontFamily:"'Oswald',sans-serif"}}>$99</p>
+                    <p className="text-white/50 text-xs mt-0.5">$8.25 / month</p>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-white/40 text-xs font-semibold uppercase tracking-widest">Billed monthly</p>
+                    <p className="text-white text-3xl font-bold leading-none mt-1" style={{fontFamily:"'Oswald',sans-serif"}}>$9.99</p>
+                    <p className="text-white/50 text-xs mt-0.5">per month</p>
+                  </>
+                )}
               </div>
             </div>
 
@@ -99,14 +152,19 @@ export default function ProPage() {
 
             {/* CTA */}
             <button
-              disabled
-              className="w-full font-bold py-4 rounded-xl text-sm flex items-center justify-center gap-2 opacity-70 cursor-not-allowed"
-              style={{background:'#00E0B0',color:'#003D5C'}}
+              onClick={handleUpgrade}
+              disabled={loading || !PRICE_MONTHLY}
+              className="w-full font-bold py-4 rounded-xl text-sm flex items-center justify-center gap-2 transition-opacity"
+              style={{background:'#00E0B0', color:'#003D5C', opacity: loading ? 0.7 : 1}}
             >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-              Coming Soon
+              {loading ? (
+                <svg className="animate-spin" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+              ) : (
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+              )}
+              {loading ? 'Redirecting…' : `Upgrade to Pro`}
             </button>
-            <p className="text-white/40 text-xs text-center mt-2">Pro is in development — pricing may change before launch</p>
+            <p className="text-white/40 text-xs text-center mt-2">Cancel anytime · Secure checkout by Stripe</p>
           </div>
 
           {/* What's included in Free — comparison */}
