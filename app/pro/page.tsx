@@ -38,21 +38,27 @@ export default function ProPage() {
   const router = useRouter()
   const [billing, setBilling] = useState<'monthly' | 'annual'>('annual')
   const [loading, setLoading] = useState(false)
+  const [upgradeError, setUpgradeError] = useState<string | null>(null)
 
   async function handleUpgrade() {
     const priceId = billing === 'annual' ? PRICE_ANNUAL : PRICE_MONTHLY
-    if (!priceId) return
+    if (!priceId) {
+      setUpgradeError('Stripe price not configured — check environment variables.')
+      return
+    }
     setLoading(true)
+    setUpgradeError(null)
     try {
       const res = await fetch('/api/stripe/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ priceId }),
       })
-      const { url, error } = await res.json()
-      if (error) throw new Error(error)
-      window.location.href = url
-    } catch {
+      const data = await res.json()
+      if (!res.ok || data.error) throw new Error(data.error ?? `HTTP ${res.status}`)
+      window.location.href = data.url
+    } catch (err) {
+      setUpgradeError(err instanceof Error ? err.message : 'Something went wrong')
       setLoading(false)
     }
   }
@@ -165,6 +171,9 @@ export default function ProPage() {
               {loading ? 'Redirecting…' : `Upgrade to Pro`}
             </button>
             <p className="text-white/40 text-xs text-center mt-2">Cancel anytime · Secure checkout by Stripe</p>
+            {upgradeError && (
+              <p className="text-red-300 text-xs text-center mt-2">{upgradeError}</p>
+            )}
           </div>
 
           {/* What's included in Free — comparison */}
