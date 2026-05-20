@@ -60,18 +60,21 @@ const IconDashboard = ({ size = 20 }: { size?: number }) => (
 export default function DashboardPage() {
   const router = useRouter()
   const [user, setUser] = useState<User | null>(null)
-  const [pool, setPool] = useState<{ id: string; name: string } | null>(null)
+  const [pool, setPool] = useState<{ id: string; name: string; remind_after_days: number | null } | null>(null)
   const [lastTest, setLastTest] = useState<TestResult | null>(null)
   const [loading, setLoading] = useState(true)
+  const [remindDays, setRemindDays] = useState<number | null>(null)
+  const [savingReminder, setSavingReminder] = useState(false)
 
   useEffect(() => {
     const supabase = createClient()
     supabase.auth.getUser().then(async ({ data }) => {
       if (!data.user) { router.push('/login'); return }
       setUser(data.user as User)
-      const { data: pools } = await supabase.from('pools').select('id,name').limit(1)
+      const { data: pools } = await supabase.from('pools').select('id,name,remind_after_days').limit(1)
       if (!pools || pools.length === 0) { router.push('/setup/pool'); return }
       setPool(pools[0])
+      setRemindDays(pools[0].remind_after_days ?? null)
       const { data: tests } = await supabase.from('test_results').select('health_score,recommendations,tested_at,ph,free_chlorine,total_alkalinity,cya,calcium_hardness,salt').eq('pool_id', pools[0].id).order('tested_at', { ascending: false }).limit(1)
       if (tests && tests.length > 0) setLastTest(tests[0])
       setLoading(false)
@@ -82,6 +85,15 @@ export default function DashboardPage() {
     const supabase = createClient()
     await supabase.auth.signOut()
     router.push('/')
+  }
+
+  async function saveReminderDays(days: number | null) {
+    if (!pool || savingReminder) return
+    setSavingReminder(true)
+    setRemindDays(days)
+    const supabase = createClient()
+    await supabase.from('pools').update({ remind_after_days: days }).eq('id', pool.id)
+    setSavingReminder(false)
   }
 
   if (loading) {
@@ -318,6 +330,39 @@ export default function DashboardPage() {
             )}
           </>
         )}
+
+        {/* Reminder settings */}
+        <div className="bg-white rounded-2xl px-4 py-4 shadow-sm border border-gray-100 mt-4 mb-2">
+          <div className="flex items-center gap-2.5 mb-3">
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style={{background:'rgba(0,120,184,0.08)'}}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0078B8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            </div>
+            <div>
+              <p className="text-sm font-bold text-text-primary">Test Reminders</p>
+              <p className="text-xs text-text-muted">Email me if I forget to test</p>
+            </div>
+          </div>
+          <div className="flex gap-2">
+            {([null, 3, 7, 14] as (number | null)[]).map(days => (
+              <button
+                key={days ?? 'off'}
+                onClick={() => saveReminderDays(days)}
+                disabled={savingReminder}
+                className="flex-1 py-2 text-xs font-bold rounded-xl transition-all"
+                style={remindDays === days
+                  ? {background:'#0078B8', color:'white'}
+                  : {background:'#F0F6FA', color:'#8AAABB'}}
+              >
+                {days === null ? 'Off' : `${days}d`}
+              </button>
+            ))}
+          </div>
+          {remindDays !== null && (
+            <p className="text-[10px] text-text-faint mt-2 text-center">
+              You&apos;ll get an email if {pool?.name ?? 'your pool'} goes {remindDays} days without a test
+            </p>
+          )}
+        </div>
       </div>
 
       {/* Bottom tab bar */}
