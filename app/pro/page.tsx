@@ -93,29 +93,29 @@ export default function ProPage() {
           <span className="text-[11px] font-bold uppercase tracking-widest px-3 py-1 rounded-full" style={{background:'#F0F6FA',color:'#8AAABB'}}>Free</span>
         </div>
 
-        {/* Billing toggle */}
-        <div className="flex gap-2 bg-white rounded-2xl p-1 shadow-sm border border-gray-100">
-          <button
-            onClick={() => setBilling('monthly')}
-            className="flex-1 py-2 text-xs font-bold rounded-xl transition-all"
-            style={billing === 'monthly' ? {background:'#003D5C',color:'white'} : {background:'transparent',color:'#8AAABB'}}
-          >
-            Monthly
-          </button>
-          <button
-            onClick={() => setBilling('annual')}
-            className="flex-1 py-2 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1.5"
-            style={billing === 'annual' ? {background:'#003D5C',color:'white'} : {background:'transparent',color:'#8AAABB'}}
-          >
-            Annual
-            <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full" style={{background:'rgba(0,224,176,0.2)',color:'#00C49A'}}>Save $21</span>
-          </button>
-        </div>
-
         {/* Pro card */}
         <div className="bg-pool-deep rounded-2xl overflow-hidden shadow-lg">
           {/* Badge */}
           <div className="px-5 pt-5 pb-4">
+            {/* Billing toggle — inside card */}
+            <div className="flex gap-1.5 rounded-xl p-1 mb-4" style={{background:'rgba(255,255,255,0.1)'}}>
+              <button
+                onClick={() => setBilling('monthly')}
+                className="flex-1 py-1.5 text-xs font-bold rounded-lg transition-all"
+                style={billing === 'monthly' ? {background:'white',color:'#003D5C'} : {background:'transparent',color:'rgba(255,255,255,0.5)'}}
+              >
+                Monthly
+              </button>
+              <button
+                onClick={() => setBilling('annual')}
+                className="flex-1 py-1.5 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-1.5"
+                style={billing === 'annual' ? {background:'white',color:'#003D5C'} : {background:'transparent',color:'rgba(255,255,255,0.5)'}}
+              >
+                Annual
+                <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full" style={{background:'rgba(0,224,176,0.25)',color:'#00E0B0'}}>Save $21</span>
+              </button>
+            </div>
+
             <div className="flex items-start justify-between gap-3 mb-4">
               <div>
                 <span className="text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full" style={{background:'rgba(0,224,176,0.15)',color:'#00E0B0'}}>Most Popular</span>
