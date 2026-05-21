@@ -2,8 +2,9 @@
 
 export const dynamic = 'force-dynamic'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { createClient } from '@/lib/supabase'
 
 const FREE_FEATURES = [
   '1 pool',
@@ -39,6 +40,28 @@ export default function ProPage() {
   const [billing, setBilling] = useState<'monthly' | 'annual'>('annual')
   const [loading, setLoading] = useState(false)
   const [upgradeError, setUpgradeError] = useState<string | null>(null)
+  const [subStatus, setSubStatus] = useState<string | null>(null)
+  const [subPlan, setSubPlan] = useState<string | null>(null)
+  const [periodEnd, setPeriodEnd] = useState<string | null>(null)
+
+  useEffect(() => {
+    const supabase = createClient()
+    supabase.auth.getUser().then(async ({ data }) => {
+      if (!data.user) return
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('subscription_status,plan,current_period_end')
+        .eq('id', data.user.id)
+        .single()
+      if (profile) {
+        setSubStatus(profile.subscription_status ?? null)
+        setSubPlan(profile.plan ?? null)
+        setPeriodEnd(profile.current_period_end ?? null)
+      }
+    })
+  }, [])
+
+  const isPro = subStatus === 'active' || subStatus === 'trialing'
 
   async function handleUpgrade() {
     const priceId = billing === 'annual' ? PRICE_ANNUAL : PRICE_MONTHLY
@@ -94,9 +117,21 @@ export default function ProPage() {
         <div className="bg-white rounded-2xl px-4 py-3 shadow-sm border border-gray-100 flex items-center justify-between">
           <div>
             <p className="text-xs font-bold uppercase tracking-widest text-text-muted">Your current plan</p>
-            <p className="text-sm font-bold text-text-primary mt-0.5">Free</p>
+            <p className="text-sm font-bold text-text-primary mt-0.5">{isPro ? 'PoolKeep Pro' : 'Free'}</p>
+            {isPro && periodEnd && (
+              <p className="text-[11px] text-text-faint mt-0.5">
+                {subStatus === 'trialing' ? 'Trial ends' : subPlan === 'annual' ? 'Renews' : 'Renews'}{' '}
+                {new Date(periodEnd).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+              </p>
+            )}
           </div>
-          <span className="text-[11px] font-bold uppercase tracking-widest px-3 py-1 rounded-full" style={{background:'#F0F6FA',color:'#8AAABB'}}>Free</span>
+          {isPro ? (
+            <span className="text-[11px] font-bold uppercase tracking-widest px-3 py-1 rounded-full" style={{background:'rgba(0,224,176,0.15)',color:'#00967A'}}>
+              {subPlan === 'annual' ? 'Annual' : 'Monthly'}
+            </span>
+          ) : (
+            <span className="text-[11px] font-bold uppercase tracking-widest px-3 py-1 rounded-full" style={{background:'#F0F6FA',color:'#8AAABB'}}>Free</span>
+          )}
         </div>
 
         {/* Pro card */}
@@ -157,20 +192,27 @@ export default function ProPage() {
             </div>
 
             {/* CTA */}
-            <button
-              onClick={handleUpgrade}
-              disabled={loading || !PRICE_MONTHLY}
-              className="w-full font-bold py-4 rounded-xl text-sm flex items-center justify-center gap-2 transition-opacity"
-              style={{background:'#00E0B0', color:'#003D5C', opacity: loading ? 0.7 : 1}}
-            >
-              {loading ? (
-                <svg className="animate-spin" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
-              ) : (
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
-              )}
-              {loading ? 'Redirecting…' : `Upgrade to Pro`}
-            </button>
-            <p className="text-white/40 text-xs text-center mt-2">Cancel anytime · Secure checkout by Stripe</p>
+            {isPro ? (
+              <div className="w-full font-bold py-4 rounded-xl text-sm flex items-center justify-center gap-2" style={{background:'rgba(0,224,176,0.15)',color:'#00E0B0'}}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                You&apos;re on Pro
+              </div>
+            ) : (
+              <button
+                onClick={handleUpgrade}
+                disabled={loading || !PRICE_MONTHLY}
+                className="w-full font-bold py-4 rounded-xl text-sm flex items-center justify-center gap-2 transition-opacity"
+                style={{background:'#00E0B0', color:'#003D5C', opacity: loading ? 0.7 : 1}}
+              >
+                {loading ? (
+                  <svg className="animate-spin" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+                ) : (
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+                )}
+                {loading ? 'Redirecting…' : `Upgrade to Pro`}
+              </button>
+            )}
+            {!isPro && <p className="text-white/40 text-xs text-center mt-2">Cancel anytime · Secure checkout by Stripe</p>}
             {upgradeError && (
               <p className="text-red-300 text-xs text-center mt-2">{upgradeError}</p>
             )}
