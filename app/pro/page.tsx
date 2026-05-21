@@ -193,7 +193,11 @@ export default function ProPage() {
                 <p className="text-xs font-bold uppercase tracking-widest text-text-muted mb-3">Manage Subscription</p>
                 <div className="space-y-2">
                   <button
-                    onClick={() => router.push('https://billing.stripe.com/p/login/test_00000')}
+                    onClick={async () => {
+                      const res = await fetch('/api/stripe/portal', { method: 'POST' })
+                      const data = await res.json()
+                      if (data.url) window.location.href = data.url
+                    }}
                     className="w-full flex items-center justify-between px-4 py-3 rounded-xl text-left transition-colors hover:bg-surface"
                     style={{background:'#F8FBFD'}}
                   >
