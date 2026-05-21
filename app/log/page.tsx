@@ -119,7 +119,13 @@ export default function LogTestPage() {
                   <p className="text-xs font-semibold uppercase tracking-widest text-text-muted mb-0.5">{p.label}</p>
                   <p className="text-[10px] text-text-faint">{p.range}</p>
                 </div>
-                <div className="flex items-baseline gap-1">
+                <div
+                  className="flex items-baseline gap-1.5 rounded-xl px-3 py-2"
+                  style={{
+                    background: hasVal ? 'rgba(0,120,184,0.07)' : '#F0F6FA',
+                    border: `1.5px solid ${hasVal ? 'rgba(0,120,184,0.35)' : '#D8E8F0'}`,
+                  }}
+                >
                   <input
                     type="number"
                     inputMode="decimal"
@@ -132,7 +138,7 @@ export default function LogTestPage() {
                     className="w-16 text-right text-base font-bold outline-none bg-transparent text-text-primary placeholder:text-gray-300"
                     style={{fontFamily:"'DM Mono',monospace"}}
                   />
-                  {p.unit && <span className="text-xs text-text-muted">{p.unit}</span>}
+                  {p.unit && <span className="text-xs font-medium" style={{color: hasVal ? '#0078B8' : '#8AAABB'}}>{p.unit}</span>}
                 </div>
               </div>
             )
