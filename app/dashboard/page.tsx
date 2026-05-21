@@ -158,7 +158,12 @@ export default function DashboardPage() {
               Pool<span style={{fontWeight:800}}>Keep</span>
             </span>
           </div>
-          <button onClick={handleSignOut} className="text-white/40 text-xs hover:text-white/60 transition-colors">Sign out</button>
+          <div className="flex items-center gap-2">
+            {isPro && (
+              <span className="text-[10px] font-bold px-2.5 py-1 rounded-full" style={{background:'rgba(0,224,176,0.18)',color:'#00E0B0'}}>Pro</span>
+            )}
+            <button onClick={handleSignOut} className="text-white/40 text-xs hover:text-white/60 transition-colors">Sign out</button>
+          </div>
         </div>
 
         <p className="text-white/55 text-sm mb-0.5">{greeting}, {firstName}</p>
