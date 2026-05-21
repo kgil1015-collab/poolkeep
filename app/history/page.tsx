@@ -94,20 +94,29 @@ export default function HistoryPage() {
   const [expanded, setExpanded] = useState<string | null>(null)
   const [pool, setPool] = useState<{ name: string } | null>(null)
   const [activeTab, setActiveTab] = useState<'trends' | 'log'>('trends')
+  const [isPro, setIsPro] = useState(false)
 
   useEffect(() => {
     const supabase = createClient()
     supabase.auth.getUser().then(async ({ data }) => {
       if (!data.user) { router.push('/login'); return }
-      const { data: pools } = await supabase.from('pools').select('id,name').limit(1)
+      const [{ data: profile }, poolsRes] = await Promise.all([
+        supabase.from('profiles').select('subscription_status').eq('id', data.user.id).single(),
+        supabase.from('pools').select('id,name').order('created_at', { ascending: true }),
+      ])
+      const pro = profile?.subscription_status === 'active' || profile?.subscription_status === 'trialing'
+      setIsPro(pro)
+      const pools = poolsRes.data
       if (!pools || pools.length === 0) { router.push('/setup/pool'); return }
-      setPool(pools[0])
+      const savedId = typeof window !== 'undefined' ? localStorage.getItem('poolkeep_active_pool') : null
+      const activePool = (savedId && pools.find(p => p.id === savedId)) || pools[0]
+      setPool(activePool)
       const { data: results } = await supabase
         .from('test_results')
         .select('id,tested_at,health_score,ph,free_chlorine,total_alkalinity,cya,calcium_hardness,salt,recommendations')
-        .eq('pool_id', pools[0].id)
+        .eq('pool_id', activePool.id)
         .order('tested_at', { ascending: false })
-        .limit(50)
+        .limit(pro ? 200 : 10)
       setTests(results ?? [])
       setLoading(false)
     })
@@ -303,6 +312,17 @@ export default function HistoryPage() {
             </div>
           ) : (
             <div className="space-y-3">
+              {!isPro && tests.length >= 10 && (
+                <div className="bg-white rounded-2xl px-4 py-4 shadow-sm border border-gray-100 flex items-center justify-between gap-3">
+                  <div>
+                    <p className="text-sm font-bold text-text-primary">Showing last 10 tests</p>
+                    <p className="text-xs text-text-muted mt-0.5">Upgrade to Pro for unlimited history</p>
+                  </div>
+                  <button onClick={() => router.push('/pro')} className="shrink-0 text-xs font-bold px-3 py-2 rounded-xl text-white" style={{background:'#0078B8'}}>
+                    Upgrade
+                  </button>
+                </div>
+              )}
               {tests.map(test => {
                 const colors = scoreColor(test.health_score)
                 const isOpen = expanded === test.id

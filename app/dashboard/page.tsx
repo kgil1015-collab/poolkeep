@@ -63,6 +63,7 @@ export default function DashboardPage() {
   const [pool, setPool] = useState<{ id: string; name: string; remind_after_days: number | null } | null>(null)
   const [allPools, setAllPools] = useState<{ id: string; name: string; remind_after_days: number | null }[]>([])
   const [showPicker, setShowPicker] = useState(false)
+  const [isPro, setIsPro] = useState(false)
   const [lastTest, setLastTest] = useState<TestResult | null>(null)
   const [loading, setLoading] = useState(true)
   const [remindDays, setRemindDays] = useState<number | null>(null)
@@ -73,7 +74,12 @@ export default function DashboardPage() {
     supabase.auth.getUser().then(async ({ data }) => {
       if (!data.user) { router.push('/login'); return }
       setUser(data.user as User)
-      const { data: pools } = await supabase.from('pools').select('id,name,remind_after_days').order('created_at', { ascending: true })
+      const [{ data: profile }, { data: pools }] = await Promise.all([
+        supabase.from('profiles').select('subscription_status').eq('id', data.user.id).single(),
+        supabase.from('pools').select('id,name,remind_after_days').order('created_at', { ascending: true }),
+      ])
+      const pro = profile?.subscription_status === 'active' || profile?.subscription_status === 'trialing'
+      setIsPro(pro)
       if (!pools || pools.length === 0) { router.push('/setup/pool'); return }
       setAllPools(pools)
       const savedId = typeof window !== 'undefined' ? localStorage.getItem('poolkeep_active_pool') : null
@@ -191,13 +197,18 @@ export default function DashboardPage() {
                 </button>
               ))}
               <button
-                onClick={() => { setShowPicker(false); router.push('/setup/pool') }}
+                onClick={() => { setShowPicker(false); router.push(isPro || allPools.length === 0 ? '/setup/pool' : '/pro') }}
                 className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-surface transition-colors"
               >
                 <div className="w-5 h-5 rounded-full flex items-center justify-center shrink-0" style={{background:'rgba(0,120,184,0.1)'}}>
                   <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#0078B8" strokeWidth="3" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                 </div>
-                <span className="text-sm font-medium" style={{color:'#0078B8'}}>Add Pool</span>
+                <div className="flex-1 flex items-center justify-between">
+                  <span className="text-sm font-medium" style={{color:'#0078B8'}}>Add Pool</span>
+                  {!isPro && allPools.length >= 1 && (
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{background:'rgba(0,224,176,0.15)',color:'#00967A'}}>Pro</span>
+                  )}
+                </div>
               </button>
             </div>
           )}

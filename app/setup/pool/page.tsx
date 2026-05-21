@@ -2,7 +2,7 @@
 
 export const dynamic = 'force-dynamic'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 
@@ -21,6 +21,7 @@ const SIZES = [
 
 export default function PoolSetupPage() {
   const router = useRouter()
+  const [gateBlocked, setGateBlocked] = useState<boolean | null>(null)
   const [step, setStep] = useState(1)
   const [poolName, setPoolName] = useState('')
   const [poolType, setPoolType] = useState('')
@@ -29,6 +30,19 @@ export default function PoolSetupPage() {
   const [zipCode, setZipCode] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+
+  useEffect(() => {
+    const supabase = createClient()
+    supabase.auth.getUser().then(async ({ data }) => {
+      if (!data.user) { router.push('/login'); return }
+      const [{ data: profile }, { count }] = await Promise.all([
+        supabase.from('profiles').select('subscription_status').eq('id', data.user.id).single(),
+        supabase.from('pools').select('id', { count: 'exact', head: true }).eq('user_id', data.user.id),
+      ])
+      const pro = profile?.subscription_status === 'active' || profile?.subscription_status === 'trialing'
+      setGateBlocked(!pro && (count ?? 0) >= 1)
+    })
+  }, [router])
 
   async function handleSave() {
     setError('')
@@ -51,6 +65,41 @@ export default function PoolSetupPage() {
     setLoading(false)
     if (dbError) { setError(dbError.message); return }
     router.push('/dashboard')
+  }
+
+  if (gateBlocked === null) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-surface">
+        <div className="w-5 h-5 border-2 border-pool-dark border-t-transparent rounded-full animate-spin" />
+      </div>
+    )
+  }
+
+  if (gateBlocked) {
+    return (
+      <div className="min-h-screen bg-surface flex flex-col items-center justify-center px-6" style={{maxWidth:480,margin:'0 auto'}}>
+        <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-5" style={{background:'rgba(0,120,184,0.1)'}}>
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#0078B8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        </div>
+        <h2 className="text-xl font-bold text-text-primary text-center mb-2" style={{fontFamily:"'Oswald',sans-serif"}}>Pro Feature</h2>
+        <p className="text-text-muted text-sm text-center mb-6 leading-relaxed">
+          Free accounts are limited to 1 pool. Upgrade to Pro to manage up to 5 pools.
+        </p>
+        <button
+          onClick={() => router.push('/pro')}
+          className="w-full font-bold py-4 rounded-xl text-sm mb-3"
+          style={{background:'#0078B8',color:'white'}}
+        >
+          Upgrade to Pro →
+        </button>
+        <button
+          onClick={() => router.back()}
+          className="text-sm text-text-muted hover:text-text-primary transition-colors"
+        >
+          Go back
+        </button>
+      </div>
+    )
   }
 
   const titles = ['Pool Type', 'Pool Size', 'Final Details']
