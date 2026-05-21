@@ -122,7 +122,7 @@ export default function SharePage() {
         .from('test_results')
         .select('health_score,recommendations,tested_at,ph,free_chlorine,total_alkalinity,cya,calcium_hardness,salt')
         .eq('pool_id', pools[0].id)
-        .order('tested_at', { ascending: false })
+        .order('created_at', { ascending: false })
         .limit(1)
       if (tests && tests.length > 0) setTest(tests[0])
       setLoading(false)
