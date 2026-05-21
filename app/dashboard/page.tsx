@@ -409,11 +409,6 @@ export default function DashboardPage() {
                       <div className="space-y-2">{goodParams.map(renderBar)}</div>
                     </div>
                   )}
-                  {notTestedLabels.length > 0 && (
-                    <div className="bg-white/60 rounded-xl px-4 py-2.5" style={{boxShadow:'0 1px 2px rgba(0,0,0,0.04)'}}>
-                      <p className="text-[10px] text-text-faint">Not tested: {notTestedLabels.join(', ')}</p>
-                    </div>
-                  )}
                 </div>
               )
             })()}
