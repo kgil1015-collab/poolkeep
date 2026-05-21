@@ -61,7 +61,7 @@ export default function ProPage() {
     })
   }, [])
 
-  const isPro = subStatus === 'active' || subStatus === 'trialing'
+  const isPro = true // TEMP PREVIEW — revert before launch
 
   async function handleUpgrade() {
     const priceId = billing === 'annual' ? PRICE_ANNUAL : PRICE_MONTHLY
