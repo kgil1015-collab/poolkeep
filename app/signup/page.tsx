@@ -76,6 +76,12 @@ export default function SignupPage() {
           <button type="submit" disabled={loading} className="w-full font-bold py-3 rounded-xl hover:opacity-90 transition-opacity text-sm mt-2 disabled:opacity-60" style={{background:'#00E0B0',color:'#003D5C'}}>
             {loading ? 'Creating account…' : 'Create Account →'}
           </button>
+          <p className="text-center text-[11px] text-text-faint mt-2">
+            By signing up you agree to our{' '}
+            <a href="/terms" className="underline hover:text-text-muted">Terms</a>
+            {' '}and{' '}
+            <a href="/privacy" className="underline hover:text-text-muted">Privacy Policy</a>
+          </p>
         </form>
 
         <p className="text-center text-xs text-text-muted mt-5">By signing up you agree to our Terms of Service and Privacy Policy.</p>

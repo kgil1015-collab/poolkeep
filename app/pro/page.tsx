@@ -300,6 +300,12 @@ export default function ProPage() {
                   {loading ? 'Redirecting…' : 'Upgrade to Pro'}
                 </button>
                 <p className="text-white/40 text-xs text-center mt-2">Cancel anytime · Secure checkout by Stripe</p>
+                <p className="text-white/30 text-[10px] text-center mt-1">
+                  By upgrading you agree to our{' '}
+                  <a href="/terms" className="underline hover:text-white/50">Terms</a>
+                  {' '}and{' '}
+                  <a href="/privacy" className="underline hover:text-white/50">Privacy Policy</a>
+                </p>
                 {upgradeError && <p className="text-red-300 text-xs text-center mt-2">{upgradeError}</p>}
               </div>
 
