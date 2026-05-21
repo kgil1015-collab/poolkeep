@@ -344,7 +344,7 @@ export default function DashboardPage() {
 
             {/* Parameter sections */}
             {(() => {
-              type ParamGroup = { p: typeof PARAM_RANGES[0]; val: number; pct: number; idealLeftPct: number; idealWidthPct: number; dotColor: string; borderColor: string; bgColor: string }
+              type ParamGroup = { p: typeof PARAM_RANGES[0]; val: number; pct: number; idealLeftPct: number; idealWidthPct: number; dotColor: string; valueColor: string; borderColor: string; bgColor: string }
               const actionParams: ParamGroup[] = []
               const monitorParams: ParamGroup[] = []
               const goodParams: ParamGroup[] = []
@@ -360,11 +360,11 @@ export default function DashboardPage() {
                 const isAction = lastTest.recommendations.action.some(r => r.title.toLowerCase().includes(p.label.toLowerCase()))
                 const isMonitor = !isAction && lastTest.recommendations.monitor.some(r => r.title.toLowerCase().includes(p.label.toLowerCase()))
                 if (isAction) {
-                  actionParams.push({ p, val, pct, idealLeftPct, idealWidthPct, dotColor: '#E5304A', borderColor: '#E5304A', bgColor: 'rgba(229,48,74,0.04)' })
+                  actionParams.push({ p, val, pct, idealLeftPct, idealWidthPct, dotColor: '#E5304A', valueColor: '#E5304A', borderColor: '#E5304A', bgColor: 'rgba(229,48,74,0.04)' })
                 } else if (isMonitor) {
-                  monitorParams.push({ p, val, pct, idealLeftPct, idealWidthPct, dotColor: '#D48800', borderColor: '#F5A623', bgColor: 'rgba(245,166,35,0.04)' })
+                  monitorParams.push({ p, val, pct, idealLeftPct, idealWidthPct, dotColor: '#D48800', valueColor: '#D48800', borderColor: '#F5A623', bgColor: 'rgba(245,166,35,0.04)' })
                 } else {
-                  goodParams.push({ p, val, pct, idealLeftPct, idealWidthPct, dotColor: '#1DB869', borderColor: '#00CCA3', bgColor: 'rgba(29,184,105,0.04)' })
+                  goodParams.push({ p, val, pct, idealLeftPct, idealWidthPct, dotColor: '#1DB869', valueColor: '#0078B8', borderColor: '#00CCA3', bgColor: 'rgba(29,184,105,0.04)' })
                 }
               })
 
@@ -377,7 +377,7 @@ export default function DashboardPage() {
                       <div className="w-2 h-2 rounded-full shrink-0" style={{background:g.dotColor}} />
                       <span className="text-xs font-bold uppercase tracking-wide text-text-muted">{g.p.label}</span>
                     </div>
-                    <span className="text-sm font-bold" style={{fontFamily:"'DM Mono',monospace",color:g.dotColor}}>
+                    <span className="text-sm font-bold" style={{fontFamily:"'DM Mono',monospace",color:g.valueColor}}>
                       {g.p.fmt(g.val)}{g.p.unit ? ` ${g.p.unit}` : ''}
                     </span>
                   </div>
@@ -500,7 +500,6 @@ export default function DashboardPage() {
             {/* Looking good — with descriptions */}
             {lastTest.recommendations.good.length > 0 && (
               <div className="mb-5">
-                <p className="text-xs font-bold uppercase tracking-widest text-text-muted mb-2">Looking Good</p>
                 <div className="space-y-2">
                   {lastTest.recommendations.good.map((a, i) => (
                     <div key={i} className="bg-white rounded-2xl px-4 py-3 shadow-sm border border-gray-100 flex items-start gap-3">
