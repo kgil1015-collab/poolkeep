@@ -182,7 +182,7 @@ function buildTreatmentPlan(test: TestInput, v: number): TreatmentStep[] {
         urgency: 'soon',
         param: 'ph',
         title: 'Raise pH',
-        chemical: 'pH Increaser (Soda Ash)',
+        chemical: 'pH Increaser (Soda Ash · Sodium Carbonate · pH Up)',
         amount: oz(dose, 'oz'),
         why: `pH at ${ph} is too low. Beyond the swimmer discomfort — stinging eyes, irritated skin — low pH is actively corrosive. It slowly etches plaster and grout, damages metal fittings, degrades pool equipment, and eats through vinyl liners over time. Here is the chemistry: at pH ${ph}, a higher percentage of your chlorine is in its active form (hypochlorous acid) — which sounds good, but it also means chlorine is consumed and depleted much faster. You end up using more chlorine to maintain safe levels. Getting pH into the 7.2–7.6 range maximizes how long each dose of chlorine lasts. ${sequenceNote}`,
         how: 'Dissolve in a bucket of pool water first, then pour slowly around the perimeter with the pump running. Do not pour directly into the skimmer.',
@@ -195,10 +195,10 @@ function buildTreatmentPlan(test: TestInput, v: number): TreatmentStep[] {
         urgency: 'soon',
         param: 'ph',
         title: 'Raise pH slightly',
-        chemical: 'pH Increaser (Soda Ash)',
+        chemical: 'pH Increaser (Soda Ash · Sodium Carbonate · pH Up)',
         amount: oz(dose, 'oz'),
         why: `pH at ${ph} is just below the ideal 7.2–7.6 range. At this level, chlorine is slightly more reactive — which means it depletes faster than it should. A small bump up will bring it into range where chlorine lasts longer and equipment is protected. ${sequenceNote}`,
-        how: 'Dissolve soda ash in a bucket of water before adding — it dissolves better this way. Pour slowly around the perimeter with the pump running.',
+        how: 'Dissolve in a bucket of water before adding — it dissolves better this way. Pour slowly around the perimeter with the pump running.',
         lookFor: 'Retest in 4 hours. Target 7.2–7.6. A single application is usually enough for this small an adjustment.',
       })
     } else if (ph > 7.8) {
@@ -380,10 +380,10 @@ export function calculateRecommendations(test: TestInput, volumeGallons: number)
   if (test.ph === null) { recs.push(MISSING.ph) }
   else if (test.ph < 7.0) {
     const dose = Math.round(v * 12)
-    recs.push({ status: 'action', param: 'ph', title: 'Raise your pH', desc: `pH is at ${test.ph} — too low. Add pH Increaser (Soda Ash) to protect your equipment and swimmer comfort.`, tags: [`pH Increaser (Soda Ash) · ${oz(dose, 'oz')}`, 'Re-test in 4 hours'] })
+    recs.push({ status: 'action', param: 'ph', title: 'Raise your pH', desc: `pH is at ${test.ph} — too low. Add pH Increaser (Soda Ash / pH Up) to protect your equipment and swimmer comfort.`, tags: [`pH Increaser (Soda Ash / pH Up) · ${oz(dose, 'oz')}`, 'Re-test in 4 hours'] })
   } else if (test.ph < 7.2) {
     const dose = Math.round(v * 6)
-    recs.push({ status: 'monitor', param: 'ph', title: 'pH slightly low', desc: `pH is at ${test.ph}. A small dose of pH Increaser (Soda Ash) will bring it into range.`, tags: [`pH Increaser (Soda Ash) · ${oz(dose, 'oz')}`, 'Monitor daily'] })
+    recs.push({ status: 'monitor', param: 'ph', title: 'pH slightly low', desc: `pH is at ${test.ph}. A small dose of pH Increaser (Soda Ash / pH Up) will bring it into range.`, tags: [`pH Increaser (Soda Ash / pH Up) · ${oz(dose, 'oz')}`, 'Monitor daily'] })
   } else if (test.ph > 7.8) {
     const dose = Math.round(v * 26)
     recs.push({ status: 'action', param: 'ph', title: 'Lower your pH', desc: `pH is at ${test.ph} — too high. Add muriatic acid this evening after sunset.`, tags: [`pH Reducer (Muriatic Acid) · ${oz(dose, 'oz')}`, 'Re-test tomorrow'] })
