@@ -401,9 +401,11 @@ export default function DashboardPage() {
                   )}
                   {goodParams.length > 0 && (
                     <div>
-                      <div className="flex items-center gap-2 mb-2">
-                        <span className="text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full" style={{background:'rgba(0,204,163,0.12)',color:'#009E7E'}}>✓ Looking Good</span>
-                      </div>
+                      {needsAttention.length > 0 && (
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className="text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full" style={{background:'rgba(0,204,163,0.12)',color:'#009E7E'}}>✓ Looking Good</span>
+                        </div>
+                      )}
                       <div className="space-y-2">{goodParams.map(renderBar)}</div>
                     </div>
                   )}
