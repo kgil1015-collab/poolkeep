@@ -40,6 +40,23 @@ function scoreLabel(score: number) {
   return 'Action required'
 }
 
+function statusAccent(score: number | null) {
+  if (score === null) return { color: '#00CCA3', overlay: 'none' }
+  if (score >= 90) return { color: '#00E0B0', overlay: 'none' }
+  if (score >= 75) return { color: '#3AB5E6', overlay: 'none' }
+  if (score >= 55) return { color: '#F5A623', overlay: 'radial-gradient(ellipse at 60% 10%, rgba(245,166,35,0.28) 0%, transparent 60%)' }
+  return { color: '#FF6B7A', overlay: 'radial-gradient(ellipse at 60% 10%, rgba(229,48,74,0.32) 0%, transparent 60%)' }
+}
+
+const PARAM_RANGES = [
+  { key: 'ph',               label: 'pH',        fmt: (v:number) => v.toFixed(1),        unit: '',    idealMin: 7.2,  idealMax: 7.6,  viewMin: 6.5,  viewMax: 8.5  },
+  { key: 'free_chlorine',    label: 'Chlorine',  fmt: (v:number) => v.toFixed(1),        unit: 'ppm', idealMin: 1,    idealMax: 3,    viewMin: 0,    viewMax: 6    },
+  { key: 'total_alkalinity', label: 'Alkalinity',fmt: (v:number) => String(Math.round(v)),unit: 'ppm', idealMin: 80,   idealMax: 120,  viewMin: 40,   viewMax: 180  },
+  { key: 'cya',              label: 'CYA',       fmt: (v:number) => String(Math.round(v)),unit: 'ppm', idealMin: 30,   idealMax: 50,   viewMin: 0,    viewMax: 120  },
+  { key: 'calcium_hardness', label: 'Calcium',   fmt: (v:number) => String(Math.round(v)),unit: 'ppm', idealMin: 200,  idealMax: 400,  viewMin: 100,  viewMax: 600  },
+  { key: 'salt',             label: 'Salt',      fmt: (v:number) => String(Math.round(v)),unit: 'ppm', idealMin: 2700, idealMax: 3400, viewMin: 2000, viewMax: 5000 },
+]
+
 
 const IconCheck = ({ size = 18, style }: { size?: number; style?: React.CSSProperties }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" style={style}><polyline points="20 6 9 17 4 12"/></svg>
@@ -139,7 +156,11 @@ export default function DashboardPage() {
     <div className="min-h-screen bg-surface flex flex-col" style={{maxWidth:480,margin:'0 auto'}}>
 
       {/* Header */}
-      <div className="bg-pool-deep px-5 pt-5 pb-6">
+      <div className="bg-pool-deep px-5 pt-5 pb-6 relative overflow-hidden">
+        {/* Dynamic status overlay */}
+        {lastTest && (
+          <div className="absolute inset-0 pointer-events-none" style={{background: statusAccent(lastTest.health_score).overlay}} />
+        )}
         <div className="flex items-center justify-between mb-5">
           <div className="flex items-center gap-2">
             <svg viewBox="28 8 144 175" width="16" height="22" xmlns="http://www.w3.org/2000/svg">
@@ -219,19 +240,47 @@ export default function DashboardPage() {
           )}
         </div>
 
-        {/* Health score */}
-        <div className="text-center pb-4">
-          <p className="text-white/50 text-xs font-semibold uppercase tracking-widest mb-1">Health Score</p>
-          <p className="text-white font-bold leading-none mb-2" style={{fontSize:72,fontFamily:"'Oswald',sans-serif"}}>
-            {lastTest ? lastTest.health_score : '—'}
-          </p>
-          <div className="inline-flex items-center gap-1.5">
-            <div className="w-2 h-2 rounded-full bg-teal" />
-            <span className="text-teal text-sm font-semibold">
-              {lastTest ? scoreLabel(lastTest.health_score) : 'Log your first test'}
-            </span>
-          </div>
-        </div>
+        {/* Health score ring */}
+        {(() => {
+          const score = lastTest?.health_score ?? null
+          const { color } = statusAccent(score)
+          const R = 50, CX = 60, CY = 60, SW = 9
+          const C = 2 * Math.PI * R
+          const arcLen = (270 / 360) * C
+          const fillLen = score !== null ? (score / 100) * arcLen : 0
+          return (
+            <div className="flex flex-col items-center pb-4 relative">
+              <div className="relative" style={{width:130,height:130}}>
+                <svg width="130" height="130" viewBox="0 0 120 120">
+                  <circle cx={CX} cy={CY} r={R} fill="none"
+                    stroke="rgba(255,255,255,0.1)" strokeWidth={SW} strokeLinecap="round"
+                    strokeDasharray={`${arcLen} ${C - arcLen}`}
+                    transform={`rotate(-225 ${CX} ${CY})`}
+                  />
+                  {score !== null && (
+                    <circle cx={CX} cy={CY} r={R} fill="none"
+                      stroke={color} strokeWidth={SW} strokeLinecap="round"
+                      strokeDasharray={`${fillLen} ${C - fillLen}`}
+                      transform={`rotate(-225 ${CX} ${CY})`}
+                    />
+                  )}
+                </svg>
+                <div className="absolute inset-0 flex flex-col items-center justify-center">
+                  <p className="text-white font-bold leading-none" style={{fontSize:38,fontFamily:"'Oswald',sans-serif"}}>
+                    {score ?? '—'}
+                  </p>
+                  <p className="text-white/40 text-[9px] font-bold uppercase tracking-widest mt-0.5">Score</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-1.5 -mt-1">
+                <div className="w-1.5 h-1.5 rounded-full" style={{background: color}} />
+                <span className="text-sm font-semibold" style={{color}}>
+                  {score !== null ? scoreLabel(score) : 'Log your first test'}
+                </span>
+              </div>
+            </div>
+          )
+        })()}
       </div>
 
       {/* Wave transition */}
@@ -253,39 +302,84 @@ export default function DashboardPage() {
           </div>
         ) : (
           <>
-            {/* Results at a glance */}
-            <p className="text-xs font-bold uppercase tracking-widest text-text-muted mb-3">Results</p>
-            <div className="grid grid-cols-3 gap-2 mb-6">
-              {[
-                { key: 'ph', label: 'pH', fmt: (v: number) => v.toFixed(1) },
-                { key: 'free_chlorine', label: 'Chlorine', fmt: (v: number) => `${v} ppm` },
-                { key: 'total_alkalinity', label: 'Alkalinity', fmt: (v: number) => `${v} ppm` },
-                { key: 'cya', label: 'CYA', fmt: (v: number) => `${v} ppm` },
-                { key: 'calcium_hardness', label: 'Calcium', fmt: (v: number) => `${v} ppm` },
-                { key: 'salt', label: 'Salt', fmt: (v: number) => `${v} ppm` },
-              ].map(p => {
+            {/* Pinned next step */}
+            {(() => {
+              const plan = lastTest.recommendations.treatment_plan
+              const firstStep = plan?.[0]
+              const allGood = lastTest.recommendations.action.length === 0 && lastTest.recommendations.monitor.length === 0
+              if (allGood) return (
+                <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex items-center gap-3 mb-4">
+                  <div className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0" style={{background:'rgba(29,184,105,0.1)'}}>
+                    <IconCheck size={22} style={{color:'#1DB869'}} />
+                  </div>
+                  <div>
+                    <p className="font-bold text-text-primary">Your pool looks great</p>
+                    <p className="text-text-muted text-xs mt-0.5">All parameters in range — no action needed.</p>
+                  </div>
+                </div>
+              )
+              if (!firstStep) return null
+              const u = firstStep.urgency === 'urgent'
+                ? { badge:'#E5304A', bg:'rgba(229,48,74,0.07)', border:'rgba(229,48,74,0.18)', label:'Urgent' }
+                : firstStep.urgency === 'soon'
+                ? { badge:'#D48800', bg:'rgba(245,166,35,0.07)', border:'rgba(245,166,35,0.2)', label:'Soon' }
+                : { badge:'#0078B8', bg:'rgba(0,120,184,0.06)', border:'rgba(0,120,184,0.14)', label:'Routine' }
+              return (
+                <div className="rounded-2xl px-4 py-3.5 shadow-sm border mb-4" style={{background:u.bg, borderColor:u.border}}>
+                  <div className="flex items-center gap-2 mb-1.5">
+                    <span className="text-[10px] font-bold uppercase tracking-widest px-2.5 py-0.5 rounded-full text-white" style={{background:u.badge}}>Next Step</span>
+                    <span className="text-[10px] font-bold uppercase tracking-widest" style={{color:u.badge}}>{u.label}</span>
+                  </div>
+                  <p className="font-bold text-text-primary text-sm leading-snug">{firstStep.title}</p>
+                  {firstStep.chemical && firstStep.amount && (
+                    <div className="flex items-center gap-1.5 mt-2 bg-white/60 rounded-lg px-2.5 py-1.5 self-start inline-flex">
+                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke={u.badge} strokeWidth="2.2" strokeLinecap="round"><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18"/></svg>
+                      <span className="text-xs font-bold" style={{color:u.badge}}>{firstStep.chemical}</span>
+                      <span className="text-xs text-text-muted">· {firstStep.amount}</span>
+                    </div>
+                  )}
+                </div>
+              )
+            })()}
+
+            {/* Parameter bars */}
+            <p className="text-xs font-bold uppercase tracking-widest text-text-muted mb-2">Parameters</p>
+            <div className="space-y-2 mb-5">
+              {PARAM_RANGES.map(p => {
                 const raw = lastTest[p.key as keyof TestResult]
                 const val = typeof raw === 'number' ? raw : null
-                const paramKey = { ph: 'ph', free_chlorine: 'chlorine', total_alkalinity: 'alkalinity', cya: 'cya', calcium_hardness: 'calcium', salt: 'salt' }[p.key]
-                const isAction = lastTest.recommendations.action.some(r => r && (r as {title:string;desc:string;tags:string[]}&{param?:string}).param === paramKey || lastTest.recommendations.action.some(r2 => r2.title.toLowerCase().includes(p.label.toLowerCase())))
+                if (val === null) return null
+                const pct = Math.max(0, Math.min(100, ((val - p.viewMin) / (p.viewMax - p.viewMin)) * 100))
+                const idealLeftPct = Math.max(0, ((p.idealMin - p.viewMin) / (p.viewMax - p.viewMin)) * 100)
+                const idealWidthPct = Math.min(100 - idealLeftPct, ((p.idealMax - p.idealMin) / (p.viewMax - p.viewMin)) * 100)
+                const isAction = lastTest.recommendations.action.some(r => r.title.toLowerCase().includes(p.label.toLowerCase()))
                 const isMonitor = !isAction && lastTest.recommendations.monitor.some(r => r.title.toLowerCase().includes(p.label.toLowerCase()))
-                const isGood = !isAction && !isMonitor && val !== null && lastTest.recommendations.good.some(r => r.title.toLowerCase().includes(p.label.toLowerCase()))
-                const color = val === null ? '#8AAABB' : isAction ? '#E5304A' : isMonitor ? '#D48800' : isGood ? '#1DB869' : '#8AAABB'
-                const dot = val === null ? '#C5D8E4' : isAction ? '#E5304A' : isMonitor ? '#F5A623' : isGood ? '#1DB869' : '#C5D8E4'
-                const statusLabel = val === null ? 'Not tested' : isAction ? 'Action' : isMonitor ? 'Monitor' : isGood ? 'Good' : '—'
+                const inRange = val >= p.idealMin && val <= p.idealMax
+                const dotColor = isAction ? '#E5304A' : isMonitor ? '#F5A623' : inRange ? '#1DB869' : '#8AAABB'
                 return (
-                  <div key={p.key} className="bg-white rounded-xl px-3 py-2.5 shadow-sm">
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-text-muted">{p.label}</p>
-                    <p className="text-sm font-bold mt-0.5 leading-tight" style={{fontFamily:"'DM Mono',monospace", color}}>
-                      {val !== null ? p.fmt(val) : '—'}
-                    </p>
-                    <div className="flex items-center gap-1 mt-1">
-                      <div className="w-1.5 h-1.5 rounded-full shrink-0" style={{background: dot}} />
-                      <span className="text-[9px] font-medium text-text-faint">{statusLabel}</span>
+                  <div key={p.key} className="bg-white rounded-xl px-4 py-3 shadow-sm">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 rounded-full shrink-0" style={{background:dotColor}} />
+                        <span className="text-xs font-bold uppercase tracking-wide text-text-muted">{p.label}</span>
+                      </div>
+                      <span className="text-sm font-bold" style={{fontFamily:"'DM Mono',monospace",color:dotColor}}>
+                        {p.fmt(val)}{p.unit ? ` ${p.unit}` : ''}
+                      </span>
                     </div>
+                    <div className="relative h-1.5 rounded-full overflow-hidden" style={{background:'#EEF5FA'}}>
+                      <div className="absolute top-0 bottom-0 rounded-full" style={{left:`${idealLeftPct}%`,width:`${idealWidthPct}%`,background:'rgba(29,184,105,0.22)'}} />
+                      <div className="absolute top-0 bottom-0 rounded-full" style={{left:`${pct}%`,width:3,background:dotColor,transform:'translateX(-50%)'}} />
+                    </div>
+                    <p className="text-[9px] text-text-faint mt-1">Ideal {p.idealMin}{p.unit ? ` ${p.unit}` : ''} – {p.idealMax}{p.unit ? ` ${p.unit}` : ''}</p>
                   </div>
                 )
               })}
+              {PARAM_RANGES.filter(p => typeof lastTest[p.key as keyof TestResult] !== 'number').length > 0 && (
+                <div className="bg-white rounded-xl px-4 py-2.5 shadow-sm">
+                  <p className="text-[10px] text-text-faint">Not tested: {PARAM_RANGES.filter(p => typeof lastTest[p.key as keyof TestResult] !== 'number').map(p => p.label).join(', ')}</p>
+                </div>
+              )}
             </div>
 
             {/* Treatment plan */}
@@ -346,16 +440,6 @@ export default function DashboardPage() {
                   })}
                 </div>
               </>
-            ) : lastTest.recommendations.action.length === 0 && lastTest.recommendations.monitor.length === 0 ? (
-              <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 flex items-center gap-3 mb-6">
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{background:'rgba(29,184,105,0.1)'}}>
-                  <IconCheck size={20} style={{color:'#1DB869'}} />
-                </div>
-                <div>
-                  <p className="font-bold text-text-primary text-sm">Water is balanced</p>
-                  <p className="text-text-muted text-xs mt-0.5">All tested parameters are in range. No action needed.</p>
-                </div>
-              </div>
             ) : null}
 
             {/* Looking good — with descriptions */}
