@@ -127,14 +127,11 @@ export default function LogTestPage() {
                   }}
                 >
                   <input
-                    type="number"
+                    type="text"
                     inputMode="decimal"
                     value={val}
                     onChange={e => set(p.key, e.target.value)}
                     placeholder={p.placeholder}
-                    min={p.min}
-                    max={p.max}
-                    step={p.step}
                     className="w-16 text-right text-base font-bold outline-none bg-transparent text-text-primary placeholder:text-gray-300"
                     style={{fontFamily:"'DM Mono',monospace"}}
                   />
