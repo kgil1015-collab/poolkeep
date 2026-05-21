@@ -40,9 +40,33 @@ export default function ProPage() {
   const [billing, setBilling] = useState<'monthly' | 'annual'>('annual')
   const [loading, setLoading] = useState(false)
   const [upgradeError, setUpgradeError] = useState<string | null>(null)
+  const [notified, setNotified] = useState(false)
+  const [notifyLoading, setNotifyLoading] = useState(false)
   const [subStatus, setSubStatus] = useState<string | null>(null)
   const [subPlan, setSubPlan] = useState<string | null>(null)
   const [periodEnd, setPeriodEnd] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (localStorage.getItem('poolkeep_service_notify')) setNotified(true)
+  }, [])
+
+  async function handleNotify() {
+    setNotifyLoading(true)
+    try {
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) {
+        await supabase.from('profiles').update({
+          service_waitlist: true,
+          service_waitlist_at: new Date().toISOString(),
+        }).eq('id', user.id)
+      }
+    } finally {
+      setNotified(true)
+      setNotifyLoading(false)
+      localStorage.setItem('poolkeep_service_notify', '1')
+    }
+  }
 
   useEffect(() => {
     const supabase = createClient()
@@ -223,7 +247,9 @@ export default function ProPage() {
 
                 <div className="flex items-start justify-between gap-3 mb-4">
                   <div>
-                    <span className="text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full" style={{background:'rgba(0,224,176,0.15)',color:'#00E0B0'}}>Most Popular</span>
+                    {billing === 'annual' && (
+                      <span className="text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full" style={{background:'rgba(0,224,176,0.15)',color:'#00E0B0'}}>Most Popular</span>
+                    )}
                     <h2 className="text-white text-xl font-bold mt-2" style={{fontFamily:"'Oswald',sans-serif"}}>Pro</h2>
                   </div>
                   <div className="text-right">
@@ -304,8 +330,15 @@ export default function ProPage() {
                     </div>
                   ))}
                 </div>
-                <button disabled className="w-full font-bold py-3.5 rounded-xl text-sm opacity-50 cursor-not-allowed border-2" style={{borderColor:'#0078B8',color:'#0078B8',background:'transparent'}}>
-                  Notify Me When Available
+                <button
+                  onClick={handleNotify}
+                  disabled={notified || notifyLoading}
+                  className="w-full font-bold py-3.5 rounded-xl text-sm transition-all border-2"
+                  style={notified
+                    ? {borderColor:'#1DB869',color:'#1DB869',background:'rgba(29,184,105,0.06)',cursor:'default'}
+                    : {borderColor:'#0078B8',color:'#0078B8',background:'transparent',cursor:'pointer'}}
+                >
+                  {notifyLoading ? 'Saving…' : notified ? "✓ You're on the list" : 'Notify Me When Available'}
                 </button>
               </div>
             </div>

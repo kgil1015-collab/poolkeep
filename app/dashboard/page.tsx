@@ -342,45 +342,79 @@ export default function DashboardPage() {
               )
             })()}
 
-            {/* Parameter bars */}
-            <p className="text-xs font-bold uppercase tracking-widest text-text-muted mb-2">Parameters</p>
-            <div className="space-y-2 mb-5">
-              {PARAM_RANGES.map(p => {
+            {/* Parameter sections */}
+            {(() => {
+              type ParamGroup = { p: typeof PARAM_RANGES[0]; val: number; pct: number; idealLeftPct: number; idealWidthPct: number; dotColor: string; borderColor: string; bgColor: string }
+              const actionParams: ParamGroup[] = []
+              const monitorParams: ParamGroup[] = []
+              const goodParams: ParamGroup[] = []
+              const notTestedLabels: string[] = []
+
+              PARAM_RANGES.forEach(p => {
                 const raw = lastTest[p.key as keyof TestResult]
                 const val = typeof raw === 'number' ? raw : null
-                if (val === null) return null
+                if (val === null) { notTestedLabels.push(p.label); return }
                 const pct = Math.max(0, Math.min(100, ((val - p.viewMin) / (p.viewMax - p.viewMin)) * 100))
                 const idealLeftPct = Math.max(0, ((p.idealMin - p.viewMin) / (p.viewMax - p.viewMin)) * 100)
                 const idealWidthPct = Math.min(100 - idealLeftPct, ((p.idealMax - p.idealMin) / (p.viewMax - p.viewMin)) * 100)
                 const isAction = lastTest.recommendations.action.some(r => r.title.toLowerCase().includes(p.label.toLowerCase()))
                 const isMonitor = !isAction && lastTest.recommendations.monitor.some(r => r.title.toLowerCase().includes(p.label.toLowerCase()))
-                const inRange = val >= p.idealMin && val <= p.idealMax
-                const dotColor = isAction ? '#E5304A' : isMonitor ? '#F5A623' : inRange ? '#1DB869' : '#8AAABB'
-                return (
-                  <div key={p.key} className="bg-white rounded-xl px-4 py-3 shadow-sm">
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 rounded-full shrink-0" style={{background:dotColor}} />
-                        <span className="text-xs font-bold uppercase tracking-wide text-text-muted">{p.label}</span>
-                      </div>
-                      <span className="text-sm font-bold" style={{fontFamily:"'DM Mono',monospace",color:dotColor}}>
-                        {p.fmt(val)}{p.unit ? ` ${p.unit}` : ''}
-                      </span>
+                if (isAction) {
+                  actionParams.push({ p, val, pct, idealLeftPct, idealWidthPct, dotColor: '#E5304A', borderColor: '#E5304A', bgColor: 'rgba(229,48,74,0.04)' })
+                } else if (isMonitor) {
+                  monitorParams.push({ p, val, pct, idealLeftPct, idealWidthPct, dotColor: '#D48800', borderColor: '#F5A623', bgColor: 'rgba(245,166,35,0.04)' })
+                } else {
+                  goodParams.push({ p, val, pct, idealLeftPct, idealWidthPct, dotColor: '#1DB869', borderColor: '#00CCA3', bgColor: 'rgba(29,184,105,0.04)' })
+                }
+              })
+
+              const needsAttention = [...actionParams, ...monitorParams]
+
+              const renderBar = (g: ParamGroup) => (
+                <div key={g.p.key} className="rounded-xl px-4 py-3 shadow-sm border-l-4 overflow-hidden" style={{background:g.bgColor, borderLeftColor:g.borderColor, boxShadow:'0 1px 3px rgba(0,0,0,0.06)'}}>
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full shrink-0" style={{background:g.dotColor}} />
+                      <span className="text-xs font-bold uppercase tracking-wide text-text-muted">{g.p.label}</span>
                     </div>
-                    <div className="relative h-1.5 rounded-full overflow-hidden" style={{background:'#EEF5FA'}}>
-                      <div className="absolute top-0 bottom-0 rounded-full" style={{left:`${idealLeftPct}%`,width:`${idealWidthPct}%`,background:'rgba(29,184,105,0.22)'}} />
-                      <div className="absolute top-0 bottom-0 rounded-full" style={{left:`${pct}%`,width:3,background:dotColor,transform:'translateX(-50%)'}} />
-                    </div>
-                    <p className="text-[9px] text-text-faint mt-1">Ideal {p.idealMin}{p.unit ? ` ${p.unit}` : ''} – {p.idealMax}{p.unit ? ` ${p.unit}` : ''}</p>
+                    <span className="text-sm font-bold" style={{fontFamily:"'DM Mono',monospace",color:g.dotColor}}>
+                      {g.p.fmt(g.val)}{g.p.unit ? ` ${g.p.unit}` : ''}
+                    </span>
                   </div>
-                )
-              })}
-              {PARAM_RANGES.filter(p => typeof lastTest[p.key as keyof TestResult] !== 'number').length > 0 && (
-                <div className="bg-white rounded-xl px-4 py-2.5 shadow-sm">
-                  <p className="text-[10px] text-text-faint">Not tested: {PARAM_RANGES.filter(p => typeof lastTest[p.key as keyof TestResult] !== 'number').map(p => p.label).join(', ')}</p>
+                  <div className="relative h-1.5 rounded-full overflow-hidden" style={{background:'#EEF5FA'}}>
+                    <div className="absolute top-0 bottom-0 rounded-full" style={{left:`${g.idealLeftPct}%`,width:`${g.idealWidthPct}%`,background:'rgba(29,184,105,0.22)'}} />
+                    <div className="absolute top-0 bottom-0 rounded-full" style={{left:`${g.pct}%`,width:3,background:g.dotColor,transform:'translateX(-50%)'}} />
+                  </div>
+                  <p className="text-[9px] text-text-faint mt-1">Ideal {g.p.idealMin}{g.p.unit ? ` ${g.p.unit}` : ''} – {g.p.idealMax}{g.p.unit ? ` ${g.p.unit}` : ''}</p>
                 </div>
-              )}
-            </div>
+              )
+
+              return (
+                <div className="space-y-4 mb-5">
+                  {needsAttention.length > 0 && (
+                    <div>
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full" style={{background:'rgba(245,166,35,0.12)',color:'#D48800'}}>⚠ Needs Attention</span>
+                      </div>
+                      <div className="space-y-2">{needsAttention.map(renderBar)}</div>
+                    </div>
+                  )}
+                  {goodParams.length > 0 && (
+                    <div>
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full" style={{background:'rgba(0,204,163,0.12)',color:'#009E7E'}}>✓ Looking Good</span>
+                      </div>
+                      <div className="space-y-2">{goodParams.map(renderBar)}</div>
+                    </div>
+                  )}
+                  {notTestedLabels.length > 0 && (
+                    <div className="bg-white/60 rounded-xl px-4 py-2.5" style={{boxShadow:'0 1px 2px rgba(0,0,0,0.04)'}}>
+                      <p className="text-[10px] text-text-faint">Not tested: {notTestedLabels.join(', ')}</p>
+                    </div>
+                  )}
+                </div>
+              )
+            })()}
 
             {/* Treatment plan */}
             {lastTest.recommendations.treatment_plan && lastTest.recommendations.treatment_plan.length > 0 ? (
@@ -421,8 +455,29 @@ export default function DashboardPage() {
                             <p className="text-xs text-text-muted leading-relaxed">{step.why}</p>
                           </div>
                           <div>
-                            <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{color:'#0078B8'}}>How to apply</p>
-                            <p className="text-xs text-text-muted leading-relaxed">{step.how}</p>
+                            <p className="text-[10px] font-bold uppercase tracking-widest mb-2" style={{color:'#0078B8'}}>How to apply</p>
+                            {(() => {
+                              // Split on \n\n paragraphs first; if that yields only one block,
+                              // also split on "Step N —" boundaries so old stored results work too
+                              let blocks = step.how.split('\n\n').map(s => s.trim()).filter(Boolean)
+                              if (blocks.length === 1) {
+                                blocks = step.how.split(/(?=Step \d+\s*[—–-])/).map(s => s.trim()).filter(Boolean)
+                              }
+                              return (
+                                <div className="space-y-3">
+                                  {blocks.map((block, idx) => {
+                                    const m = block.match(/^(Step \d+)\s*[—–-]\s*([\s\S]+)$/)
+                                    if (m) return (
+                                      <div key={idx}>
+                                        <p className="text-xs font-bold text-text-primary mb-0.5">{m[1]}</p>
+                                        <p className="text-xs text-text-muted leading-relaxed">{m[2]}</p>
+                                      </div>
+                                    )
+                                    return <p key={idx} className="text-xs text-text-muted leading-relaxed">{block}</p>
+                                  })}
+                                </div>
+                              )
+                            })()}
                           </div>
                           <div>
                             <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{color:'#0078B8'}}>What to look for</p>

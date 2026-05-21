@@ -2,7 +2,7 @@
 
 export const dynamic = 'force-dynamic'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 import { calculateRecommendations } from '@/lib/recommendations'
@@ -19,6 +19,7 @@ const PARAMS = [
 export default function LogTestPage() {
   const router = useRouter()
   const [values, setValues] = useState<Record<string, string>>({})
+  const inputRefs = useRef<Record<string, HTMLInputElement | null>>({})
   const [pool, setPool] = useState<{ id: string; name: string; volume_gallons: number } | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -40,8 +41,8 @@ export default function LogTestPage() {
   async function handleSubmit() {
     setError('')
     const parse = (key: string, fn: (v: string) => number) => {
-      const v = values[key]
-      return v && v.trim() !== '' ? fn(v) : null
+      const v = inputRefs.current[key]?.value ?? values[key] ?? ''
+      return v.trim() !== '' ? fn(v) : null
     }
 
     const testInput = {
@@ -127,11 +128,17 @@ export default function LogTestPage() {
                   }}
                 >
                   <input
+                    ref={el => { inputRefs.current[p.key] = el }}
                     type="text"
                     inputMode="decimal"
                     value={val}
                     onChange={e => set(p.key, e.target.value)}
+                    onBlur={e => set(p.key, e.target.value)}
                     placeholder={p.placeholder}
+                    autoComplete="off"
+                    autoCorrect="off"
+                    autoCapitalize="none"
+                    spellCheck={false}
                     className="w-16 text-right text-base font-bold outline-none bg-transparent text-text-primary placeholder:text-gray-300"
                     style={{fontFamily:"'DM Mono',monospace"}}
                   />
