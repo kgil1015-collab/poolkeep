@@ -293,12 +293,70 @@ export default function DashboardPage() {
       {/* Content */}
       <div className="flex-1 px-4 pt-3 pb-24 bg-surface">
         {!lastTest ? (
-          <div className="bg-white rounded-2xl p-6 shadow-sm text-center">
-            <p className="text-text-primary font-semibold mb-1">No tests logged yet</p>
-            <p className="text-text-muted text-sm mb-4">Tap the + button below to log your first water test.</p>
-            <button onClick={() => router.push('/log')} className="bg-pool-dark text-white text-sm font-bold px-5 py-2.5 rounded-xl hover:opacity-90 transition-opacity">
-              Log First Test →
-            </button>
+          <div className="space-y-4">
+            {/* Welcome card */}
+            <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100">
+              <div className="h-1 w-full" style={{background:'linear-gradient(90deg,#00E0B0 0%,#0078B8 60%,#005580 100%)'}} />
+              <div className="px-5 pt-5 pb-6">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-text-muted mb-1">Welcome to PoolKeep</p>
+                <h2 className="text-xl font-bold text-text-primary mb-1" style={{fontFamily:"'Oswald',sans-serif"}}>
+                  {pool?.name ?? 'Your Pool'} is ready
+                </h2>
+                <p className="text-text-muted text-sm mb-5 leading-relaxed">
+                  Log your first water test to get your health score and exact treatment plan.
+                </p>
+
+                {/* Progress checklist */}
+                <div className="space-y-2.5 mb-6">
+                  {[
+                    { label: 'Create your account', done: true },
+                    { label: 'Set up your pool', done: true },
+                    { label: 'Log your first water test', done: false },
+                  ].map((item, i) => (
+                    <div key={i} className="flex items-center gap-3">
+                      <div className="w-6 h-6 rounded-full flex items-center justify-center shrink-0" style={{background: item.done ? 'rgba(29,184,105,0.12)' : 'rgba(0,120,184,0.10)'}}>
+                        {item.done
+                          ? <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#1DB869" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                          : <span className="text-[10px] font-bold" style={{color:'#0078B8'}}>{i + 1}</span>
+                        }
+                      </div>
+                      <span className="text-sm" style={{color: item.done ? '#8AAABB' : '#1A2E3B', fontWeight: item.done ? 400 : 600, textDecoration: item.done ? 'line-through' : 'none'}}>
+                        {item.label}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+
+                <button
+                  onClick={() => router.push('/log')}
+                  className="w-full font-bold py-4 rounded-xl text-sm flex items-center justify-center gap-2"
+                  style={{background:'#0078B8', color:'white', boxShadow:'0 4px 16px rgba(0,120,184,0.3)'}}
+                >
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                  Log My First Test
+                </button>
+              </div>
+            </div>
+
+            {/* What you'll see */}
+            <div className="bg-white rounded-2xl px-5 py-4 shadow-sm border border-gray-100">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-text-muted mb-3">After your first test you'll see</p>
+              <div className="space-y-3">
+                {[
+                  { icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0078B8" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>, title: 'Health score 0–100', desc: 'Instant read on your pool condition' },
+                  { icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0078B8" strokeWidth="2" strokeLinecap="round"><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18"/></svg>, title: 'Exact chemical doses', desc: 'Calculated for your pool size' },
+                  { icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0078B8" strokeWidth="2" strokeLinecap="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>, title: 'Step-by-step treatment plan', desc: 'In the right order, with safety tips' },
+                ].map((f, i) => (
+                  <div key={i} className="flex items-start gap-3">
+                    <div className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0" style={{background:'rgba(0,120,184,0.08)'}}>{f.icon}</div>
+                    <div>
+                      <p className="text-sm font-semibold text-text-primary">{f.title}</p>
+                      <p className="text-xs text-text-muted">{f.desc}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         ) : (
           <>
