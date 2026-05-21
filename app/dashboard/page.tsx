@@ -61,6 +61,8 @@ export default function DashboardPage() {
   const router = useRouter()
   const [user, setUser] = useState<User | null>(null)
   const [pool, setPool] = useState<{ id: string; name: string; remind_after_days: number | null } | null>(null)
+  const [allPools, setAllPools] = useState<{ id: string; name: string; remind_after_days: number | null }[]>([])
+  const [showPicker, setShowPicker] = useState(false)
   const [lastTest, setLastTest] = useState<TestResult | null>(null)
   const [loading, setLoading] = useState(true)
   const [remindDays, setRemindDays] = useState<number | null>(null)
@@ -71,11 +73,14 @@ export default function DashboardPage() {
     supabase.auth.getUser().then(async ({ data }) => {
       if (!data.user) { router.push('/login'); return }
       setUser(data.user as User)
-      const { data: pools } = await supabase.from('pools').select('id,name,remind_after_days').limit(1)
+      const { data: pools } = await supabase.from('pools').select('id,name,remind_after_days').order('created_at', { ascending: true })
       if (!pools || pools.length === 0) { router.push('/setup/pool'); return }
-      setPool(pools[0])
-      setRemindDays(pools[0].remind_after_days ?? null)
-      const { data: tests } = await supabase.from('test_results').select('health_score,recommendations,tested_at,ph,free_chlorine,total_alkalinity,cya,calcium_hardness,salt').eq('pool_id', pools[0].id).order('tested_at', { ascending: false }).limit(1)
+      setAllPools(pools)
+      const savedId = typeof window !== 'undefined' ? localStorage.getItem('poolkeep_active_pool') : null
+      const active = (savedId && pools.find(p => p.id === savedId)) || pools[0]
+      setPool(active)
+      setRemindDays(active.remind_after_days ?? null)
+      const { data: tests } = await supabase.from('test_results').select('health_score,recommendations,tested_at,ph,free_chlorine,total_alkalinity,cya,calcium_hardness,salt').eq('pool_id', active.id).order('tested_at', { ascending: false }).limit(1)
       if (tests && tests.length > 0) setLastTest(tests[0])
       setLoading(false)
     })
@@ -85,6 +90,22 @@ export default function DashboardPage() {
     const supabase = createClient()
     await supabase.auth.signOut()
     router.push('/')
+  }
+
+  async function switchPool(p: { id: string; name: string; remind_after_days: number | null }) {
+    setPool(p)
+    setRemindDays(p.remind_after_days ?? null)
+    setLastTest(null)
+    setShowPicker(false)
+    localStorage.setItem('poolkeep_active_pool', p.id)
+    const supabase = createClient()
+    const { data: tests } = await supabase
+      .from('test_results')
+      .select('health_score,recommendations,tested_at,ph,free_chlorine,total_alkalinity,cya,calcium_hardness,salt')
+      .eq('pool_id', p.id)
+      .order('tested_at', { ascending: false })
+      .limit(1)
+    if (tests && tests.length > 0) setLastTest(tests[0])
   }
 
   async function saveReminderDays(days: number | null) {
@@ -137,12 +158,49 @@ export default function DashboardPage() {
         <p className="text-white/55 text-sm mb-0.5">{greeting}, {firstName}</p>
         <h1 className="text-white text-2xl font-bold mb-4" style={{fontFamily:"'Oswald',sans-serif",letterSpacing:'-.01em'}}>Pool Status</h1>
 
-        {/* Pool pill */}
-        <div className="inline-flex items-center gap-1.5 bg-white/10 rounded-full px-3 py-1.5 mb-6">
-          <div className="w-1.5 h-1.5 rounded-full bg-teal" />
-          <span className="text-white/80 text-xs font-medium">
-            {pool?.name ?? 'My Pool'} · {lastTest ? `Last tested ${timeAgo(lastTest.tested_at)}` : 'No tests yet'}
-          </span>
+        {/* Pool switcher */}
+        <div className="mb-6">
+          <button
+            onClick={() => setShowPicker(p => !p)}
+            className="inline-flex items-center gap-2 bg-white/10 rounded-full px-3 py-1.5"
+          >
+            <div className="w-1.5 h-1.5 rounded-full bg-teal shrink-0" />
+            <span className="text-white/80 text-xs font-medium">
+              {pool?.name ?? 'My Pool'} · {lastTest ? `Last tested ${timeAgo(lastTest.tested_at)}` : 'No tests yet'}
+            </span>
+            {allPools.length > 1 && (
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.6)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points={showPicker ? '18 15 12 9 6 15' : '6 9 12 15 18 9'} />
+              </svg>
+            )}
+          </button>
+
+          {showPicker && (
+            <div className="mt-2 bg-white rounded-2xl shadow-lg overflow-hidden">
+              {allPools.map(p => (
+                <button
+                  key={p.id}
+                  onClick={() => switchPool(p)}
+                  className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-surface transition-colors border-b border-gray-50 last:border-0"
+                >
+                  <div className="w-2 h-2 rounded-full shrink-0" style={{background: p.id === pool?.id ? '#00CCA3' : '#C5D8E4'}} />
+                  <span className="text-sm font-medium text-text-primary flex-1">{p.name}</span>
+                  {p.id === pool?.id && (
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#00CCA3" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                  )}
+                </button>
+              ))}
+              <button
+                onClick={() => { setShowPicker(false); router.push('/setup/pool') }}
+                className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-surface transition-colors"
+              >
+                <div className="w-5 h-5 rounded-full flex items-center justify-center shrink-0" style={{background:'rgba(0,120,184,0.1)'}}>
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#0078B8" strokeWidth="3" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                </div>
+                <span className="text-sm font-medium" style={{color:'#0078B8'}}>Add Pool</span>
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Health score */}
