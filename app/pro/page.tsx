@@ -90,8 +90,10 @@ export default function ProPage() {
     <div className="min-h-screen bg-surface flex flex-col" style={{maxWidth:480,margin:'0 auto'}}>
 
       {/* Header */}
-      <div className="bg-pool-deep px-5 pt-5 pb-6">
-        <div className="flex items-center gap-3 mb-6">
+      <div className="bg-pool-deep px-5 pt-5 pb-6 relative overflow-hidden">
+        {/* Radial glow */}
+        <div className="absolute top-0 right-0 w-48 h-48 pointer-events-none" style={{background:'radial-gradient(circle at 80% 20%, rgba(0,224,176,0.13) 0%, transparent 70%)'}} />
+        <div className="flex items-center gap-3 mb-6 relative">
           <button onClick={() => router.push('/dashboard')} className="text-white/60 hover:text-white transition-colors">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
           </button>
@@ -99,9 +101,17 @@ export default function ProPage() {
             Pool<span style={{fontWeight:800}}>Keep</span>
           </span>
         </div>
-        <p className="text-white/50 text-xs font-semibold uppercase tracking-widest mb-1">Upgrade</p>
-        <h1 className="text-white text-2xl font-bold" style={{fontFamily:"'Oswald',sans-serif",letterSpacing:'-.01em'}}>PoolKeep Pro</h1>
-        <p className="text-white/55 text-sm mt-1">Everything you need to keep your pool perfect</p>
+        <div className="relative">
+          <p className="text-white/50 text-xs font-semibold uppercase tracking-widest mb-1">Upgrade</p>
+          <div className="flex items-center gap-2.5 mb-1">
+            <h1 className="text-white text-2xl font-bold" style={{fontFamily:"'Oswald',sans-serif",letterSpacing:'-.01em'}}>PoolKeep Pro</h1>
+            {/* Crown */}
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style={{opacity:0.7}}>
+              <path d="M3 18h18M5 18l2-8 5 4 4-7 4 7-5-4 2 8" stroke="#00E0B0" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </div>
+          <p className="text-white/55 text-sm">Everything you need to keep your pool perfect</p>
+        </div>
       </div>
 
       {/* Wave */}
@@ -114,28 +124,41 @@ export default function ProPage() {
       <div className="flex-1 px-4 pt-4 pb-28 bg-surface space-y-4">
 
         {/* Current plan */}
-        <div className="bg-white rounded-2xl px-4 py-3 shadow-sm border border-gray-100 flex items-center justify-between">
-          <div>
-            <p className="text-xs font-bold uppercase tracking-widest text-text-muted">Your current plan</p>
-            <p className="text-sm font-bold text-text-primary mt-0.5">{isPro ? 'PoolKeep Pro' : 'Free'}</p>
-            {isPro && periodEnd && (
-              <p className="text-[11px] text-text-faint mt-0.5">
-                {subStatus === 'trialing' ? 'Trial ends' : subPlan === 'annual' ? 'Renews' : 'Renews'}{' '}
-                {new Date(periodEnd).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-              </p>
-            )}
+        {isPro ? (
+          <div className="rounded-2xl overflow-hidden shadow-md" style={{background:'linear-gradient(135deg, #003D5C 0%, #005580 50%, #00967A 100%)'}}>
+            <div className="px-5 pt-5 pb-4 relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 pointer-events-none" style={{background:'radial-gradient(circle at 90% 10%, rgba(0,224,176,0.2) 0%, transparent 65%)'}} />
+              <p className="text-white/50 text-[10px] font-bold uppercase tracking-widest mb-3">Active Membership</p>
+              <div className="flex items-end justify-between gap-2">
+                <div>
+                  <p className="text-white text-xl font-bold" style={{fontFamily:"'Oswald',sans-serif",letterSpacing:'-.01em'}}>PoolKeep Pro</p>
+                  {periodEnd && (
+                    <p className="text-white/55 text-xs mt-1">
+                      {subStatus === 'trialing' ? 'Trial ends' : 'Renews'}{' '}
+                      {new Date(periodEnd).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                    </p>
+                  )}
+                </div>
+                <span className="text-[11px] font-bold uppercase tracking-widest px-3 py-1.5 rounded-full shrink-0" style={{background:'rgba(0,224,176,0.2)',color:'#00E0B0',border:'1px solid rgba(0,224,176,0.3)'}}>
+                  {subPlan === 'annual' ? 'Annual' : 'Monthly'}
+                </span>
+              </div>
+            </div>
           </div>
-          {isPro ? (
-            <span className="text-[11px] font-bold uppercase tracking-widest px-3 py-1 rounded-full" style={{background:'rgba(0,224,176,0.15)',color:'#00967A'}}>
-              {subPlan === 'annual' ? 'Annual' : 'Monthly'}
-            </span>
-          ) : (
+        ) : (
+          <div className="bg-white rounded-2xl px-4 py-3 shadow-sm border border-gray-100 flex items-center justify-between">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-widest text-text-muted">Your current plan</p>
+              <p className="text-sm font-bold text-text-primary mt-0.5">Free</p>
+            </div>
             <span className="text-[11px] font-bold uppercase tracking-widest px-3 py-1 rounded-full" style={{background:'#F0F6FA',color:'#8AAABB'}}>Free</span>
-          )}
-        </div>
+          </div>
+        )}
 
         {/* Pro card */}
-        <div className="bg-pool-deep rounded-2xl overflow-hidden shadow-lg">
+        <div className="bg-pool-deep rounded-2xl overflow-hidden shadow-lg" style={{boxShadow:'0 8px 32px rgba(0,61,92,0.25)'}}>
+          {/* Gradient accent bar */}
+          <div className="h-1 w-full" style={{background:'linear-gradient(90deg, #00E0B0 0%, #0078B8 60%, #005580 100%)'}} />
           {/* Badge */}
           <div className="px-5 pt-5 pb-4">
             {/* Billing toggle — inside card */}
@@ -166,13 +189,19 @@ export default function ProPage() {
                 {billing === 'annual' ? (
                   <>
                     <p className="text-white/40 text-xs font-semibold uppercase tracking-widest">Billed annually</p>
-                    <p className="text-white text-3xl font-bold leading-none mt-1" style={{fontFamily:"'Oswald',sans-serif"}}>$99</p>
+                    <div className="flex items-start gap-0.5 mt-1 leading-none">
+                      <span className="text-white/60 text-sm font-bold mt-1" style={{fontFamily:"'Oswald',sans-serif"}}>$</span>
+                      <span className="text-white text-4xl font-bold" style={{fontFamily:"'Oswald',sans-serif"}}>99</span>
+                    </div>
                     <p className="text-white/50 text-xs mt-0.5">$8.25 / month</p>
                   </>
                 ) : (
                   <>
                     <p className="text-white/40 text-xs font-semibold uppercase tracking-widest">Billed monthly</p>
-                    <p className="text-white text-3xl font-bold leading-none mt-1" style={{fontFamily:"'Oswald',sans-serif"}}>$9.99</p>
+                    <div className="flex items-start gap-0.5 mt-1 leading-none">
+                      <span className="text-white/60 text-sm font-bold mt-1" style={{fontFamily:"'Oswald',sans-serif"}}>$</span>
+                      <span className="text-white text-4xl font-bold" style={{fontFamily:"'Oswald',sans-serif"}}>9.99</span>
+                    </div>
                     <p className="text-white/50 text-xs mt-0.5">per month</p>
                   </>
                 )}
@@ -202,7 +231,7 @@ export default function ProPage() {
                 onClick={handleUpgrade}
                 disabled={loading || !PRICE_MONTHLY}
                 className="w-full font-bold py-4 rounded-xl text-sm flex items-center justify-center gap-2 transition-opacity"
-                style={{background:'#00E0B0', color:'#003D5C', opacity: loading ? 0.7 : 1}}
+                style={{background:'#00E0B0', color:'#003D5C', opacity: loading ? 0.7 : 1, boxShadow: loading ? 'none' : '0 4px 20px rgba(0,224,176,0.45)'}}
               >
                 {loading ? (
                   <svg className="animate-spin" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
