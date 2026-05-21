@@ -77,7 +77,7 @@ export default function PrivacyPage() {
 
         <section>
           <h2 className="text-base font-bold text-text-primary mb-2">Contact</h2>
-          <p>Questions about this policy? Email us at <a href="mailto:hello@poolkeep.app" className="text-pool-dark underline">hello@poolkeep.app</a>.</p>
+          <p>Questions about this policy? Email us at <a href="mailto:kgil1015@aol.com" className="text-pool-dark underline">kgil1015@aol.com</a>.</p>
         </section>
 
       </div>

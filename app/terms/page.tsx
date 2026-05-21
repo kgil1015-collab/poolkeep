@@ -54,7 +54,7 @@ export default function TermsPage() {
         <section>
           <h2 className="text-base font-bold text-text-primary mb-2">Payments and refunds</h2>
           <p>Payments are processed by Stripe. By subscribing you authorize Stripe to charge your payment method on a recurring basis. Subscriptions renew automatically unless cancelled.</p>
-          <p className="mt-2">We offer a full refund within 7 days of your first Pro charge if you're not satisfied. After 7 days, charges are non-refundable but you can cancel to stop future billing. To request a refund, email us at <a href="mailto:hello@poolkeep.app" className="text-pool-dark underline">hello@poolkeep.app</a>.</p>
+          <p className="mt-2">We offer a full refund within 7 days of your first Pro charge if you're not satisfied. After 7 days, charges are non-refundable but you can cancel to stop future billing. To request a refund, email us at <a href="mailto:kgil1015@aol.com" className="text-pool-dark underline">kgil1015@aol.com</a>.</p>
         </section>
 
         <section>
@@ -80,7 +80,7 @@ export default function TermsPage() {
 
         <section>
           <h2 className="text-base font-bold text-text-primary mb-2">Contact</h2>
-          <p>Questions? Email us at <a href="mailto:hello@poolkeep.app" className="text-pool-dark underline">hello@poolkeep.app</a>.</p>
+          <p>Questions? Email us at <a href="mailto:kgil1015@aol.com" className="text-pool-dark underline">kgil1015@aol.com</a>.</p>
         </section>
 
       </div>
