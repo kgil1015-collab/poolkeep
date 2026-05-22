@@ -1,5 +1,7 @@
 import type { Metadata, Viewport } from 'next'
 import './globals.css'
+import InstallPrompt from './components/InstallPrompt'
+import ServiceWorkerRegistration from './components/ServiceWorkerRegistration'
 
 export const metadata: Metadata = {
   title: 'PoolKeep — Smart Pool Maintenance',
@@ -22,7 +24,11 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        {children}
+        <ServiceWorkerRegistration />
+        <InstallPrompt />
+      </body>
     </html>
   )
 }
