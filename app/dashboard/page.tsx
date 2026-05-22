@@ -27,10 +27,15 @@ type TestResult = {
 }
 
 function timeAgo(iso: string) {
-  const diff = Math.floor((Date.now() - new Date(iso).getTime()) / 60000)
-  if (diff < 60) return `${diff}m ago`
-  if (diff < 1440) return `${Math.floor(diff/60)}h ago`
-  return `${Math.floor(diff/1440)}d ago`
+  const d = new Date(iso)
+  const now = new Date()
+  const diffMin = Math.floor((now.getTime() - d.getTime()) / 60000)
+  const timeStr = d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
+  if (diffMin < 60) return `${diffMin}m ago`
+  const diffDays = Math.floor(diffMin / 1440)
+  if (diffDays === 0) return `Today at ${timeStr}`
+  if (diffDays === 1) return `Yesterday at ${timeStr}`
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ` at ${timeStr}`
 }
 
 function scoreLabel(score: number) {
@@ -678,7 +683,7 @@ export default function DashboardPage() {
             { id: 'history', label: 'History', icon: <IconHistory /> },
             { id: 'log', label: '', icon: null },
             { id: 'share', label: 'Share', icon: <IconShare /> },
-            { id: 'pro', label: 'Pro', icon: <IconPro /> },
+            { id: 'pro', label: 'Account', icon: <IconPro /> },
           ].map(tab => {
             if (tab.id === 'log') return (
               <button key="log" onClick={() => router.push('/log')} className="w-14 h-14 rounded-full bg-pool-dark flex items-center justify-center shadow-lg -mt-5 border-4 border-white">
