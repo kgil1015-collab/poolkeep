@@ -12,6 +12,9 @@ export const metadata: Metadata = {
     statusBarStyle: 'black-translucent',
     title: 'PoolKeep',
   },
+  icons: {
+    apple: '/icon-1024.png',
+  },
 }
 
 export const viewport: Viewport = {
