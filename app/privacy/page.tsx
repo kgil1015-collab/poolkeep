@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation'
 
-const LAST_UPDATED = 'May 21, 2025'
+const LAST_UPDATED = 'May 22, 2026'
 
 export default function PrivacyPage() {
   const router = useRouter()
