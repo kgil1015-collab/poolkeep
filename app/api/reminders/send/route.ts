@@ -87,14 +87,14 @@ export async function GET(req: NextRequest) {
     // Get latest test for this pool
     const { data: tests } = await supabase
       .from('test_results')
-      .select('tested_at')
+      .select('created_at')
       .eq('pool_id', pool.id)
-      .order('tested_at', { ascending: false })
+      .order('created_at', { ascending: false })
       .limit(1)
 
-    const latestTestedAt = tests?.[0]?.tested_at
-    const daysSinceTest = latestTestedAt
-      ? Math.floor((now - new Date(latestTestedAt as string).getTime()) / 86400000)
+    const latestCreatedAt = tests?.[0]?.created_at
+    const daysSinceTest = latestCreatedAt
+      ? Math.floor((now - new Date(latestCreatedAt as string).getTime()) / 86400000)
       : 9999
 
     if (daysSinceTest < (pool.remind_after_days as number)) {

@@ -10,7 +10,7 @@ type User = { email: string; user_metadata: { full_name?: string } }
 
 type TestResult = {
   health_score: number
-  tested_at: string
+  created_at: string
   ph: number | null
   free_chlorine: number | null
   total_alkalinity: number | null
@@ -103,7 +103,7 @@ export default function DashboardPage() {
       const active = (savedId && pools.find(p => p.id === savedId)) || pools[0]
       setPool(active)
       setRemindDays(active.remind_after_days ?? null)
-      const { data: tests } = await supabase.from('test_results').select('health_score,recommendations,tested_at,ph,free_chlorine,total_alkalinity,cya,calcium_hardness,salt').eq('pool_id', active.id).order('tested_at', { ascending: false }).limit(1)
+      const { data: tests } = await supabase.from('test_results').select('health_score,recommendations,created_at,ph,free_chlorine,total_alkalinity,cya,calcium_hardness,salt').eq('pool_id', active.id).order('created_at', { ascending: false }).limit(1)
       if (tests && tests.length > 0) setLastTest(tests[0])
       setLoading(false)
     })
@@ -124,9 +124,9 @@ export default function DashboardPage() {
     const supabase = createClient()
     const { data: tests } = await supabase
       .from('test_results')
-      .select('health_score,recommendations,tested_at,ph,free_chlorine,total_alkalinity,cya,calcium_hardness,salt')
+      .select('health_score,recommendations,created_at,ph,free_chlorine,total_alkalinity,cya,calcium_hardness,salt')
       .eq('pool_id', p.id)
-      .order('tested_at', { ascending: false })
+      .order('created_at', { ascending: false })
       .limit(1)
     if (tests && tests.length > 0) setLastTest(tests[0])
   }
@@ -198,7 +198,7 @@ export default function DashboardPage() {
           >
             <div className="w-1.5 h-1.5 rounded-full bg-teal shrink-0" />
             <span className="text-white/80 text-xs font-medium">
-              {pool?.name ?? 'My Pool'} · {lastTest ? `Last tested ${timeAgo(lastTest.tested_at)}` : 'No tests yet'}
+              {pool?.name ?? 'My Pool'} · {lastTest ? `Last tested ${timeAgo(lastTest.created_at)}` : 'No tests yet'}
             </span>
             {allPools.length > 1 && (
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.6)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
