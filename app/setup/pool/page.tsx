@@ -69,8 +69,22 @@ export default function PoolSetupPage() {
 
   if (gateBlocked === null) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-surface">
-        <div className="w-5 h-5 border-2 border-pool-dark border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen bg-surface flex flex-col" style={{maxWidth:480,margin:'0 auto'}}>
+        <div className="bg-pool-deep px-5 pt-5 pb-8 animate-pulse">
+          <div className="h-4 w-20 rounded-full bg-white/15 mb-6" />
+          <div className="h-3 w-24 rounded-full bg-white/15 mb-2" />
+          <div className="h-7 w-40 rounded-full bg-white/20" />
+        </div>
+        <div className="bg-pool-deep"><svg viewBox="0 0 480 32" className="w-full block"><path d="M0,28 C160,30 300,6 480,12 L480,32 L0,32 Z" fill="#F0F6FA"/></svg></div>
+        <div className="flex-1 px-4 pt-6 animate-pulse space-y-4">
+          <div className="h-14 rounded-2xl bg-white shadow-sm" />
+          <div className="grid grid-cols-3 gap-2">
+            {[1,2,3].map(i => <div key={i} className="h-16 rounded-2xl bg-white shadow-sm" />)}
+          </div>
+          <div className="h-14 rounded-2xl bg-white shadow-sm" />
+          <div className="h-12 rounded-2xl bg-white shadow-sm" />
+          <div className="h-12 rounded-xl bg-white shadow-sm mt-4" />
+        </div>
       </div>
     )
   }

@@ -166,8 +166,25 @@ export default function SharePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-surface">
-        <div className="w-5 h-5 border-2 border-pool-dark border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen bg-surface flex flex-col" style={{maxWidth:480,margin:'0 auto'}}>
+        <div className="bg-pool-deep px-5 pt-5 pb-8 animate-pulse">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="h-5 w-5 rounded bg-white/15" />
+            <div className="h-4 w-20 rounded-full bg-white/15" />
+          </div>
+          <div className="h-3 w-16 rounded-full bg-white/15 mb-2" />
+          <div className="h-7 w-40 rounded-full bg-white/20 mb-1" />
+          <div className="h-3 w-28 rounded-full bg-white/15 mt-1" />
+          <div className="flex flex-col items-center mt-6 gap-3">
+            <div className="w-24 h-24 rounded-full bg-white/10" />
+            <div className="h-4 w-28 rounded-full bg-white/15" />
+          </div>
+        </div>
+        <div className="bg-pool-deep"><svg viewBox="0 0 480 32" className="w-full block"><path d="M0,28 C160,30 300,6 480,12 L480,32 L0,32 Z" fill="#F0F6FA"/></svg></div>
+        <div className="flex-1 px-4 pt-4 pb-10 animate-pulse space-y-3">
+          <div className="h-12 rounded-2xl bg-white shadow-sm" />
+          {[1,2,3,4,5].map(i => <div key={i} className="h-10 rounded-xl bg-white shadow-sm" />)}
+        </div>
       </div>
     )
   }

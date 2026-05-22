@@ -124,8 +124,27 @@ export default function HistoryPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-surface">
-        <div className="w-5 h-5 border-2 border-pool-dark border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen bg-surface flex flex-col" style={{maxWidth:480,margin:'0 auto'}}>
+        <div className="bg-pool-deep px-5 pt-5 pb-6 animate-pulse">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="h-5 w-5 rounded bg-white/15" />
+            <div className="h-4 w-20 rounded-full bg-white/15" />
+          </div>
+          <div className="h-3 w-16 rounded-full bg-white/15 mb-1.5" />
+          <div className="h-7 w-32 rounded-full bg-white/20 mb-1" />
+          <div className="h-3 w-20 rounded-full bg-white/15" />
+        </div>
+        <div className="bg-pool-deep"><svg viewBox="0 0 480 32" className="w-full block"><path d="M0,28 C160,30 300,6 480,12 L480,32 L0,32 Z" fill="#F0F6FA"/></svg></div>
+        <div className="px-4 pt-3 pb-1 flex gap-2 animate-pulse">
+          <div className="flex-1 h-9 rounded-xl bg-white shadow-sm" />
+          <div className="flex-1 h-9 rounded-xl bg-white shadow-sm" />
+        </div>
+        <div className="flex-1 px-4 pt-4 pb-24 animate-pulse space-y-3">
+          <div className="h-36 rounded-2xl bg-white shadow-sm" />
+          <div className="grid grid-cols-2 gap-3">
+            {[1,2,3,4].map(i => <div key={i} className="h-28 rounded-2xl bg-white shadow-sm" />)}
+          </div>
+        </div>
       </div>
     )
   }
