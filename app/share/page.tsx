@@ -8,7 +8,7 @@ import { createClient } from '@/lib/supabase'
 
 type TestResult = {
   health_score: number
-  tested_at: string
+  created_at: string
   ph: number | null
   free_chlorine: number | null
   total_alkalinity: number | null
@@ -46,7 +46,7 @@ function scoreLabel(score: number) {
 function buildReportText(poolName: string, test: TestResult): string {
   const lines: string[] = []
   lines.push(`POOL REPORT — ${poolName}`)
-  lines.push(`Tested: ${formatDate(test.tested_at)}`)
+  lines.push(`Tested: ${formatDate(test.created_at)}`)
   lines.push(`Health Score: ${test.health_score}/100 (${scoreLabel(test.health_score)})`)
   lines.push('')
   lines.push('READINGS')
@@ -120,7 +120,7 @@ export default function SharePage() {
       setPool(pools[0])
       const { data: tests } = await supabase
         .from('test_results')
-        .select('health_score,recommendations,tested_at,ph,free_chlorine,total_alkalinity,cya,calcium_hardness,salt')
+        .select('health_score,recommendations,created_at,ph,free_chlorine,total_alkalinity,cya,calcium_hardness,salt')
         .eq('pool_id', pools[0].id)
         .order('created_at', { ascending: false })
         .limit(1)
@@ -131,7 +131,7 @@ export default function SharePage() {
 
   function handleEmail() {
     if (!test || !pool) return
-    const subject = encodeURIComponent(`Pool Report — ${pool.name} — ${formatDate(test.tested_at)}`)
+    const subject = encodeURIComponent(`Pool Report — ${pool.name} — ${formatDate(test.created_at)}`)
     const body = encodeURIComponent(buildReportText(pool.name, test))
     window.open(`mailto:?subject=${subject}&body=${body}`)
   }
@@ -248,7 +248,7 @@ export default function SharePage() {
                     <div>
                       <p className="text-[10px] font-bold uppercase tracking-widest text-text-muted mb-0.5">Pool Report</p>
                       <p className="font-bold text-text-primary text-base">{pool?.name}</p>
-                      <p className="text-text-muted text-xs mt-0.5">{formatDate(test.tested_at)}</p>
+                      <p className="text-text-muted text-xs mt-0.5">{formatDate(test.created_at)}</p>
                     </div>
                     <div className="text-right shrink-0">
                       <p className="text-3xl font-bold leading-none" style={{fontFamily:"'Oswald',sans-serif",color:'#0078B8'}}>{test.health_score}</p>
