@@ -8,7 +8,7 @@ import { createClient } from '@/lib/supabase'
 
 type TestResult = {
   id: string
-  tested_at: string
+  created_at: string
   health_score: number
   ph: number | null
   free_chlorine: number | null
@@ -113,9 +113,9 @@ export default function HistoryPage() {
       setPool(activePool)
       const { data: results } = await supabase
         .from('test_results')
-        .select('id,tested_at,health_score,ph,free_chlorine,total_alkalinity,cya,calcium_hardness,salt,recommendations')
+        .select('id,created_at,health_score,ph,free_chlorine,total_alkalinity,cya,calcium_hardness,salt,recommendations')
         .eq('pool_id', activePool.id)
-        .order('tested_at', { ascending: false })
+        .order('created_at', { ascending: false })
         .limit(pro ? 200 : 10)
       setTests(results ?? [])
       setLoading(false)
@@ -229,9 +229,9 @@ export default function HistoryPage() {
                   )
                 })()}
                 <div className="flex justify-between mt-2">
-                  <span className="text-[9px] text-text-faint">{formatDate(chronTests[0].tested_at)}</span>
-                  {chronTests.length > 2 && <span className="text-[9px] text-text-faint">{formatDate(chronTests[Math.floor(chronTests.length / 2)].tested_at)}</span>}
-                  <span className="text-[9px] text-text-faint">{formatDate(chronTests[chronTests.length - 1].tested_at)}</span>
+                  <span className="text-[9px] text-text-faint">{formatDate(chronTests[0].created_at)}</span>
+                  {chronTests.length > 2 && <span className="text-[9px] text-text-faint">{formatDate(chronTests[Math.floor(chronTests.length / 2)].created_at)}</span>}
+                  <span className="text-[9px] text-text-faint">{formatDate(chronTests[chronTests.length - 1].created_at)}</span>
                 </div>
               </div>
 
@@ -345,8 +345,8 @@ export default function HistoryPage() {
 
                       <div className="flex-1 min-w-0">
                         <div className="flex items-baseline justify-between gap-2">
-                          <p className="font-bold text-sm text-text-primary">{formatDate(test.tested_at)}</p>
-                          <p className="text-[11px] text-text-faint shrink-0">{formatTime(test.tested_at)}</p>
+                          <p className="font-bold text-sm text-text-primary">{formatDate(test.created_at)}</p>
+                          <p className="text-[11px] text-text-faint shrink-0">{formatTime(test.created_at)}</p>
                         </div>
                         {/* Param chips */}
                         <div className="flex flex-wrap gap-1 mt-1.5">
