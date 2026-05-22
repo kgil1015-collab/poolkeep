@@ -85,6 +85,15 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true)
   const [remindDays, setRemindDays] = useState<number | null>(null)
   const [savingReminder, setSavingReminder] = useState(false)
+  const [showToast, setShowToast] = useState(false)
+
+  useEffect(() => {
+    if (sessionStorage.getItem('poolkeep_just_logged')) {
+      sessionStorage.removeItem('poolkeep_just_logged')
+      setShowToast(true)
+      setTimeout(() => setShowToast(false), 3000)
+    }
+  }, [])
 
   useEffect(() => {
     const supabase = createClient()
@@ -651,6 +660,15 @@ export default function DashboardPage() {
           )}
         </div>
       </div>
+
+      {/* Success toast */}
+      {showToast && (
+        <div className="fixed top-4 left-1/2 z-50 -translate-x-1/2 px-4 py-3 rounded-2xl shadow-lg flex items-center gap-2.5 text-sm font-semibold text-white transition-all"
+          style={{background:'#1DB869', maxWidth: 320, width:'calc(100% - 32px)'}}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          Test logged — your score is updated
+        </div>
+      )}
 
       {/* Bottom tab bar */}
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 px-2">

@@ -208,6 +208,7 @@ export default function PoolSetupPage() {
         {/* Step 2: Pool size */}
         {step === 2 && (
           <div>
+            <p className="text-xs text-text-muted mb-3 px-1">Not sure? Most standard backyard pools are <strong className="text-text-primary">Medium (~15,000 gal)</strong>. Above-ground pools are usually Small.</p>
             <div className="grid grid-cols-2 gap-3 mb-4">
               {SIZES.map(s => {
                 const active = volumeGallons === s.value
@@ -259,7 +260,7 @@ export default function PoolSetupPage() {
             </div>
             <div className="bg-white rounded-2xl p-4 shadow-sm">
               <label className="text-xs font-semibold uppercase tracking-widest text-text-muted block mb-2">
-                Zip Code <span className="normal-case font-normal text-text-faint">— used for local weather</span>
+                Zip Code <span className="normal-case font-normal text-text-faint">— optional</span>
               </label>
               <input
                 type="text"

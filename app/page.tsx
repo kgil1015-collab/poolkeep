@@ -60,8 +60,8 @@ export default function LandingPage() {
         <p className="mt-4 text-sm text-white/50">
           Already joined by <strong className="text-white/80">127 homeowners</strong> saving $1,200+/year in service fees.
         </p>
-        <Link href="/login" className="block mt-4 text-sm text-white/50 underline hover:text-white/70 transition-colors">
-          See the app first →
+        <Link href="/signup" className="block mt-4 text-sm text-white/50 underline hover:text-white/70 transition-colors">
+          Create free account →
         </Link>
       </section>
 

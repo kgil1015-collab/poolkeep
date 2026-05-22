@@ -13,7 +13,7 @@ const PARAMS = [
   { key: 'total_alkalinity', label: 'Total Alkalinity',    unit: 'ppm', placeholder: '100', min: 0,    max: 500,  step: '1',   range: '80 – 120 ppm' },
   { key: 'cya',              label: 'Cyanuric Acid (CYA)', unit: 'ppm', placeholder: '40',  min: 0,    max: 300,  step: '1',   range: '30 – 50 ppm' },
   { key: 'calcium_hardness', label: 'Calcium Hardness',    unit: 'ppm', placeholder: '300', min: 0,    max: 1000, step: '1',   range: '200 – 400 ppm' },
-  { key: 'salt',             label: 'Salt',                unit: 'ppm', placeholder: '—',   min: 0,    max: 6000, step: '1',   range: '2700 – 3400 ppm (salt pools)' },
+  { key: 'salt',             label: 'Salt (salt pools only)', unit: 'ppm', placeholder: '—',   min: 0,    max: 6000, step: '1',   range: '2700 – 3400 ppm · skip if not a salt pool' },
 ]
 
 export default function LogTestPage() {
@@ -76,6 +76,7 @@ export default function LogTestPage() {
 
     setLoading(false)
     if (dbError) { setError(dbError.message); return }
+    sessionStorage.setItem('poolkeep_just_logged', '1')
     router.push('/dashboard')
   }
 
