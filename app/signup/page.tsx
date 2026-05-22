@@ -33,6 +33,14 @@ export default function SignupPage() {
 
     setLoading(false)
     if (signUpError) { setError(signUpError.message); return }
+
+    // Fire welcome email — non-blocking, don't hold up the success screen
+    fetch('/api/welcome', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, name }),
+    }).catch(() => {})
+
     setSuccess(true)
   }
 
