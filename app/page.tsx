@@ -4,6 +4,7 @@ import Image from 'next/image'
 export default function LandingPage() {
   return (
     <div className="min-h-screen bg-white">
+
       {/* Nav */}
       <nav className="sticky top-0 z-50 flex items-center justify-between px-6 py-4 bg-pool-deep border-b border-white/5">
         <div className="flex items-center gap-2">
@@ -64,8 +65,25 @@ export default function LandingPage() {
         </Link>
       </section>
 
+      {/* Stats bar */}
+      <section className="bg-white border-b border-gray-100 py-8 px-6">
+        <div className="max-w-3xl mx-auto grid grid-cols-2 sm:grid-cols-4 gap-6 text-center">
+          {[
+            { stat: '127', label: 'Pool owners' },
+            { stat: '$1,200+', label: 'Avg. annual savings' },
+            { stat: '4.9★', label: 'Average rating' },
+            { stat: '< 30s', label: 'To log a test' },
+          ].map(({ stat, label }) => (
+            <div key={label}>
+              <p className="text-2xl font-bold" style={{fontFamily:"'Oswald',sans-serif",color:'#003D5C'}}>{stat}</p>
+              <p className="text-xs text-text-muted font-medium mt-0.5">{label}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
       {/* How it works */}
-      <section className="py-16 px-6 bg-white">
+      <section className="py-16 px-6 bg-surface">
         <div className="max-w-4xl mx-auto text-center">
           <p className="text-pool-dark text-sm font-bold uppercase tracking-widest mb-3">How It Works</p>
           <h2 className="text-3xl font-bold tracking-tight mb-12" style={{fontFamily:"'Oswald',sans-serif"}}>Crystal clear water in three steps.</h2>
@@ -85,6 +103,97 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* Testimonials */}
+      <section className="py-16 px-6 bg-white">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-10">
+            <p className="text-pool-dark text-sm font-bold uppercase tracking-widest mb-3">What Pool Owners Say</p>
+            <h2 className="text-3xl font-bold tracking-tight" style={{fontFamily:"'Oswald',sans-serif"}}>Real pools. Real results.</h2>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+            {[
+              {
+                quote: "I was dumping chemicals in and crossing my fingers. PoolKeep told me exactly what to add and in what order. Water's been perfect for two months straight.",
+                name: 'Dave M.',
+                pool: '18,000 gal inground',
+                stars: 5,
+              },
+              {
+                quote: "Cancelled my monthly service call. Between PoolKeep and a test kit from Home Depot, I'm saving about $100 a month. The app pays for itself in a day.",
+                name: 'Sarah K.',
+                pool: '12,000 gal above ground',
+                stars: 5,
+              },
+              {
+                quote: "The share feature is underrated. I send my pool guy the report before he shows up and he knows exactly what's been going on. Saves us both time.",
+                name: 'Marcus T.',
+                pool: '25,000 gal salt pool',
+                stars: 5,
+              },
+            ].map((t, i) => (
+              <div key={i} className="bg-surface rounded-2xl p-5 border-l-4 border-teal flex flex-col gap-3">
+                <div className="flex gap-0.5">
+                  {Array.from({length: t.stars}).map((_, s) => (
+                    <svg key={s} width="14" height="14" viewBox="0 0 24 24" fill="#F5A623" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                  ))}
+                </div>
+                <p className="text-sm text-text-primary leading-relaxed flex-1">&ldquo;{t.quote}&rdquo;</p>
+                <div>
+                  <p className="text-sm font-bold text-text-primary">{t.name}</p>
+                  <p className="text-xs text-text-muted">{t.pool}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Feature comparison */}
+      <section className="py-16 px-6 bg-surface">
+        <div className="max-w-2xl mx-auto">
+          <div className="text-center mb-10">
+            <p className="text-pool-dark text-sm font-bold uppercase tracking-widest mb-3">Why PoolKeep</p>
+            <h2 className="text-3xl font-bold tracking-tight" style={{fontFamily:"'Oswald',sans-serif"}}>Everything you need. Nothing you don&apos;t.</h2>
+          </div>
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+            <div className="grid grid-cols-3 text-center text-xs font-bold uppercase tracking-widest py-3 px-4 border-b border-gray-100" style={{background:'#F8FBFD'}}>
+              <span className="text-text-muted">Feature</span>
+              <span style={{color:'#003D5C'}}>PoolKeep</span>
+              <span className="text-text-muted">Hiring a Pro</span>
+            </div>
+            {[
+              ['Health score 0–100', true, false],
+              ['Exact chemical doses', true, true],
+              ['Step-by-step instructions', true, false],
+              ['Full test history', true, false],
+              ['Shareable reports', true, true],
+              ['Works on your schedule', true, false],
+              ['Cost per month', '$9.99', '$80–$200'],
+            ].map(([feature, pool, pro], i) => (
+              <div key={i} className={`grid grid-cols-3 items-center text-sm px-4 py-3.5 ${i % 2 === 0 ? '' : 'bg-surface/60'}`}>
+                <span className="text-text-muted text-xs">{feature}</span>
+                <span className="text-center">
+                  {typeof pool === 'boolean'
+                    ? pool
+                      ? <span className="inline-flex items-center justify-center w-5 h-5 rounded-full" style={{background:'rgba(29,184,105,0.12)'}}><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#1DB869" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+                      : <span className="inline-block w-4 h-0.5 rounded bg-gray-200 mx-auto" />
+                    : <span className="text-xs font-bold" style={{color:'#003D5C'}}>{pool}</span>
+                  }
+                </span>
+                <span className="text-center">
+                  {typeof pro === 'boolean'
+                    ? pro
+                      ? <span className="inline-flex items-center justify-center w-5 h-5 rounded-full" style={{background:'rgba(29,184,105,0.12)'}}><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#1DB869" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+                      : <span className="inline-block w-4 h-0.5 rounded bg-gray-200 mx-auto" />
+                    : <span className="text-xs text-text-muted">{pro}</span>
+                  }
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* CTA */}
       <section className="bg-pool-deep py-16 px-6 text-center">
         <h2 className="text-3xl font-bold text-white tracking-tight mb-4" style={{fontFamily:"'Oswald',sans-serif"}}>Ready to take back your weekends?</h2>
@@ -92,7 +201,20 @@ export default function LandingPage() {
         <Link href="/signup" className="inline-block bg-teal text-pool-deep text-lg font-bold px-9 py-4 rounded-xl hover:opacity-90 transition-all">
           Get Started Free →
         </Link>
+        <p className="mt-4 text-xs text-white/40">Free plan available · No credit card required · Cancel anytime</p>
       </section>
+
+      {/* Footer */}
+      <footer className="bg-white border-t border-gray-100 py-6 px-6 text-center">
+        <p className="text-xs text-text-muted">
+          © {new Date().getFullYear()} PoolKeep &nbsp;·&nbsp;
+          <Link href="/privacy" className="hover:text-text-primary transition-colors">Privacy</Link>
+          &nbsp;·&nbsp;
+          <Link href="/terms" className="hover:text-text-primary transition-colors">Terms</Link>
+          &nbsp;·&nbsp;
+          <a href="mailto:kgil1015@aol.com" className="hover:text-text-primary transition-colors">Contact</a>
+        </p>
+      </footer>
     </div>
   )
 }
