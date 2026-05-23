@@ -43,8 +43,8 @@ export default function LogTestPage() {
   async function handleSubmit() {
     setError('')
     const parse = (key: string, fn: (v: string) => number) => {
-      const v = inputRefs.current[key]?.value ?? values[key] ?? ''
-      return v.trim() !== '' ? fn(v) : null
+      const v = (values[key] ?? '').trim()
+      return v !== '' ? fn(v) : null
     }
 
     const testInput = {
@@ -55,6 +55,8 @@ export default function LogTestPage() {
       calcium_hardness: parse('calcium_hardness', parseInt),
       salt: parse('salt', parseInt),
     }
+
+    console.log('testInput:', testInput)
 
     const hasAny = Object.values(testInput).some(v => v !== null)
     if (!hasAny) { setError('Enter at least one reading.'); return }
