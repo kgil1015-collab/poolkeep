@@ -28,10 +28,11 @@ export default function LogTestPage() {
     const supabase = createClient()
     supabase.auth.getUser().then(async ({ data }) => {
       if (!data.user) { router.push('/login'); return }
-      const { data: pools } = await supabase.from('pools').select('id,name,volume_gallons')
+      const { data: pools } = await supabase.from('pools').select('id,name,volume_gallons').order('created_at', { ascending: true })
       if (!pools || pools.length === 0) { router.push('/setup/pool'); return }
       const savedId = localStorage.getItem('poolkeep_active_pool')
       const active = (savedId && pools.find(p => p.id === savedId)) || pools[0]
+      localStorage.setItem('poolkeep_active_pool', active.id)
       setPool(active)
       setPoolLoading(false)
     })

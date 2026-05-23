@@ -106,7 +106,7 @@ export default function DashboardPage() {
       if (!data.user) { router.push('/login'); return }
       setUser(data.user as User)
       const [{ data: profile }, { data: pools }] = await Promise.all([
-        supabase.from('profiles').select('subscription_status').eq('id', data.user.id).single(),
+        supabase.from('profiles').select('subscription_status').eq('id', data.user.id).maybeSingle(),
         supabase.from('pools').select('id,name,remind_after_days').order('created_at', { ascending: true }),
       ])
       const pro = profile?.subscription_status === 'active' || profile?.subscription_status === 'trialing'
@@ -115,6 +115,7 @@ export default function DashboardPage() {
       setAllPools(pools)
       const savedId = typeof window !== 'undefined' ? localStorage.getItem('poolkeep_active_pool') : null
       const active = (savedId && pools.find(p => p.id === savedId)) || pools[0]
+      localStorage.setItem('poolkeep_active_pool', active.id)
       setPool(active)
       setRemindDays(active.remind_after_days ?? null)
       const { data: tests } = await supabase.from('test_results').select('health_score,recommendations,created_at,ph,free_chlorine,total_alkalinity,cya,calcium_hardness,salt').eq('pool_id', active.id).order('created_at', { ascending: false }).limit(1)

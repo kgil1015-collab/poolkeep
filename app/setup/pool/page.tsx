@@ -36,7 +36,7 @@ export default function PoolSetupPage() {
     supabase.auth.getUser().then(async ({ data }) => {
       if (!data.user) { router.push('/login'); return }
       const [{ data: profile }, { count }] = await Promise.all([
-        supabase.from('profiles').select('subscription_status').eq('id', data.user.id).single(),
+        supabase.from('profiles').select('subscription_status').eq('id', data.user.id).maybeSingle(),
         supabase.from('pools').select('id', { count: 'exact', head: true }).eq('user_id', data.user.id),
       ])
       const pro = profile?.subscription_status === 'active' || profile?.subscription_status === 'trialing'

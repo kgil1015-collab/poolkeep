@@ -101,7 +101,7 @@ export default function HistoryPage() {
     supabase.auth.getUser().then(async ({ data }) => {
       if (!data.user) { router.push('/login'); return }
       const [{ data: profile }, poolsRes] = await Promise.all([
-        supabase.from('profiles').select('subscription_status').eq('id', data.user.id).single(),
+        supabase.from('profiles').select('subscription_status').eq('id', data.user.id).maybeSingle(),
         supabase.from('pools').select('id,name').order('created_at', { ascending: true }),
       ])
       const pro = profile?.subscription_status === 'active' || profile?.subscription_status === 'trialing'
