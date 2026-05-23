@@ -21,6 +21,7 @@ export default function LogTestPage() {
   const [values, setValues] = useState<Record<string, string>>({})
   const inputRefs = useRef<Record<string, HTMLInputElement | null>>({})
   const [pool, setPool] = useState<{ id: string; name: string; volume_gallons: number } | null>(null)
+  const [poolLoading, setPoolLoading] = useState(true)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -33,6 +34,7 @@ export default function LogTestPage() {
       const savedId = localStorage.getItem('poolkeep_active_pool')
       const active = (savedId && pools.find(p => p.id === savedId)) || pools[0]
       setPool(active)
+      setPoolLoading(false)
     })
   }, [router])
 
@@ -56,29 +58,23 @@ export default function LogTestPage() {
       salt: parse('salt', parseInt),
     }
 
-    console.log('testInput:', testInput)
-    console.log('pool:', pool)
-
     const hasAny = Object.values(testInput).some(v => v !== null)
     if (!hasAny) { setError('Enter at least one reading.'); return }
-    if (!pool) return
+    if (!pool) { setError('Pool not loaded yet — please wait a moment and try again.'); return }
     setLoading(true)
     const result = calculateRecommendations(testInput, pool.volume_gallons)
-    console.log('health_score:', result.health_score)
 
     const supabase = createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) { router.push('/login'); return }
 
-    const { error: dbError, data: insertData } = await supabase.from('test_results').insert({
+    const { error: dbError } = await supabase.from('test_results').insert({
       pool_id: pool.id,
       user_id: user.id,
       ...testInput,
       health_score: result.health_score,
       recommendations: result,
-    }).select()
-
-    console.log('insert result:', insertData, 'error:', dbError)
+    })
 
     setLoading(false)
     if (dbError) { setError(dbError.message); return }
@@ -160,11 +156,11 @@ export default function LogTestPage() {
 
         <button
           onClick={handleSubmit}
-          disabled={loading}
+          disabled={loading || poolLoading}
           className="w-full text-white font-bold py-4 rounded-xl hover:opacity-90 transition-opacity disabled:opacity-50 text-sm"
           style={{background:'#0078B8'}}
         >
-          {loading ? 'Calculating…' : 'Get My Recommendations →'}
+          {loading ? 'Calculating…' : poolLoading ? 'Loading…' : 'Get My Recommendations →'}
         </button>
       </div>
     </div>
