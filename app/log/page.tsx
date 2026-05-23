@@ -5,7 +5,6 @@ export const dynamic = 'force-dynamic'
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
-import { calculateRecommendations } from '@/lib/recommendations'
 
 const PARAMS = [
   { key: 'ph',               label: 'pH',                  unit: '',    placeholder: '7.4', min: 0,    max: 14,   step: '0.1', range: '7.2 – 7.6' },
@@ -62,22 +61,19 @@ export default function LogTestPage() {
     if (!hasAny) { setError('Enter at least one reading.'); return }
     if (!pool) { setError('Pool not loaded yet — please wait a moment and try again.'); return }
     setLoading(true)
-    const result = calculateRecommendations(testInput, pool.volume_gallons)
 
-    const supabase = createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) { router.push('/login'); return }
-
-    const { error: dbError } = await supabase.from('test_results').insert({
-      pool_id: pool.id,
-      user_id: user.id,
-      ...testInput,
-      health_score: result.health_score,
-      recommendations: result,
+    const res = await fetch('/api/log', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ testInput, poolId: pool.id, volumeGallons: pool.volume_gallons }),
     })
 
     setLoading(false)
-    if (dbError) { setError(dbError.message); return }
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}))
+      setError(body.error ?? 'Failed to save test. Please try again.')
+      return
+    }
     sessionStorage.setItem('poolkeep_just_logged', '1')
     window.location.href = '/dashboard'
   }
