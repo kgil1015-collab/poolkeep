@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { usePathname } from 'next/navigation'
 
 interface BeforeInstallPromptEvent extends Event {
   prompt(): Promise<void>
@@ -10,12 +11,16 @@ interface BeforeInstallPromptEvent extends Event {
 const DISMISSED_KEY = 'poolkeep_install_dismissed'
 const DISMISS_DAYS = 14
 
+const PUBLIC_PATHS = ['/', '/signup', '/login', '/privacy', '/terms']
+
 export default function InstallPrompt() {
+  const pathname = usePathname()
   const [show, setShow] = useState(false)
   const [isIos, setIsIos] = useState(false)
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null)
 
   useEffect(() => {
+    if (PUBLIC_PATHS.includes(pathname)) return
     // Don't show if already installed (standalone mode)
     const inStandalone =
       window.matchMedia('(display-mode: standalone)').matches ||
