@@ -57,29 +57,33 @@ export default function LogTestPage() {
     }
 
     console.log('testInput:', testInput)
+    console.log('pool:', pool)
 
     const hasAny = Object.values(testInput).some(v => v !== null)
     if (!hasAny) { setError('Enter at least one reading.'); return }
     if (!pool) return
     setLoading(true)
     const result = calculateRecommendations(testInput, pool.volume_gallons)
+    console.log('health_score:', result.health_score)
 
     const supabase = createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) { router.push('/login'); return }
 
-    const { error: dbError } = await supabase.from('test_results').insert({
+    const { error: dbError, data: insertData } = await supabase.from('test_results').insert({
       pool_id: pool.id,
       user_id: user.id,
       ...testInput,
       health_score: result.health_score,
       recommendations: result,
-    })
+    }).select()
+
+    console.log('insert result:', insertData, 'error:', dbError)
 
     setLoading(false)
     if (dbError) { setError(dbError.message); return }
     sessionStorage.setItem('poolkeep_just_logged', '1')
-    router.push('/dashboard')
+    window.location.href = '/dashboard'
   }
 
   return (
