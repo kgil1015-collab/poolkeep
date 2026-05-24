@@ -378,6 +378,12 @@ export default function DashboardPage() {
             {/* ACTION NEEDED — icon cards */}
             {(() => {
               const actionItems = [...lastTest.recommendations.action, ...lastTest.recommendations.monitor]
+              // Patch old stored data: if FC is critically low and pH > 7.2, pH needs lowering before shocking
+              // but old stored recs may have it in 'good'. Inject it here if missing from action/monitor.
+              const phNeedsShockPrep = (lastTest.free_chlorine ?? 99) < 0.5 && (lastTest.ph ?? 0) > 7.2
+              if (phNeedsShockPrep && !actionItems.some(r => r.param === 'ph')) {
+                actionItems.push({ param: 'ph', title: 'Lower pH to 7.2 before shocking', desc: `pH at ${lastTest.ph} is in range for normal use, but lower it to 7.2 first — at higher pH most of the shock you add is wasted and won’t sanitize effectively.`, tags: [] })
+              }
               const paramMeta: Record<string, { icon: React.ReactElement; bg: string; color: string }> = {
                 ph:        { bg:'rgba(124,58,237,0.13)',  color:'#6D28D9', icon:<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 2h4M10 2v7l-4.5 9.5A1 1 0 0 0 6.4 20h11.2a1 1 0 0 0 .9-1.5L14 9V2"/></svg> },
                 chlorine:  { bg:'rgba(229,48,74,0.12)',   color:'#C0102E', icon:<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polyline points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> },
@@ -652,11 +658,16 @@ export default function DashboardPage() {
             )}
 
             {/* Looking good */}
-            {lastTest.recommendations.good.length > 0 && (
+            {(() => {
+              // Filter out pH from 'good' when FC is critically low and pH > 7.2 —
+              // in that scenario pH needs to be lowered before shocking, not celebrated.
+              const phNeedsShockPrep = (lastTest.free_chlorine ?? 99) < 0.5 && (lastTest.ph ?? 0) > 7.2
+              const goodItems = lastTest.recommendations.good.filter(g => !(g.param === 'ph' && phNeedsShockPrep))
+              return goodItems.length > 0 ? (
               <div className="mb-5">
                 <p className="text-[10px] font-bold uppercase tracking-widest text-text-muted mb-2.5">Looking Good</p>
                 <div className="space-y-2">
-                  {lastTest.recommendations.good.map((a, i) => (
+                  {goodItems.map((a, i) => (
                     <div key={i} className="bg-white rounded-2xl px-4 py-3 shadow-sm border border-gray-100 flex items-center gap-3">
                       <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0" style={{background:'rgba(29,184,105,0.12)'}}>
                         <IconCheck size={15} style={{color:'#1DB869'}} />
@@ -669,7 +680,8 @@ export default function DashboardPage() {
                   ))}
                 </div>
               </div>
-            )}
+              ) : null
+            })()}
 
             {/* Not tested */}
             {lastTest.recommendations.unknown && lastTest.recommendations.unknown.length > 0 && (
