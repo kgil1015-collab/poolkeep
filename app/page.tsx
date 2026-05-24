@@ -1,5 +1,4 @@
 import Link from 'next/link'
-import Image from 'next/image'
 
 export default function LandingPage() {
   return (
@@ -38,11 +37,6 @@ export default function LandingPage() {
 
       {/* Hero */}
       <section className="bg-pool-deep text-white text-center px-6 py-20">
-        <div className="mb-7">
-          <div className="bg-white rounded-3xl p-6 inline-block shadow-xl">
-            <Image src="/logo.png" alt="PoolKeep" width={220} height={220} style={{objectFit:'contain'}} />
-          </div>
-        </div>
         <div className="flex justify-center gap-2 flex-wrap mb-6">
           <span className="bg-white/10 border border-white/20 text-white/85 text-xs font-medium px-3 py-1 rounded-full">✦ Works on Any Phone</span>
           <span className="bg-white/10 border border-white/20 text-white/85 text-xs font-medium px-3 py-1 rounded-full">✦ No Hardware Required</span>
