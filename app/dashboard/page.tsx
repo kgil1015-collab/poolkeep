@@ -500,20 +500,23 @@ export default function DashboardPage() {
                                               const amounts = step.amount ? step.amount.split('\n') : []
                                               const lineAmount = amounts[ci] ?? ''
                                               const chemLines = (step.chemical ?? '').split('\n')
-                                              const isShock = ci === chemLines.length - 1
+                                              const isAcid = ci === 0 && chemLines.length > 1
+                                              const isChlorine = chem.toLowerCase().includes('chlorine') || chem === 'Pool Shock'
+                                              const isAerate = chem.toLowerCase().includes('jet') || chem.toLowerCase().includes('aerate')
+                                              const stepColor = isAcid ? '#0078B8' : isAerate ? '#00967A' : '#DC2626'
                                               return (
                                                 <div key={ci} className="flex items-start gap-2">
-                                                  <span className="w-4 h-4 rounded-full flex items-center justify-center shrink-0 text-[9px] font-bold text-white mt-0.5" style={{background: ci === 0 ? '#0078B8' : '#DC2626', minWidth:16}}>{ci + 1}</span>
+                                                  <span className="w-4 h-4 rounded-full flex items-center justify-center shrink-0 text-[9px] font-bold text-white mt-0.5" style={{background: stepColor, minWidth:16}}>{ci + 1}</span>
                                                   <div>
-                                                    <p className="text-xs font-bold" style={{color: ci === 0 ? '#0078B8' : '#DC2626'}}>{chem}</p>
+                                                    <p className="text-xs font-bold" style={{color: stepColor}}>{chem}</p>
                                                     {lineAmount && <p className="text-xs font-semibold text-text-muted mt-0.5">{lineAmount}</p>}
-                                                    {ci === 0 && step.chemical && step.chemical.includes('\n') && (
+                                                    {isAcid && (
                                                       <div className="flex items-center gap-1 mt-1">
                                                         <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#0078B8" strokeWidth="2.5" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
                                                         <p className="text-[10px] italic" style={{color:'#0078B8'}}>Wait 30–60 min before adding chlorine</p>
                                                       </div>
                                                     )}
-                                                    {isShock && (
+                                                    {isChlorine && (
                                                       <div className="flex items-start gap-1 mt-1">
                                                         <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#00967A" strokeWidth="2.5" strokeLinecap="round" className="shrink-0 mt-px"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
                                                         <p className="text-[10px] italic" style={{color:'#00967A'}}>Liquid: retest in 4–8 hrs, swim when FC &lt; 5 ppm · Granular: retest next morning</p>

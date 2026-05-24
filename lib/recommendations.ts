@@ -144,6 +144,8 @@ function buildTreatmentPlan(test: TestInput, v: number): TreatmentStep[] {
 
     const stepChemical = !needsAcid
       ? 'Chlorine'
+      : taHigh
+      ? 'pH Reducer (Muriatic Acid or Dry Acid)\nChlorine\nAim pool jets at surface'
       : 'pH Reducer (Muriatic Acid or Dry Acid)\nChlorine'
 
     const acidHow = taHigh
@@ -157,7 +159,9 @@ function buildTreatmentPlan(test: TestInput, v: number): TreatmentStep[] {
       title: stepTitle,
       chemical: stepChemical,
       amount: needsAcid
-        ? `${acidAmount(acidDose)}\n${liquidDose} gal liquid chlorine · or ${oz(dose, 'lbs')} granular shock (${Math.ceil(dose)} × 1-lb bag${Math.ceil(dose) !== 1 ? 's' : ''})`
+        ? taHigh
+          ? `${acidAmount(acidDose)}\n${liquidDose} gal liquid chlorine · or ${oz(dose, 'lbs')} granular shock (${Math.ceil(dose)} × 1-lb bag${Math.ceil(dose) !== 1 ? 's' : ''})\nPoint a return jet toward the water surface — run 2–4 hrs to off-gas CO₂ and raise pH back naturally`
+          : `${acidAmount(acidDose)}\n${liquidDose} gal liquid chlorine · or ${oz(dose, 'lbs')} granular shock (${Math.ceil(dose)} × 1-lb bag${Math.ceil(dose) !== 1 ? 's' : ''})`
         : `${liquidDose} gal liquid chlorine · or ${oz(dose, 'lbs')} granular shock (${Math.ceil(dose)} × 1-lb bag${Math.ceil(dose) !== 1 ? 's' : ''})`,
       why: `Free chlorine is at ${fc} ppm — water is unsafe to swim in. Here is something most pool owners never learn: the effectiveness of chlorine is almost entirely controlled by pH. Chlorine exists in two forms in water — active (hypochlorous acid, HOCl) and inactive (hypochlorite ion, OCl⁻). Only the active form kills bacteria and algae. At pH 7.0, about 73% of your chlorine is in that active form. At pH 7.5, it drops to 49%. At pH 7.8, only 33%. At pH 8.0, just 21%. ${phHigh && phEfficiency ? `Your current pH of ${ph} means only about ${phEfficiency} of the shock you add will actually be working. Lowering pH first before shocking means 2–3× more active sanitizer from the same amount of product.` : phUnknown ? `Since pH is untested, add a small acid dose first as a precaution — if your pH is elevated you could waste the majority of the shock you add.` : `With pH already in range, a high percentage of the shock you add will be in its active, sanitizing form.`}${cyaLow ? ` CYA (stabilizer) is ${cya === null ? 'untested' : `at ${cya} ppm — below the effective range`}. Without stabilizer protecting it, UV sunlight destroys chlorine within hours. The dose shown is higher than usual to account for this — but the real fix is getting CYA into the 30–50 ppm range so future chlorine actually holds.` : cyaHigh ? ` CYA at ${cya} ppm is elevated — stabilizer at high levels partially binds chlorine and reduces how much stays "free" and active. A higher shock dose is needed to push past this and reach effective sanitizing levels.` : ''}`,
       how: `${needsAcid
