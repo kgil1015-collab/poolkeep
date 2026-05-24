@@ -92,6 +92,7 @@ export default function DashboardPage() {
   const [remindDays, setRemindDays] = useState<number | null>(null)
   const [savingReminder, setSavingReminder] = useState(false)
   const [showToast, setShowToast] = useState(false)
+  const [expandedSteps, setExpandedSteps] = useState<Set<number>>(new Set())
 
   useEffect(() => {
     if (sessionStorage.getItem('poolkeep_just_logged')) {
@@ -539,65 +540,96 @@ export default function DashboardPage() {
                             </div>
                             {gi < groups.length - 1 && <div className="h-px flex-1 bg-gray-100" />}
                           </div>
-                          <div className="space-y-4 pl-5 border-l-2" style={{borderColor: group.meta.color + '30'}}>
+                          <div className="space-y-3 pl-5 border-l-2" style={{borderColor: group.meta.color + '30'}}>
                             {group.steps.map(step => {
                               const stepColor = step.step === 1
                                 ? '#DC2626' : step.step === 2
                                 ? '#EA580C' : '#D97706'
+                              const isExpanded = expandedSteps.has(step.step)
+                              const toggleExpand = () => setExpandedSteps(prev => {
+                                const next = new Set(prev)
+                                next.has(step.step) ? next.delete(step.step) : next.add(step.step)
+                                return next
+                              })
+                              // Extract a single direct action sentence from how
+                              const paras = step.how.split('\n\n').map((s: string) => s.trim()).filter(Boolean)
+                              const lastPara = paras[paras.length - 1].replace(/^Step \d+\s*[—–-]\s*/, '')
+                              const actionLine = lastPara.length > 140 ? lastPara.slice(0, 137) + '…' : lastPara
+
                               return (
                                 <div key={step.step} className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                                  <div className="px-4 pt-4 pb-3 flex items-start gap-3">
-                                    <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 font-bold text-sm text-white" style={{background: stepColor, fontFamily:"'Oswald',sans-serif"}}>
+                                  {/* Compact always-visible header */}
+                                  <div className="px-4 pt-3.5 pb-3 flex items-start gap-3">
+                                    <div className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 font-bold text-sm text-white mt-0.5" style={{background: stepColor, fontFamily:"'Oswald',sans-serif"}}>
                                       {step.step}
                                     </div>
                                     <div className="flex-1 min-w-0">
-                                      <p className="font-bold text-text-primary text-sm leading-snug">{step.title}</p>
+                                      <p className="font-bold text-text-primary text-sm leading-snug mb-1.5">{step.title}</p>
                                       {step.chemical && (
-                                        <div className="mt-2 inline-flex items-center gap-1.5 bg-surface rounded-lg px-2.5 py-1.5">
-                                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#0078B8" strokeWidth="2.2" strokeLinecap="round"><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18"/></svg>
+                                        <div className="inline-flex items-center gap-1.5 bg-surface rounded-lg px-2.5 py-1.5 mb-2">
+                                          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#0078B8" strokeWidth="2.2" strokeLinecap="round"><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18"/></svg>
                                           <span className="text-xs font-bold" style={{color:'#0078B8'}}>{step.chemical}</span>
-                                          {step.amount && <span className="text-xs font-bold text-text-muted">· {step.amount}</span>}
+                                          {step.amount && <span className="text-xs font-semibold text-text-muted">· {step.amount}</span>}
+                                        </div>
+                                      )}
+                                      <p className="text-xs text-text-muted leading-relaxed">{actionLine}</p>
+                                    </div>
+                                  </div>
+
+                                  {/* Expand toggle */}
+                                  <button
+                                    onClick={toggleExpand}
+                                    className="w-full flex items-center justify-between px-4 py-2.5 border-t border-gray-50 text-left"
+                                    style={{background: isExpanded ? '#F8FBFD' : 'transparent'}}
+                                  >
+                                    <span className="text-[11px] font-semibold" style={{color:'#0078B8'}}>
+                                      {isExpanded ? 'Hide details' : 'Why + full instructions'}
+                                    </span>
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0078B8" strokeWidth="2.5" strokeLinecap="round" style={{transform: isExpanded ? 'rotate(180deg)' : 'none', transition:'transform 0.2s'}}>
+                                      <polyline points="6 9 12 15 18 9"/>
+                                    </svg>
+                                  </button>
+
+                                  {/* Expandable detail */}
+                                  {isExpanded && (
+                                    <div className="px-4 pb-4 pt-3 space-y-3 border-t border-gray-50">
+                                      <div>
+                                        <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{color:'#0078B8'}}>Why</p>
+                                        <p className="text-xs text-text-muted leading-relaxed">{step.why}</p>
+                                      </div>
+                                      <div>
+                                        <p className="text-[10px] font-bold uppercase tracking-widest mb-2" style={{color:'#0078B8'}}>How to apply</p>
+                                        {(() => {
+                                          let blocks = step.how.split('\n\n').map((s: string) => s.trim()).filter(Boolean)
+                                          if (blocks.length === 1) blocks = step.how.split(/(?=Step \d+\s*[—–-])/).map((s: string) => s.trim()).filter(Boolean)
+                                          return (
+                                            <div className="space-y-3">
+                                              {blocks.map((block: string, idx: number) => {
+                                                const m = block.match(/^(Step \d+)\s*[—–-]\s*([\s\S]+)$/)
+                                                if (m) return (
+                                                  <div key={idx}>
+                                                    <p className="text-xs font-bold text-text-primary mb-0.5">{m[1]}</p>
+                                                    <p className="text-xs text-text-muted leading-relaxed">{m[2]}</p>
+                                                  </div>
+                                                )
+                                                return <p key={idx} className="text-xs text-text-muted leading-relaxed">{block}</p>
+                                              })}
+                                            </div>
+                                          )
+                                        })()}
+                                      </div>
+                                      <div>
+                                        <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{color:'#0078B8'}}>What to look for</p>
+                                        <p className="text-xs text-text-muted leading-relaxed">{step.lookFor}</p>
+                                      </div>
+                                      {step.note && (
+                                        <div className="bg-amber-50 rounded-xl px-3 py-2.5 flex gap-2">
+                                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#D48800" strokeWidth="2.2" strokeLinecap="round" className="shrink-0 mt-0.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                                          <p className="text-[11px] text-amber-800 leading-relaxed">{step.note}</p>
                                         </div>
                                       )}
                                     </div>
-                                  </div>
-                                  <div className="px-4 pb-4 space-y-3 border-t border-gray-50 pt-3">
-                                    <div>
-                                      <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{color:'#0078B8'}}>Why</p>
-                                      <p className="text-xs text-text-muted leading-relaxed">{step.why}</p>
-                                    </div>
-                                    <div>
-                                      <p className="text-[10px] font-bold uppercase tracking-widest mb-2" style={{color:'#0078B8'}}>How to apply</p>
-                                      {(() => {
-                                        let blocks = step.how.split('\n\n').map((s: string) => s.trim()).filter(Boolean)
-                                        if (blocks.length === 1) blocks = step.how.split(/(?=Step \d+\s*[—–-])/).map((s: string) => s.trim()).filter(Boolean)
-                                        return (
-                                          <div className="space-y-3">
-                                            {blocks.map((block: string, idx: number) => {
-                                              const m = block.match(/^(Step \d+)\s*[—–-]\s*([\s\S]+)$/)
-                                              if (m) return (
-                                                <div key={idx}>
-                                                  <p className="text-xs font-bold text-text-primary mb-0.5">{m[1]}</p>
-                                                  <p className="text-xs text-text-muted leading-relaxed">{m[2]}</p>
-                                                </div>
-                                              )
-                                              return <p key={idx} className="text-xs text-text-muted leading-relaxed">{block}</p>
-                                            })}
-                                          </div>
-                                        )
-                                      })()}
-                                    </div>
-                                    <div>
-                                      <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{color:'#0078B8'}}>What to look for</p>
-                                      <p className="text-xs text-text-muted leading-relaxed">{step.lookFor}</p>
-                                    </div>
-                                    {step.note && (
-                                      <div className="bg-amber-50 rounded-xl px-3 py-2.5 flex gap-2">
-                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#D48800" strokeWidth="2.2" strokeLinecap="round" className="shrink-0 mt-0.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-                                        <p className="text-[11px] text-amber-800 leading-relaxed">{step.note}</p>
-                                      </div>
-                                    )}
-                                  </div>
+                                  )}
                                 </div>
                               )
                             })}
