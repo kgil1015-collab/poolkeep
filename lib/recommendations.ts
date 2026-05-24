@@ -423,29 +423,31 @@ function buildTreatmentPlan(test: TestInput, v: number): TreatmentStep[] {
         how: 'Pre-dissolve in a bucket of water before adding. Add slowly with the pump running.',
         lookFor: 'Retest in a few days. Target 200–400 ppm.',
       })
-    } else if (ca > 500) {
+    } else if (ca > 600) {
       raw.push({
         order: 5,
         urgency: 'soon',
         param: 'calcium',
-        title: 'Reduce calcium — partial drain and refill',
+        title: 'Calcium high — scale risk, consider partial drain',
         chemical: null,
         amount: null,
-        why: `Calcium at ${ca} ppm is high enough to cause visible scale. When calcium saturation exceeds what the water can hold in solution, it precipitates out and deposits on surfaces — that white, chalky buildup on pool walls, tiles, and around equipment fittings. It can also cloud the water and clog filters. Like high CYA, there is no chemical that removes excess calcium from pool water. Dilution is the only fix.`,
-        how: 'Drain 20–30% of the pool and refill with fresh water. Do not add any calcium chloride until levels drop below 400 ppm.',
-        lookFor: 'Retest after refilling and mixing for 24 hours. If your local water supply is naturally high in calcium (hard water), this situation will recur — ask a pool store about a sequestering agent, which keeps calcium in solution and prevents it from depositing on surfaces.',
+        why: `Calcium at ${ca} ppm is high enough to cause visible scale buildup — that white, chalky crust on walls, tiles, and equipment fittings. When calcium saturation exceeds what the water can hold, it precipitates out. There is no chemical that removes calcium from pool water; dilution is the primary fix. However, in hard water regions (Arizona, Nevada, the Southwest) municipal tap water can arrive at 300–400 ppm on its own, meaning a partial drain helps but the replacement water refills some of the calcium you just removed.`,
+        how: 'First priority: add a sequestering agent (such as Jack\'s Magic Blue Stuff, SeaKlear Calcium & Scale, or similar phosphonate-based products). These keep calcium in solution so it cannot deposit on surfaces — a realistic first step before committing to a drain. If calcium continues to climb above 700–800 ppm, drain 20–30% and refill. Do not add any calcium chloride.',
+        lookFor: 'Retest monthly. If you are in a hard water area and levels keep returning to 500+ even after a partial drain, a sequestering agent used monthly is the long-term management strategy rather than repeated draining.',
+        note: 'In hard water regions, tap water itself can be 300–400 ppm calcium. Draining and refilling helps but does not solve the root cause — your source water is the input. A sequestering agent is a more sustainable solution than frequent draining.',
       })
     } else if (ca > 400) {
       raw.push({
         order: 5,
         urgency: 'routine',
         param: 'calcium',
-        title: 'Calcium slightly elevated — monitor',
+        title: 'Calcium elevated — normal for hard water areas',
         chemical: null,
         amount: null,
-        why: `Calcium at ${ca} ppm is slightly above the 200–400 ppm ideal, but not yet at a level that causes problems. No action needed now. Just avoid adding more calcium chloride and keep an eye on it monthly.`,
-        how: 'No chemical needed.',
-        lookFor: 'Retest monthly. If calcium climbs toward 500 ppm, a partial drain and refill will prevent scale buildup.',
+        why: `Calcium at ${ca} ppm is above the textbook 200–400 ppm ideal. However, in hard water regions (Arizona and much of the Southwest), municipal tap water arrives at 300–400 ppm already — so pool water in this range is very common and manageable. Scale formation is more about the balance between calcium, pH, alkalinity, and temperature (Langelier Saturation Index) than any single number. At this level with pH and alkalinity in range, scale risk is low.`,
+        how: 'No chemical needed. Avoid adding any calcium chloride. Keep pH at 7.2–7.4 (lower end of range) — this reduces scale tendency even at elevated calcium levels. If you want extra protection, a monthly sequestering agent prevents scale deposits on surfaces and equipment.',
+        lookFor: 'Retest monthly. Watch for white scale deposits on tile, walls, or around fittings — that is the real signal. If calcium climbs above 600 ppm, consider a sequestering agent as a first step before draining.',
+        note: 'In hard water areas, if you recently refilled the pool with tap water, calcium will naturally come in elevated. This is expected — not a failure of chemistry management.',
       })
     }
   }
@@ -634,10 +636,10 @@ export function calculateRecommendations(test: TestInput, volumeGallons: number)
   } else if (test.calcium_hardness < 200) {
     const dose = ((200 - test.calcium_hardness) / 10) * 1.25 * v
     recs.push({ status: 'monitor', param: 'calcium', title: 'Calcium slightly low', desc: `Calcium at ${test.calcium_hardness} ppm. A small dose will protect your pool surface.`, tags: [`Calcium Chloride · ${oz(dose, 'lbs')}`, 'Monitor monthly'] })
-  } else if (test.calcium_hardness > 500) {
-    recs.push({ status: 'action', param: 'calcium', title: 'Calcium too high', desc: `Calcium at ${test.calcium_hardness} ppm. High calcium causes scale and cloudy water. Partial drain and refill needed.`, tags: ['Partial drain & refill', 'Re-test after refill'] })
+  } else if (test.calcium_hardness > 600) {
+    recs.push({ status: 'action', param: 'calcium', title: 'Calcium high — scale risk', desc: `Calcium at ${test.calcium_hardness} ppm. Start with a sequestering agent to keep calcium in solution. In hard water areas, draining helps but tap water refills much of what you remove — sequestering is the more practical long-term fix.`, tags: [] })
   } else if (test.calcium_hardness > 400) {
-    recs.push({ status: 'monitor', param: 'calcium', title: 'Calcium slightly elevated', desc: `Calcium at ${test.calcium_hardness} ppm. Monitor monthly — avoid adding more calcium.`, tags: ['Monitor monthly'] })
+    recs.push({ status: 'monitor', param: 'calcium', title: 'Calcium elevated — common in hard water', desc: `Calcium at ${test.calcium_hardness} ppm. In hard water regions this is expected. Keep pH at the lower end (7.2–7.4) to reduce scale risk. No drain needed at this level.`, tags: ['Monitor monthly'] })
   } else {
     recs.push({ status: 'good', param: 'calcium', title: 'Calcium hardness good', desc: `Calcium at ${test.calcium_hardness} ppm. Your pool surface and equipment are well protected.`, tags: [] })
   }
