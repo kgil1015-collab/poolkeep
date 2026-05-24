@@ -59,6 +59,10 @@ export default function LandingPage() {
         <p className="text-sm text-white/50">
           Already joined by <strong className="text-white/80">127 homeowners</strong> saving $1,200+/year in service fees.
         </p>
+        <p className="mt-2 text-xs text-white/40">
+          Prefer monthly or annual?{' '}
+          <a href="#pricing" className="underline hover:text-white/60 transition-colors">See all plans ↓</a>
+        </p>
         <Link href="/login" className="block mt-3 text-sm text-white/40 hover:text-white/60 transition-colors">
           Already a member? Sign in →
         </Link>
@@ -103,7 +107,7 @@ export default function LandingPage() {
       </section>
 
       {/* Founding Member Pricing */}
-      <section className="py-16 px-6 bg-white">
+      <section id="pricing" className="py-16 px-6 bg-white">
         <div className="max-w-2xl mx-auto">
           <div className="text-center mb-10">
             <span className="inline-block bg-red-50 border border-red-200 text-red-600 text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full mb-4">Limited — 73 Spots Left</span>
@@ -117,7 +121,7 @@ export default function LandingPage() {
               <p className="text-xs font-bold uppercase tracking-widest text-text-muted mb-1">Free</p>
               <p className="text-4xl font-bold text-text-primary mb-1" style={{fontFamily:"'Oswald',sans-serif"}}>$0</p>
               <p className="text-xs text-text-muted mb-5">5 free tests to try it out</p>
-              <div className="space-y-2.5">
+              <div className="space-y-2.5 mb-6">
                 {['5 water tests with full recommendations','1 pool','Treatment plan with exact doses','Share your results'].map((f, i) => (
                   <div key={i} className="flex items-center gap-2.5">
                     <div className="w-4 h-4 rounded-full flex items-center justify-center shrink-0" style={{background:'rgba(29,184,105,0.12)'}}>
@@ -127,6 +131,9 @@ export default function LandingPage() {
                   </div>
                 ))}
               </div>
+              <Link href="/signup" className="block w-full text-center bg-surface border border-gray-200 text-text-primary text-sm font-bold py-3 rounded-xl hover:bg-gray-50 transition-colors">
+                Start Free →
+              </Link>
             </div>
 
             {/* Pro - Founding */}
@@ -154,6 +161,30 @@ export default function LandingPage() {
               </Link>
             </div>
           </div>
+
+          {/* Standard Pro plans */}
+          <div className="mt-4">
+            <p className="text-center text-xs text-text-muted mb-3">Prefer a standard plan? No one-time fee.</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <Link href="/signup" className="bg-white border border-gray-200 rounded-2xl px-5 py-4 flex items-center justify-between hover:border-pool-dark transition-colors group">
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-widest text-text-muted mb-0.5">Pro · Monthly</p>
+                  <p className="text-xl font-bold text-text-primary" style={{fontFamily:"'Oswald',sans-serif"}}>$9.99<span className="text-sm font-normal text-text-muted">/mo</span></p>
+                  <p className="text-[11px] text-text-muted">Cancel anytime</p>
+                </div>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8AAABB" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="group-hover:stroke-pool-dark transition-colors"><polyline points="9 18 15 12 9 6"/></svg>
+              </Link>
+              <Link href="/signup" className="bg-white border border-gray-200 rounded-2xl px-5 py-4 flex items-center justify-between hover:border-pool-dark transition-colors group">
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-widest text-text-muted mb-0.5">Pro · Annual</p>
+                  <p className="text-xl font-bold text-text-primary" style={{fontFamily:"'Oswald',sans-serif"}}>$99<span className="text-sm font-normal text-text-muted">/yr</span></p>
+                  <p className="text-[11px] text-text-muted">$8.25/mo · save $21</p>
+                </div>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8AAABB" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="group-hover:stroke-pool-dark transition-colors"><polyline points="9 18 15 12 9 6"/></svg>
+              </Link>
+            </div>
+          </div>
+
           <p className="text-center text-xs text-text-muted mt-4">Start free. Upgrade anytime. Founding rate locked in forever.</p>
         </div>
       </section>
