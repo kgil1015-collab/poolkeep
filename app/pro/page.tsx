@@ -164,7 +164,7 @@ export default function ProPage() {
                 <div className="flex items-center justify-between mb-5">
                   <p className="text-white/50 text-[10px] font-bold uppercase tracking-widest">Active Membership</p>
                   <span className="text-[11px] font-bold uppercase tracking-widest px-3 py-1 rounded-full" style={{background:'rgba(0,224,176,0.15)',color:'#00E0B0',border:'1px solid rgba(0,224,176,0.25)'}}>
-                    {subPlan === 'annual' ? 'Annual' : 'Monthly'}
+                    {subPlan === 'founding' ? 'Founding Member' : subPlan === 'annual' ? 'Annual' : 'Monthly'}
                   </span>
                 </div>
                 {/* Name + check */}
@@ -175,7 +175,7 @@ export default function ProPage() {
                   <div>
                     <p className="text-white text-2xl font-bold leading-none" style={{fontFamily:"'Oswald',sans-serif",letterSpacing:'-.01em'}}>PoolKeep Pro</p>
                     <p className="text-white/50 text-xs mt-1">
-                      {subStatus === 'trialing' ? 'Trial' : subPlan === 'annual' ? '$99 / year' : '$9.99 / month'}
+                      {subStatus === 'trialing' ? 'Trial active' : subPlan === 'founding' ? '$4.99 / month · Founding rate locked for life' : subPlan === 'annual' ? '$99 / year' : '$9.99 / month'}
                     </p>
                   </div>
                 </div>
@@ -284,7 +284,7 @@ export default function ProPage() {
                       </div>
                       <p className="font-bold text-sm mb-0.5" style={{color: billing === 'founding' ? 'white' : '#1A2E3B'}}>Lock in 50% off — forever</p>
                       <p className="text-xs leading-relaxed" style={{color: billing === 'founding' ? 'rgba(255,255,255,0.55)' : '#8AAABB'}}>
-                        $60 now · then $4.99/mo for life. Pays for itself in year one.
+                        $60 upfront · then $4.99/mo ($59.88/yr) for life.
                       </p>
                     </div>
                     <div className="text-right shrink-0">
@@ -299,7 +299,7 @@ export default function ProPage() {
                   {billing === 'founding' && (
                     <div className="mt-3 flex items-center gap-2 pt-3" style={{borderTop:'1px solid rgba(255,255,255,0.1)'}}>
                       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#00E0B0" strokeWidth="2.2" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><polyline points="20 6 9 17 4 12"/></svg>
-                      <p className="text-[11px]" style={{color:'rgba(255,255,255,0.5)'}}>$60 one-time + $4.99/mo · same cost as regular monthly in year one — then you save $60 every year after</p>
+                      <p className="text-[11px]" style={{color:'rgba(255,255,255,0.5)'}}>Year 1 total: $119.88 ($60 + $59.88) · Year 2+: $59.88/yr · Save $60/yr vs monthly forever</p>
                     </div>
                   )}
                 </div>
