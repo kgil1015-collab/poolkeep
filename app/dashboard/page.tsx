@@ -413,15 +413,15 @@ export default function DashboardPage() {
               )
               if (!firstStep) return null
               const u = firstStep.urgency === 'urgent'
-                ? { badge:'#E5304A', bg:'rgba(229,48,74,0.07)', border:'rgba(229,48,74,0.18)', label:'Urgent' }
+                ? { badge:'#E5304A', bg:'rgba(229,48,74,0.07)', border:'rgba(229,48,74,0.18)', label:'Do Now' }
                 : firstStep.urgency === 'soon'
-                ? { badge:'#D48800', bg:'rgba(245,166,35,0.07)', border:'rgba(245,166,35,0.2)', label:'Soon' }
-                : { badge:'#0078B8', bg:'rgba(0,120,184,0.06)', border:'rgba(0,120,184,0.14)', label:'Routine' }
+                ? { badge:'#D48800', bg:'rgba(245,166,35,0.07)', border:'rgba(245,166,35,0.2)', label:'Do Next' }
+                : { badge:'#0078B8', bg:'rgba(0,120,184,0.06)', border:'rgba(0,120,184,0.14)', label:'Then' }
               return (
                 <div className="rounded-2xl px-4 py-3.5 shadow-sm border mb-4" style={{background:u.bg, borderColor:u.border}}>
                   <div className="flex items-center gap-2 mb-1.5">
-                    <span className="text-[10px] font-bold uppercase tracking-widest px-2.5 py-0.5 rounded-full text-white" style={{background:u.badge}}>Next Step</span>
-                    <span className="text-[10px] font-bold uppercase tracking-widest" style={{color:u.badge}}>{u.label}</span>
+                    <span className="text-[10px] font-bold uppercase tracking-widest px-2.5 py-0.5 rounded-full text-white" style={{background:u.badge}}>{u.label}</span>
+                    <span className="text-[10px] font-semibold uppercase tracking-widest" style={{color:u.badge}}>Step {firstStep.step} of {plan?.length}</span>
                   </div>
                   <p className="font-bold text-text-primary text-sm leading-snug">{firstStep.title}</p>
                   {firstStep.chemical && firstStep.amount && (
@@ -513,10 +513,10 @@ export default function DashboardPage() {
                 <div className="space-y-4 mb-6">
                   {lastTest.recommendations.treatment_plan.map(step => {
                     const urgencyStyle = step.urgency === 'urgent'
-                      ? { badge: '#E5304A', badgeBg: 'rgba(229,48,74,0.1)', label: 'Urgent' }
+                      ? { badge: '#E5304A', badgeBg: 'rgba(229,48,74,0.1)', label: 'Do Now' }
                       : step.urgency === 'soon'
-                      ? { badge: '#D48800', badgeBg: 'rgba(245,166,35,0.1)', label: 'Soon' }
-                      : { badge: '#0078B8', badgeBg: 'rgba(0,120,184,0.08)', label: 'Routine' }
+                      ? { badge: '#D48800', badgeBg: 'rgba(245,166,35,0.1)', label: 'Do Next' }
+                      : { badge: '#0078B8', badgeBg: 'rgba(0,120,184,0.08)', label: 'Then' }
                     return (
                       <div key={step.step} className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
                         {/* Step header */}
