@@ -126,9 +126,9 @@ export default function ProPage() {
           <button onClick={() => router.push('/dashboard')} className="text-white/60 hover:text-white transition-colors">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
           </button>
-          <span className="text-white text-base" style={{fontFamily:"'Space Grotesk',sans-serif",fontWeight:300}}>
+          <button onClick={() => router.push('/dashboard')} className="text-white text-base hover:opacity-75 transition-opacity" style={{fontFamily:"'Space Grotesk',sans-serif",fontWeight:300}}>
             Pool<span style={{fontWeight:800}}>Keep</span>
-          </span>
+          </button>
         </div>
         <div className="relative">
           <p className="text-white/50 text-xs font-semibold uppercase tracking-widest mb-1">{isPro ? 'Your Plan' : 'Upgrade'}</p>
