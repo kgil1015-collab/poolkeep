@@ -314,23 +314,10 @@ export default function ProPage() {
                   </div>
                 </div>
                 {billing === 'annual' && (
-                  <div className="mt-3 pb-3.5 space-y-1.5 pt-3" style={{borderTop:'1.5px solid #D8EAF5'}}>
-                    {[
-                      { label: 'Monthly cost', monthly: '$9.99', annual: '$8.25' },
-                      { label: 'Billed today', monthly: '—', annual: '$99' },
-                      { label: 'You save per year', monthly: '—', annual: '$20.88' },
-                    ].map((row, i) => (
-                      <div key={i} className="flex items-center justify-between text-xs">
-                        <span className="text-text-muted">{row.label}</span>
-                        <div className="flex items-center gap-4">
-                          <span className="text-text-faint w-12 text-right">{row.monthly}</span>
-                          <span className="font-bold w-14 text-right" style={{color:'#0078B8'}}>{row.annual}</span>
-                        </div>
-                      </div>
-                    ))}
-                    <div className="flex items-center justify-between text-[10px] pt-1" style={{borderTop:'1px solid #D8EAF5'}}>
-                      <span className="text-text-faint">vs monthly</span>
-                      <span className="font-bold" style={{color:'#1DB869'}}>Like getting 2 months free every year</span>
+                  <div className="mt-3 pb-3.5 pt-3" style={{borderTop:'1.5px solid #D8EAF5'}}>
+                    <div className="inline-flex items-center gap-2 px-3 py-2 rounded-xl" style={{background:'linear-gradient(135deg,#FFF8E1,#FFF3CD)', border:'1.5px solid #F5C842'}}>
+                      <span style={{fontSize:16}}>⭐</span>
+                      <p className="text-xs font-bold" style={{color:'#92650A'}}>Save $21 on Pro — pay $99 now instead of $9.99/mo</p>
                     </div>
                   </div>
                 )}
