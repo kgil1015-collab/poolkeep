@@ -102,7 +102,9 @@ function buildTreatmentPlan(test: TestInput, v: number): TreatmentStep[] {
 
   // ── SHOCK (critically low chlorine — acid first, then shock) ────────────────
   if (fc !== null && fc < 0.5) {
-    const dose = Math.round(v * 2 * Math.max(1, 3 - fc))
+    // Cal-hypo (65%): ~1 lb raises FC by 7 ppm per 10k gallons.
+    // Target shock level ~10 ppm → 1.5 lbs per 10k gallons, rounded to nearest 0.5 lb.
+    const dose = Math.round(v * 1.5 * 2) / 2
     const phHigh = ph !== null && ph > 7.2
     const phUnknown = ph === null
     const taHigh = ta !== null && ta > 140
