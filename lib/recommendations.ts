@@ -68,10 +68,11 @@ function chlorineBothAmounts(floz: number): string {
 }
 
 // Shows both liquid muriatic acid and dry acid (sodium bisulfate) amounts
-// Conversion: 1 lb dry acid ≈ 25.5 fl oz muriatic acid
+// Conversion: 26 fl oz muriatic (31.45%) = 2 lbs dry acid (sodium bisulfate 93%)
+// Industry standard from TFP/PoolMath: 1 lb dry acid ≈ 13 fl oz muriatic
 function acidAmount(floz: number): string {
   const liquidStr = liq(floz)
-  const dryLbs = Math.round((floz / 25.5) * 4) / 4
+  const dryLbs = Math.round((floz / 13) * 4) / 4
   const dryStr = dryLbs < 1
     ? `${Math.round(dryLbs * 16)} oz`
     : `${dryLbs % 1 === 0 ? dryLbs : dryLbs.toFixed(2).replace(/\.?0+$/, '')} lbs`
@@ -156,7 +157,7 @@ function buildTreatmentPlan(test: TestInput, v: number): TreatmentStep[] {
       title: stepTitle,
       chemical: stepChemical,
       amount: needsAcid
-        ? `${acidAmount(acidDose)} · then ${oz(dose, 'lbs')} shock`
+        ? `${acidAmount(acidDose)}\nthen ${oz(dose, 'lbs')} shock`
         : oz(dose, 'lbs'),
       why: `Free chlorine is at ${fc} ppm — water is unsafe to swim in. Here is something most pool owners never learn: the effectiveness of chlorine is almost entirely controlled by pH. Chlorine exists in two forms in water — active (hypochlorous acid, HOCl) and inactive (hypochlorite ion, OCl⁻). Only the active form kills bacteria and algae. At pH 7.0, about 73% of your chlorine is in that active form. At pH 7.5, it drops to 49%. At pH 7.8, only 33%. At pH 8.0, just 21%. ${phHigh && phEfficiency ? `Your current pH of ${ph} means only about ${phEfficiency} of the shock you add will actually be working. Lowering pH first before shocking means 2–3× more active sanitizer from the same amount of product.` : phUnknown ? `Since pH is untested, add a small acid dose first as a precaution — if your pH is elevated you could waste the majority of the shock you add.` : `With pH already in range, a high percentage of the shock you add will be in its active, sanitizing form.`}${cyaLow ? ` CYA (stabilizer) is ${cya === null ? 'untested' : `at ${cya} ppm — below the effective range`}. Without stabilizer protecting it, UV sunlight destroys chlorine within hours. The dose shown is higher than usual to account for this — but the real fix is getting CYA into the 30–50 ppm range so future chlorine actually holds.` : cyaHigh ? ` CYA at ${cya} ppm is elevated — stabilizer at high levels partially binds chlorine and reduces how much stays "free" and active. A higher shock dose is needed to push past this and reach effective sanitizing levels.` : ''}`,
       how: `${needsAcid
