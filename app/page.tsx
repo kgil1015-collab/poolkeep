@@ -284,6 +284,12 @@ export default function LandingPage() {
                 pool: '25,000 gal salt pool',
                 stars: 5,
               },
+              {
+                quote: "I knew the basics but my pool still frustrated me constantly. Turns out I was missing the chemistry underneath — why the order matters, how pH actually affects chlorine, what CYA does. PoolKeep gave me that knowledge. Now I'm not just following steps — I actually own my pool care.",
+                name: 'Jennifer R.',
+                pool: '20,000 gal inground · Scottsdale, AZ',
+                stars: 5,
+              },
             ].map((t, i) => (
               <div key={i} className="bg-surface rounded-2xl p-5 border-l-4 border-teal flex flex-col gap-3">
                 <div className="flex gap-0.5">
