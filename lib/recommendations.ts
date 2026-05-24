@@ -86,7 +86,7 @@ function acidAmount(floz: number): string {
 //   4 — CYA / stabilizer (protect the chlorine you just established)
 //   5 — calcium hardness (slow-moving; adjust last)
 function buildTreatmentPlan(test: TestInput, v: number): TreatmentStep[] {
-  const raw: Array<{ order: number } & Omit<TreatmentStep, 'step'>> = []
+  const raw: Array<{ order: number } & Omit<TreatmentStep, 'step' | 'when'>> = []
 
   const ph = test.ph
   const fc = test.free_chlorine
