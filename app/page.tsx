@@ -154,7 +154,7 @@ export default function LandingPage() {
             <div className="rounded-2xl p-6 border-2 relative overflow-hidden" style={{background:'#003D5C', borderColor:'#00E0B0'}}>
               <div className="absolute top-3 right-3 bg-teal text-pool-deep text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full">Founding Rate</div>
               <p className="text-xs font-bold uppercase tracking-widest text-white/60 mb-1">Pro</p>
-              <div className="flex items-baseline gap-1.5 mb-1">
+              <div className="flex items-baseline mb-1">
                 <p className="text-4xl font-bold text-white" style={{fontFamily:"'Oswald',sans-serif"}}>$4.99</p>
                 <span className="text-white/60 text-sm">/mo forever</span>
               </div>
