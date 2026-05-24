@@ -37,11 +37,29 @@ export type RecommendationResult = {
   good: Rec[]
 }
 
+// For dry chemicals (shock, baking soda, calcium chloride, CYA, soda ash)
 function oz(amount: number, unit: string) {
   if (unit === 'oz' && amount >= 128) return `${(amount / 128).toFixed(1)} gal`
   if (unit === 'oz' && amount >= 16) return `${(amount / 16).toFixed(1)} lbs`
   if (unit === 'lbs' && amount < 1) return `${Math.round(amount * 16)} oz`
   return `${amount % 1 === 0 ? amount : amount.toFixed(1)} ${unit}`
+}
+
+// For liquid chemicals (muriatic acid, liquid chlorine) — never converts to lbs
+function liq(floz: number): string {
+  if (floz >= 128) return `${(floz / 128).toFixed(1)} gal`
+  return `${Math.round(floz)} fl oz`
+}
+
+// Shows both liquid muriatic acid and dry acid (sodium bisulfate) amounts
+// Conversion: 1 lb dry acid ≈ 25.5 fl oz muriatic acid
+function acidAmount(floz: number): string {
+  const liquidStr = liq(floz)
+  const dryLbs = Math.round((floz / 25.5) * 4) / 4
+  const dryStr = dryLbs < 1
+    ? `${Math.round(dryLbs * 16)} oz`
+    : `${dryLbs % 1 === 0 ? dryLbs : dryLbs.toFixed(2).replace(/\.?0+$/, '')} lbs`
+  return `${liquidStr} muriatic · or ${dryStr} dry acid`
 }
 
 // Correct chemical order for balancing pool water:
@@ -77,13 +95,13 @@ function buildTreatmentPlan(test: TestInput, v: number): TreatmentStep[] {
       urgency: 'urgent',
       param: 'chlorine',
       title: needsAcid ? 'Lower pH first, then shock' : 'Shock the pool — do not swim yet',
-      chemical: needsAcid ? 'pH Reducer (Muriatic Acid) → then Pool Shock' : 'Pool Shock',
+      chemical: needsAcid ? 'pH Reducer (Muriatic Acid or Dry Acid) → then Pool Shock' : 'Pool Shock',
       amount: needsAcid
-        ? `${oz(acidDose, 'oz')} acid · then ${oz(dose, 'lbs')} shock`
+        ? `${acidAmount(acidDose)} · then ${oz(dose, 'lbs')} shock`
         : oz(dose, 'lbs'),
       why: `Free chlorine is at ${fc} ppm — water is unsafe to swim in. Here is something most pool owners never learn: the effectiveness of chlorine is almost entirely controlled by pH. Chlorine exists in two forms in water — active (hypochlorous acid, HOCl) and inactive (hypochlorite ion, OCl⁻). Only the active form kills bacteria and algae. At pH 7.0, about 73% of your chlorine is in that active form. At pH 7.5, it drops to 49%. At pH 7.8, only 33%. At pH 8.0, just 21%. ${phHigh && phEfficiency ? `Your current pH of ${ph} means only about ${phEfficiency} of the shock you add will actually be working. Lowering pH first before shocking means 2–3× more active sanitizer from the same amount of product.` : phUnknown ? `Since pH is untested, add a small acid dose first as a precaution — if your pH is elevated you could waste the majority of the shock you add.` : `With pH already in range, a high percentage of the shock you add will be in its active, sanitizing form.`}`,
       how: `${needsAcid
-        ? `Step 1 — Add muriatic acid (${oz(acidDose, 'oz')}) to the deep end with the pump running. Wear gloves and eye protection. Wait 30–60 minutes for it to fully circulate through the pool.\n\nStep 2 — `
+        ? `Step 1 — Add pH reducer (${acidAmount(acidDose)}) to the deep end with the pump running. Wear gloves and eye protection. Wait 30–60 minutes for it to fully circulate through the pool.\n\nStep 2 — `
         : ``}Add shock in the evening — UV sunlight destroys chlorine rapidly, and shocking during the day means much of it is gone before it can do its job. Pour around the deep end with the pump running.\n\nChoosing your shock product: Liquid chlorine starts working within minutes and is best when you need same-day results — it also does not add CYA or raise calcium. Granular shock (cal-hypo) takes longer to fully dissolve and activate, but stays in the water longer and is better for an overnight recovery treatment. Both are effective. Avoid dichlor shock if your CYA is already in the upper part of its range, since dichlor adds CYA with every single dose and can push you toward chlorine lock over time.`,
       lookFor: `Retest in 2 hours and again the next morning. Do not swim until chlorine reads above 1 ppm. Chlorine will spike well above normal levels before settling — that is expected and is not a problem. If levels drop back near zero within a day or two, check your CYA. Without adequate stabilizer (30–50 ppm), UV sunlight can destroy most of your chlorine within a few hours on a sunny day — no amount of shocking will hold if the stabilizer is not protecting it.`,
       note: phUnknown
@@ -128,8 +146,8 @@ function buildTreatmentPlan(test: TestInput, v: number): TreatmentStep[] {
         urgency: 'soon',
         param: 'alkalinity',
         title: 'Lower total alkalinity',
-        chemical: 'pH Reducer (Muriatic Acid)',
-        amount: oz(dose, 'oz'),
+        chemical: 'pH Reducer (Muriatic Acid or Dry Acid / pH Down)',
+        amount: acidAmount(dose),
         why: `Alkalinity at ${ta} ppm is too high. While TA needs to be high enough to stabilize pH, too much of it has the opposite effect — it makes pH stubbornly resistant to adjustment, like trying to steer a heavy vehicle. High TA also creates conditions where calcium scale is more likely to form on pool surfaces and equipment. Bringing TA into range first makes all other chemistry easier to manage.`,
         how: 'Add muriatic acid to the deep end in the evening with the pump running. Pour slowly along the edge — never splash acid. Wear gloves and eye protection. After adding, run the pump for 2 hours. Then aerate the water by aiming a return jet at the surface — this raises pH back up without affecting TA, which is exactly what you want here.',
         lookFor: 'Retest next day. Aeration is your friend after an acid treatment — it naturally raises pH without undoing your TA work. Target 80–120 ppm. pH may also need adjustment once TA settles.',
@@ -208,8 +226,8 @@ function buildTreatmentPlan(test: TestInput, v: number): TreatmentStep[] {
         urgency: 'soon',
         param: 'ph',
         title: 'Lower pH',
-        chemical: 'pH Reducer (Muriatic Acid)',
-        amount: oz(dose, 'oz'),
+        chemical: 'pH Reducer (Muriatic Acid or Dry Acid / pH Down)',
+        amount: acidAmount(dose),
         why: `pH at ${ph} is too high — and this is where many pool owners are spending money on chlorine without getting the results they expect. Remember the efficiency curve: at pH 7.8, only about 33% of your chlorine is in its active sanitizing form. At pH 8.0, it drops to 21%. This means your pool can test positive for chlorine and still not be sanitizing effectively — the chlorine is there but it is largely inactive. Bringing pH down unlocks the full potential of the chlorine already in your water. ${sequenceNote}`,
         how: 'Add to the deep end in the evening with the pump running. Pour slowly in a thin stream along the wall — never splash muriatic acid. Wear gloves and eye protection. Avoid breathing the fumes. Do not pre-dilute in a small container.',
         lookFor: 'Retest the next morning. Target 7.2–7.6. If pH drops below 7.2, alkalinity may have also come down — retest TA and add a small baking soda dose if needed.',
@@ -221,8 +239,8 @@ function buildTreatmentPlan(test: TestInput, v: number): TreatmentStep[] {
         urgency: 'routine',
         param: 'ph',
         title: 'Lower pH slightly',
-        chemical: 'pH Reducer (Muriatic Acid)',
-        amount: oz(dose, 'oz'),
+        chemical: 'pH Reducer (Muriatic Acid or Dry Acid / pH Down)',
+        amount: acidAmount(dose),
         why: `pH at ${ph} is slightly above the ideal 7.2–7.6 range. Chlorine efficiency starts declining above 7.6 — about 49% of your chlorine is active at 7.5, dropping to 33% by 7.8. A small acid dose now will improve the effectiveness of every chlorine addition you make going forward.`,
         how: 'Add to the deep end in the evening with the pump running. Pour slowly. Wear gloves.',
         lookFor: 'Retest next day. Target 7.2–7.6. One small dose is usually enough for this adjustment.',
@@ -240,7 +258,7 @@ function buildTreatmentPlan(test: TestInput, v: number): TreatmentStep[] {
       param: 'chlorine',
       title: 'Add chlorine',
       chemical: 'Liquid Chlorine',
-      amount: oz(dose, 'oz'),
+      amount: liq(dose),
       why: `Free chlorine at ${fc} ppm is below the 1 ppm safe minimum. Chlorine is your pool's primary line of defense against bacteria, algae, and pathogens — and its effectiveness is directly tied to pH. ${phOff ? `By completing the pH adjustment above first, you will get significantly more active sanitizer from the same amount of chlorine you add.` : `With pH in the ideal 7.2–7.6 range, the chlorine you add now will be working at close to full strength.`}\n\nLiquid chlorine (sodium hypochlorite) starts working within minutes and is the fastest way to restore safe levels. It also does not add CYA or significantly affect calcium — making it a versatile choice for regular maintenance. Granular shock works more slowly but stays in the water longer, making it better suited for overnight recovery or when you want longer-lasting results.`,
       how: 'Pour around the perimeter with the pump running. Add in the evening when possible — UV sunlight degrades chlorine rapidly, and an evening addition gives the chlorine hours to circulate and work overnight before the sun can break it down.',
       lookFor: 'Retest in 4 hours. Target 1–3 ppm for normal swimming. If chlorine drops back to low levels within a day, test your CYA — without adequate stabilizer, UV can burn off most of your chlorine within just a few hours on a sunny day.',
@@ -386,10 +404,10 @@ export function calculateRecommendations(test: TestInput, volumeGallons: number)
     recs.push({ status: 'monitor', param: 'ph', title: 'pH slightly low', desc: `pH is at ${test.ph}. A small dose of pH Increaser (Soda Ash / pH Up) will bring it into range.`, tags: [`pH Increaser (Soda Ash / pH Up) · ${oz(dose, 'oz')}`, 'Monitor daily'] })
   } else if (test.ph > 7.8) {
     const dose = Math.round(v * 26)
-    recs.push({ status: 'action', param: 'ph', title: 'Lower your pH', desc: `pH is at ${test.ph} — too high. Add muriatic acid this evening after sunset.`, tags: [`pH Reducer (Muriatic Acid) · ${oz(dose, 'oz')}`, 'Re-test tomorrow'] })
+    recs.push({ status: 'action', param: 'ph', title: 'Lower your pH', desc: `pH is at ${test.ph} — too high. Add pH reducer this evening after sunset.`, tags: [`pH Reducer (Muriatic Acid or Dry Acid) · ${acidAmount(dose)}`, 'Re-test tomorrow'] })
   } else if (test.ph > 7.6) {
     const dose = Math.round(v * 13)
-    recs.push({ status: 'monitor', param: 'ph', title: 'pH slightly high', desc: `pH is at ${test.ph}. A small dose of muriatic acid will bring it into range.`, tags: [`pH Reducer (Muriatic Acid) · ${oz(dose, 'oz')}`, 'Monitor daily'] })
+    recs.push({ status: 'monitor', param: 'ph', title: 'pH slightly high', desc: `pH is at ${test.ph}. A small dose of pH reducer will bring it into range.`, tags: [`pH Reducer (Muriatic Acid or Dry Acid) · ${acidAmount(dose)}`, 'Monitor daily'] })
   } else {
     recs.push({ status: 'good', param: 'ph', title: 'pH is perfect', desc: `pH at ${test.ph} — right in the ideal range of 7.2–7.6.`, tags: [] })
   }
@@ -401,7 +419,7 @@ export function calculateRecommendations(test: TestInput, volumeGallons: number)
     recs.push({ status: 'action', param: 'chlorine', title: 'Chlorine critically low — shock now', desc: `Free chlorine at ${test.free_chlorine} ppm — unsafe for swimming. Shock the pool immediately.`, tags: [`Pool Shock · ${oz(dose, 'lbs')}`, 'Do not swim until 1+ ppm', 'Re-test in 2 hours'] })
   } else if (test.free_chlorine < 1) {
     const dose = Math.round(v * 13 * (1 - test.free_chlorine))
-    recs.push({ status: 'action', param: 'chlorine', title: 'Add chlorine', desc: `Free chlorine at ${test.free_chlorine} ppm — below the safe minimum of 1 ppm.`, tags: [`Liquid Chlorine · ${oz(dose, 'oz')}`, 'Re-test in 4 hours'] })
+    recs.push({ status: 'action', param: 'chlorine', title: 'Add chlorine', desc: `Free chlorine at ${test.free_chlorine} ppm — below the safe minimum of 1 ppm.`, tags: [`Liquid Chlorine · ${liq(dose)}`, 'Re-test in 4 hours'] })
   } else if (test.free_chlorine > 5) {
     recs.push({ status: 'monitor', param: 'chlorine', title: 'Chlorine high — wait before swimming', desc: `Free chlorine at ${test.free_chlorine} ppm. Wait 24–48 hours before swimming. Sunlight will naturally lower it.`, tags: ['No chemicals needed', 'Re-test tomorrow'] })
   } else {
@@ -418,7 +436,7 @@ export function calculateRecommendations(test: TestInput, volumeGallons: number)
     recs.push({ status: 'monitor', param: 'alkalinity', title: 'Alkalinity slightly low', desc: `Alkalinity at ${test.total_alkalinity} ppm. A small baking soda dose will stabilize it.`, tags: [`Baking Soda · ${oz(dose, 'lbs')}`, 'Monitor weekly'] })
   } else if (test.total_alkalinity > 140) {
     const dose = Math.round(v * 26 * ((test.total_alkalinity - 120) / 10))
-    recs.push({ status: 'action', param: 'alkalinity', title: 'Lower total alkalinity', desc: `Alkalinity at ${test.total_alkalinity} ppm — too high. Use muriatic acid and aerate afterward.`, tags: [`pH Reducer (Muriatic Acid) · ${oz(dose, 'oz')}`, 'Aerate after adding', 'Re-test next day'] })
+    recs.push({ status: 'action', param: 'alkalinity', title: 'Lower total alkalinity', desc: `Alkalinity at ${test.total_alkalinity} ppm — too high. Use pH reducer and aerate afterward.`, tags: [`pH Reducer (Muriatic Acid or Dry Acid) · ${acidAmount(dose)}`, 'Aerate after adding', 'Re-test next day'] })
   } else if (test.total_alkalinity > 120) {
     recs.push({ status: 'monitor', param: 'alkalinity', title: 'Alkalinity slightly high', desc: `Alkalinity at ${test.total_alkalinity} ppm. Monitor weekly — it will drift down naturally.`, tags: ['Monitor weekly'] })
   } else {
