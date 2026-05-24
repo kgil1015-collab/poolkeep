@@ -33,7 +33,7 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center px-4" style={{background:'linear-gradient(172deg,#e8f5ff 0%,#c4dff5 38%,#9ac4e8 70%,#6ba8d8 100%)'}}>
       <div className="w-full max-w-sm bg-white rounded-3xl shadow-2xl p-8">
         <div className="text-center mb-6">
-          <Image src="/logo.png" alt="PoolKeep" width={120} height={120} className="mx-auto mb-2" />
+          <Image src="/poolkeep-logo.png" alt="PoolKeep" width={160} height={160} className="mx-auto mb-2" />
         </div>
         <h1 className="text-2xl font-bold text-text-primary text-center mb-1">Welcome back</h1>
         <p className="text-text-muted text-sm text-center mb-7">Sign in to your PoolKeep account</p>
