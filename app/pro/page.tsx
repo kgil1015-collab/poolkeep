@@ -131,7 +131,7 @@ export default function ProPage() {
           </span>
         </div>
         <div className="relative">
-          <p className="text-white/50 text-xs font-semibold uppercase tracking-widest mb-1">Upgrade</p>
+          <p className="text-white/50 text-xs font-semibold uppercase tracking-widest mb-1">{isPro ? 'Your Plan' : 'Upgrade'}</p>
           <div className="flex items-center gap-2.5 mb-1">
             <h1 className="text-white text-2xl font-bold" style={{fontFamily:"'Oswald',sans-serif",letterSpacing:'-.01em'}}>PoolKeep Pro</h1>
             {/* Crown */}
