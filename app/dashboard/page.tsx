@@ -415,7 +415,11 @@ export default function DashboardPage() {
                             </div>
                             <div className="flex-1 min-w-0">
                               <p className="font-bold text-text-primary text-sm leading-snug">{rec.title}</p>
-                              <p className="text-xs text-text-muted leading-relaxed mt-0.5">{rec.desc.replace(/\s*See the treatment plan below[\s\S]*?(?:then shock|add chlorine)\.\s*/g, ' ').trim()}</p>
+                              <p className="text-xs text-text-muted leading-relaxed mt-0.5">{rec.desc
+                                .replace(/\s*See the treatment plan below[\s\S]*?(?:then shock|add chlorine)\.\s*/g, ' ')
+                                .replace(/[Aa]nd aerate afterward\.?/g, 'then aim a return jet at the surface for 2–4 hrs to raise pH naturally.')
+                                .replace(/[Aa]erate afterward\.?/g, 'aim a return jet at the surface for 2–4 hrs to raise pH naturally.')
+                                .trim()}</p>
                             </div>
                           </div>
                         </div>
