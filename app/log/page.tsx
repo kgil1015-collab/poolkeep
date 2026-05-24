@@ -13,6 +13,7 @@ const PARAMS = [
   { key: 'cya',              label: 'Cyanuric Acid (CYA)', unit: 'ppm', placeholder: '40',  min: 0,    max: 300,  step: '1',   range: '30 – 50 ppm' },
   { key: 'calcium_hardness', label: 'Calcium Hardness',    unit: 'ppm', placeholder: '300', min: 0,    max: 1000, step: '1',   range: '200 – 400 ppm' },
   { key: 'salt',             label: 'Salt (salt pools only)', unit: 'ppm', placeholder: '—',   min: 0,    max: 6000, step: '1',   range: '2700 – 3400 ppm · skip if not a salt pool' },
+  { key: 'tds',              label: 'TDS (Total Dissolved Solids)', unit: 'ppm', placeholder: '—', min: 0, max: 5000, step: '1', range: '< 1,500 ppm · skip if untested or salt pool' },
 ]
 
 const FREE_LIMIT = 5
@@ -177,6 +178,7 @@ export default function LogTestPage() {
       cya: parse('cya', parseInt),
       calcium_hardness: parse('calcium_hardness', parseInt),
       salt: parse('salt', parseInt),
+      tds: parse('tds', parseInt),
     }
 
     const hasAny = Object.values(testInput).some(v => v !== null)

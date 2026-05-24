@@ -5,6 +5,7 @@ export type TestInput = {
   cya: number | null
   calcium_hardness: number | null
   salt: number | null
+  tds: number | null
 }
 
 export type Rec = {
@@ -622,6 +623,18 @@ export function calculateRecommendations(test: TestInput, volumeGallons: number)
     recs.push({ status: 'monitor', param: 'calcium', title: 'Calcium slightly elevated', desc: `Calcium at ${test.calcium_hardness} ppm. Monitor monthly — avoid adding more calcium.`, tags: ['Monitor monthly'] })
   } else {
     recs.push({ status: 'good', param: 'calcium', title: 'Calcium hardness good', desc: `Calcium at ${test.calcium_hardness} ppm. Your pool surface and equipment are well protected.`, tags: [] })
+  }
+
+  // TDS (Total Dissolved Solids) — skip for salt pools (salt IS dissolved solids; reading is naturally high)
+  const isSaltPool = test.salt !== null && test.salt > 500
+  if (test.tds !== null && !isSaltPool) {
+    if (test.tds > 2500) {
+      recs.push({ status: 'action', param: 'tds', title: 'TDS too high — water needs replacing', desc: `TDS at ${test.tds} ppm. Water is saturated with dissolved minerals and byproducts — chemicals become less effective and the water cannot be corrected with additives alone. A partial drain and refill of 25–50% is needed.`, tags: ['Partial drain & refill 25–50%', 'No chemical fix', 'Re-test after refill'] })
+    } else if (test.tds > 1500) {
+      recs.push({ status: 'monitor', param: 'tds', title: 'TDS elevated — plan ahead', desc: `TDS at ${test.tds} ppm. Getting high — chemicals will start losing effectiveness as this climbs. Plan a partial drain and refill (20–30%) in the coming weeks before it crosses 2,500 ppm.`, tags: ['Plan partial drain & refill', 'Monitor monthly'] })
+    } else {
+      recs.push({ status: 'good', param: 'tds', title: 'TDS in range', desc: `TDS at ${test.tds} ppm. Water is fresh and receptive to chemical treatment.`, tags: [] })
+    }
   }
 
   const actionCount = recs.filter(r => r.status === 'action').length

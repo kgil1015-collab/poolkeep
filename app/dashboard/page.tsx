@@ -17,6 +17,7 @@ type TestResult = {
   cya: number | null
   calcium_hardness: number | null
   salt: number | null
+  tds: number | null
   recommendations: {
     treatment_plan?: TreatmentStep[]
     maintenance?: MaintenanceTip[]
