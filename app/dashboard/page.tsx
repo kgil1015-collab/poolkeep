@@ -499,28 +499,38 @@ export default function DashboardPage() {
                                     <div className="flex-1 min-w-0">
                                       <p className="font-bold text-text-primary text-sm leading-snug mb-1.5">{step.title}</p>
                                       {step.chemical && (
-                                        <div className="bg-surface rounded-lg px-2.5 py-2 mb-2">
-                                          <div className="flex items-start gap-1.5">
-                                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#0078B8" strokeWidth="2.2" strokeLinecap="round" className="shrink-0 mt-0.5"><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18"/></svg>
-                                            <div>
-                                              <span className="text-xs font-bold" style={{color:'#0078B8'}}>{step.chemical}</span>
-                                              {step.amount && (
-                                                step.amount.includes('\n') ? (
-                                                  <div className="mt-1.5 space-y-1">
-                                                    {step.amount.split('\n').map((line: string, li: number) => (
-                                                      <div key={li} className="flex items-start gap-1.5">
-                                                        <span className="text-[10px] font-bold shrink-0 mt-px" style={{color:'#0078B8'}}>→</span>
-                                                        <span className="text-xs font-semibold text-text-muted">{line}</span>
-                                                      </div>
-                                                    ))}
+                                        step.chemical.includes('\n') ? (
+                                          // Multi-chemical step — numbered sub-steps
+                                          <div className="bg-surface rounded-lg px-2.5 py-2 mb-2 space-y-2.5">
+                                            {step.chemical.split('\n').map((chem: string, ci: number) => {
+                                              const amounts = step.amount ? step.amount.split('\n') : []
+                                              const lineAmount = amounts[ci] ?? ''
+                                              const chemLines = (step.chemical ?? '').split('\n')
+                                              const isShock = ci === chemLines.length - 1
+                                              return (
+                                                <div key={ci} className="flex items-start gap-2">
+                                                  <span className="w-4 h-4 rounded-full flex items-center justify-center shrink-0 text-[9px] font-bold text-white mt-0.5" style={{background: ci === 0 ? '#0078B8' : '#DC2626', minWidth:16}}>{ci + 1}</span>
+                                                  <div>
+                                                    <p className="text-xs font-bold" style={{color: ci === 0 ? '#0078B8' : '#DC2626'}}>{chem}</p>
+                                                    {lineAmount && <p className="text-xs font-semibold text-text-muted mt-0.5">{lineAmount}</p>}
+                                                    {isShock && <p className="text-[10px] text-text-faint mt-0.5">Liquid = swim sooner · Granular = better overnight</p>}
                                                   </div>
-                                                ) : (
-                                                  <span className="text-xs font-semibold text-text-muted ml-1">· {step.amount}</span>
-                                                )
-                                              )}
+                                                </div>
+                                              )
+                                            })}
+                                          </div>
+                                        ) : (
+                                          // Single chemical
+                                          <div className="bg-surface rounded-lg px-2.5 py-2 mb-2">
+                                            <div className="flex items-start gap-1.5">
+                                              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#0078B8" strokeWidth="2.2" strokeLinecap="round" className="shrink-0 mt-0.5"><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18"/></svg>
+                                              <div>
+                                                <span className="text-xs font-bold" style={{color:'#0078B8'}}>{step.chemical}</span>
+                                                {step.amount && <span className="text-xs font-semibold text-text-muted ml-1">· {step.amount}</span>}
+                                              </div>
                                             </div>
                                           </div>
-                                        </div>
+                                        )
                                       )}
                                       <p className="text-xs text-text-muted leading-relaxed">{actionLine}</p>
                                     </div>
