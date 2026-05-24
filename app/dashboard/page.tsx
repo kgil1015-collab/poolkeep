@@ -277,39 +277,17 @@ export default function DashboardPage() {
           )}
         </div>
 
-        {/* Health score ring */}
+        {/* Health score — simple large number */}
         {(() => {
           const score = lastTest?.health_score ?? null
           const { color } = statusAccent(score)
-          const R = 50, CX = 60, CY = 60, SW = 9
-          const C = 2 * Math.PI * R
-          const arcLen = (270 / 360) * C
-          const fillLen = score !== null ? (score / 100) * arcLen : 0
           return (
-            <div className="flex flex-col items-center pb-4 relative">
-              <div className="relative" style={{width:130,height:130}}>
-                <svg width="130" height="130" viewBox="0 0 120 120">
-                  <circle cx={CX} cy={CY} r={R} fill="none"
-                    stroke="rgba(255,255,255,0.1)" strokeWidth={SW} strokeLinecap="round"
-                    strokeDasharray={`${arcLen} ${C - arcLen}`}
-                    transform={`rotate(-225 ${CX} ${CY})`}
-                  />
-                  {score !== null && (
-                    <circle cx={CX} cy={CY} r={R} fill="none"
-                      stroke={color} strokeWidth={SW} strokeLinecap="round"
-                      strokeDasharray={`${fillLen} ${C - fillLen}`}
-                      transform={`rotate(-225 ${CX} ${CY})`}
-                    />
-                  )}
-                </svg>
-                <div className="absolute inset-0 flex flex-col items-center justify-center">
-                  <p className="text-white font-bold leading-none" style={{fontSize:38,fontFamily:"'Oswald',sans-serif"}}>
-                    {score ?? '—'}
-                  </p>
-                  <p className="text-white/40 text-[9px] font-bold uppercase tracking-widest mt-0.5">Score</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-1.5 -mt-1">
+            <div className="flex flex-col items-center pb-5">
+              <p className="text-white/40 text-[10px] font-bold uppercase tracking-widest mb-1">Health Score</p>
+              <p className="text-white font-bold leading-none" style={{fontSize:72,fontFamily:"'Oswald',sans-serif",letterSpacing:'-2px'}}>
+                {score ?? '—'}
+              </p>
+              <div className="flex items-center gap-1.5 mt-2">
                 <div className="w-1.5 h-1.5 rounded-full" style={{background: color}} />
                 <span className="text-sm font-semibold" style={{color}}>
                   {score !== null ? scoreLabel(score) : 'Log your first test'}
@@ -397,113 +375,63 @@ export default function DashboardPage() {
           </div>
         ) : (
           <>
-            {/* Pinned next step */}
+            {/* ACTION NEEDED — icon cards */}
             {(() => {
-              const plan = lastTest.recommendations.treatment_plan
-              const firstStep = plan?.[0]
-              const allGood = lastTest.recommendations.action.length === 0 && lastTest.recommendations.monitor.length === 0
-              if (allGood) return (
-                <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex items-center gap-3 mb-4">
-                  <div className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0" style={{background:'rgba(29,184,105,0.1)'}}>
-                    <IconCheck size={22} style={{color:'#1DB869'}} />
+              const actionItems = [...lastTest.recommendations.action, ...lastTest.recommendations.monitor]
+              const paramMeta: Record<string, { icon: React.ReactElement; bg: string; color: string }> = {
+                ph:        { bg:'rgba(245,166,35,0.15)',  color:'#B97A00', icon:<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M9 3v11l-3 3h12l-3-3V3"/><line x1="9" y1="3" x2="15" y2="3"/></svg> },
+                chlorine:  { bg:'rgba(229,48,74,0.12)',   color:'#C0102E', icon:<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polyline points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> },
+                alkalinity:{ bg:'rgba(0,120,184,0.12)',   color:'#005A8E', icon:<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M2 6c.6.5 1.2 1 2.5 1C7 7 7 5 9.5 5s2.5 2 5 2 2.5-2 5-2 2.5 2 5 2"/><path d="M2 12c.6.5 1.2 1 2.5 1C7 13 7 11 9.5 11s2.5 2 5 2 2.5-2 5-2 2.5 2 5 2"/></svg> },
+                cya:       { bg:'rgba(245,166,35,0.15)',  color:'#B97A00', icon:<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/></svg> },
+                calcium:   { bg:'rgba(100,116,139,0.12)', color:'#475569', icon:<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg> },
+                salt:      { bg:'rgba(0,120,184,0.12)',   color:'#005A8E', icon:<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M12 2C6 9 4 13 4 16a8 8 0 0 0 16 0c0-3-2-7-8-14z"/></svg> },
+              }
+              const defaultMeta = { bg:'rgba(245,166,35,0.15)', color:'#B97A00', icon:<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg> }
+
+              if (actionItems.length === 0) return (
+                <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex items-center gap-3 mb-2">
+                  <div className="w-10 h-10 rounded-full flex items-center justify-center shrink-0" style={{background:'rgba(29,184,105,0.12)'}}>
+                    <IconCheck size={20} style={{color:'#1DB869'}} />
                   </div>
                   <div>
-                    <p className="font-bold text-text-primary">Your pool looks great</p>
+                    <p className="font-bold text-text-primary text-sm">Your pool looks great</p>
                     <p className="text-text-muted text-xs mt-0.5">All parameters in range — no action needed.</p>
                   </div>
                 </div>
               )
-              if (!firstStep) return null
-              const u = firstStep.step === 1
-                ? { badge:'#DC2626', bg:'rgba(220,38,38,0.07)', border:'rgba(220,38,38,0.18)', label:'Do Now' }
-                : firstStep.step === 2
-                ? { badge:'#EA580C', bg:'rgba(234,88,12,0.07)', border:'rgba(234,88,12,0.2)', label:'Do Next' }
-                : { badge:'#D97706', bg:'rgba(217,119,6,0.06)', border:'rgba(217,119,6,0.18)', label:'Then' }
-              return (
-                <div className="rounded-2xl px-4 py-3.5 shadow-sm border mb-4" style={{background:u.bg, borderColor:u.border}}>
-                  <div className="flex items-center gap-2 mb-1.5">
-                    <span className="text-[10px] font-bold uppercase tracking-widest px-2.5 py-0.5 rounded-full text-white" style={{background:u.badge}}>{u.label}</span>
-                    <span className="text-[10px] font-semibold uppercase tracking-widest" style={{color:u.badge}}>Step {firstStep.step} of {plan?.length}</span>
-                  </div>
-                  <p className="font-bold text-text-primary text-sm leading-snug">{firstStep.title}</p>
-                  {firstStep.chemical && firstStep.amount && (
-                    <div className="flex items-center gap-1.5 mt-2 bg-white/60 rounded-lg px-2.5 py-1.5 self-start inline-flex">
-                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke={u.badge} strokeWidth="2.2" strokeLinecap="round"><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18"/></svg>
-                      <span className="text-xs font-bold" style={{color:u.badge}}>{firstStep.chemical}</span>
-                      <span className="text-xs text-text-muted">· {firstStep.amount}</span>
-                    </div>
-                  )}
-                </div>
-              )
-            })()}
-
-            {/* Parameter sections */}
-            {(() => {
-              type ParamGroup = { p: typeof PARAM_RANGES[0]; val: number; pct: number; idealLeftPct: number; idealWidthPct: number; dotColor: string; valueColor: string; borderColor: string; bgColor: string }
-              const actionParams: ParamGroup[] = []
-              const monitorParams: ParamGroup[] = []
-              const goodParams: ParamGroup[] = []
-              const notTestedLabels: string[] = []
-
-              PARAM_RANGES.forEach(p => {
-                const raw = lastTest[p.key as keyof TestResult]
-                const val = typeof raw === 'number' ? raw : null
-                if (val === null) { notTestedLabels.push(p.label); return }
-                const pct = Math.max(0, Math.min(100, ((val - p.viewMin) / (p.viewMax - p.viewMin)) * 100))
-                const idealLeftPct = Math.max(0, ((p.idealMin - p.viewMin) / (p.viewMax - p.viewMin)) * 100)
-                const idealWidthPct = Math.min(100 - idealLeftPct, ((p.idealMax - p.idealMin) / (p.viewMax - p.viewMin)) * 100)
-                const isAction = lastTest.recommendations.action.some(r => r.title.toLowerCase().includes(p.label.toLowerCase()))
-                const isMonitor = !isAction && lastTest.recommendations.monitor.some(r => r.title.toLowerCase().includes(p.label.toLowerCase()))
-                if (isAction) {
-                  actionParams.push({ p, val, pct, idealLeftPct, idealWidthPct, dotColor: '#E5304A', valueColor: '#E5304A', borderColor: '#E5304A', bgColor: 'rgba(229,48,74,0.04)' })
-                } else if (isMonitor) {
-                  monitorParams.push({ p, val, pct, idealLeftPct, idealWidthPct, dotColor: '#D48800', valueColor: '#D48800', borderColor: '#F5A623', bgColor: 'rgba(245,166,35,0.04)' })
-                } else {
-                  goodParams.push({ p, val, pct, idealLeftPct, idealWidthPct, dotColor: '#1DB869', valueColor: '#0078B8', borderColor: '#00CCA3', bgColor: 'rgba(29,184,105,0.04)' })
-                }
-              })
-
-              const needsAttention = [...actionParams, ...monitorParams]
-
-              const renderBar = (g: ParamGroup) => (
-                <div key={g.p.key} className="rounded-xl px-4 py-3 shadow-sm border-l-4 overflow-hidden" style={{background:g.bgColor, borderLeftColor:g.borderColor, boxShadow:'0 1px 3px rgba(0,0,0,0.06)'}}>
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 rounded-full shrink-0" style={{background:g.dotColor}} />
-                      <span className="text-xs font-bold uppercase tracking-wide text-text-muted">{g.p.label}</span>
-                    </div>
-                    <span className="text-sm font-bold" style={{fontFamily:"'DM Mono',monospace",color:g.valueColor}}>
-                      {g.p.fmt(g.val)}{g.p.unit ? ` ${g.p.unit}` : ''}
-                    </span>
-                  </div>
-                  <div className="relative h-1.5 rounded-full overflow-hidden" style={{background:'#EEF5FA'}}>
-                    <div className="absolute top-0 bottom-0 rounded-full" style={{left:`${g.idealLeftPct}%`,width:`${g.idealWidthPct}%`,background:'rgba(29,184,105,0.22)'}} />
-                    <div className="absolute top-0 bottom-0 rounded-full" style={{left:`${g.pct}%`,width:3,background:g.dotColor,transform:'translateX(-50%)'}} />
-                  </div>
-                  <p className="text-[9px] text-text-faint mt-1">Ideal {g.p.idealMin}{g.p.unit ? ` ${g.p.unit}` : ''} – {g.p.idealMax}{g.p.unit ? ` ${g.p.unit}` : ''}</p>
-                </div>
-              )
 
               return (
-                <div className="space-y-4 mb-5">
-                  {needsAttention.length > 0 && (
-                    <div>
-                      <div className="flex items-center gap-2 mb-2">
-                        <span className="text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full" style={{background:'rgba(245,166,35,0.12)',color:'#D48800'}}>⚠ Needs Attention</span>
-                      </div>
-                      <div className="space-y-2">{needsAttention.map(renderBar)}</div>
-                    </div>
-                  )}
-                  {goodParams.length > 0 && (
-                    <div>
-                      {needsAttention.length > 0 && (
-                        <div className="flex items-center gap-2 mb-2">
-                          <span className="text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full" style={{background:'rgba(0,204,163,0.12)',color:'#009E7E'}}>✓ Looking Good</span>
+                <div className="mb-5">
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-text-muted mb-2.5">Action Needed</p>
+                  <div className="space-y-2.5">
+                    {actionItems.map((rec, i) => {
+                      const meta = paramMeta[rec.param as keyof typeof paramMeta] ?? defaultMeta
+                      const isMonitor = lastTest.recommendations.monitor.some(m => m.title === rec.title)
+                      return (
+                        <div key={i} className="bg-white rounded-2xl px-4 py-3.5 shadow-sm border border-gray-100">
+                          <div className="flex items-start gap-3">
+                            <div className="w-10 h-10 rounded-full flex items-center justify-center shrink-0 mt-0.5" style={{background: meta.bg, color: meta.color}}>
+                              {meta.icon}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="font-bold text-text-primary text-sm leading-snug">{rec.title}</p>
+                              <p className="text-xs text-text-muted leading-relaxed mt-0.5">{rec.desc}</p>
+                              {rec.tags.length > 0 && (
+                                <div className="flex flex-wrap gap-1.5 mt-2.5">
+                                  {rec.tags.map((tag, ti) => (
+                                    <span key={ti} className="text-[10px] font-semibold px-2.5 py-1 rounded-full" style={{
+                                      background: isMonitor ? 'rgba(217,119,6,0.1)' : 'rgba(0,120,184,0.09)',
+                                      color: isMonitor ? '#A85F00' : '#005A8E',
+                                    }}>{tag}</span>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          </div>
                         </div>
-                      )}
-                      <div className="space-y-2">{goodParams.map(renderBar)}</div>
-                    </div>
-                  )}
+                      )
+                    })}
+                  </div>
                 </div>
               )
             })()}
@@ -672,18 +600,19 @@ export default function DashboardPage() {
               </>
             )}
 
-            {/* Looking good — with descriptions */}
+            {/* Looking good */}
             {lastTest.recommendations.good.length > 0 && (
               <div className="mb-5">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-text-muted mb-2.5">Looking Good</p>
                 <div className="space-y-2">
                   {lastTest.recommendations.good.map((a, i) => (
-                    <div key={i} className="bg-white rounded-2xl px-4 py-3 shadow-sm border border-gray-100 flex items-start gap-3">
-                      <div className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 mt-0.5" style={{background:'rgba(29,184,105,0.1)'}}>
-                        <IconCheck size={13} style={{color:'#1DB869'}} />
+                    <div key={i} className="bg-white rounded-2xl px-4 py-3 shadow-sm border border-gray-100 flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0" style={{background:'rgba(29,184,105,0.12)'}}>
+                        <IconCheck size={15} style={{color:'#1DB869'}} />
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-bold text-text-primary">{a.title}</p>
-                        <p className="text-xs text-text-muted leading-relaxed mt-0.5">{a.desc}</p>
+                        <p className="text-xs text-text-muted mt-0.5">{a.desc}</p>
                       </div>
                     </div>
                   ))}
