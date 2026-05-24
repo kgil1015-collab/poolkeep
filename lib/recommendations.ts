@@ -45,7 +45,7 @@ export type RecommendationResult = {
   good: Rec[]
 }
 
-// For dry chemicals (shock, baking soda, calcium chloride, CYA, soda ash)
+// For dry chemicals (shock, alkalinity increaser (baking soda), calcium chloride, CYA, soda ash)
 function oz(amount: number, unit: string) {
   if (unit === 'oz' && amount >= 128) return `${(amount / 128).toFixed(1)} gal`
   if (unit === 'oz' && amount >= 16) return `${(amount / 16).toFixed(1)} lbs`
@@ -166,12 +166,12 @@ function buildTreatmentPlan(test: TestInput, v: number): TreatmentStep[] {
         urgency: 'soon',
         param: 'alkalinity',
         title: 'Raise total alkalinity first',
-        chemical: 'Baking Soda',
+        chemical: 'Alkalinity Increaser (Baking Soda / Sodium Bicarbonate)',
         amount: oz(dose, 'lbs'),
         why: `Alkalinity at ${ta} ppm is too low. Think of total alkalinity as the shock absorber for your pool's pH. When TA is in range (80–120 ppm), small disturbances — a rainstorm, a load of swimmers, a chemical addition — barely move the pH needle. When TA is low, those same events can swing pH by a full point in either direction, making the water constantly uncomfortable and unpredictable to treat. This is why TA must be fixed first: if you raise your pH now without addressing TA, the next rain shower will pull it right back down. Low TA and low pH almost always appear together for exactly this reason.`,
-        how: 'Split into two doses, 4 hours apart. Broadcast across the pool surface with the pump running — do not dump the whole amount in at once. Baking soda dissolves and circulates slowly, so patience is important here.',
+        how: 'Split into two doses, 4 hours apart. Broadcast across the pool surface with the pump running — do not dump the whole amount in at once. It dissolves and circulates slowly, so patience is important here.',
         lookFor: 'Retest alkalinity the next day. Then recheck your pH — once TA is stabilized, pH often drifts partway back to normal on its own, meaning you may need less pH adjustment than expected. This is the right sequence.',
-        note: ph !== null && ph < 7.2 ? 'Low pH and low alkalinity almost always go together. Raising TA first is the correct sequence — pH adjusted before TA is stable will drift back within a day or two.' : undefined,
+        note: `${ph !== null && ph < 7.2 ? 'Low pH and low alkalinity almost always go together. Raising TA first is the correct sequence — pH adjusted before TA is stable will drift back within a day or two.\n\n' : ''}Pro tip: Alkalinity Increaser is sold at pool stores as "Alkalinity Up," "Alkalinity Increaser," or "Sodium Bicarbonate." It is identical to grocery store baking soda — the pool store version can cost 3–5× more for the same thing. Arm & Hammer baking soda works perfectly.`,
       })
     } else if (ta < 80) {
       const dose = ((80 - ta) / 10) * 1.5 * v
@@ -180,9 +180,9 @@ function buildTreatmentPlan(test: TestInput, v: number): TreatmentStep[] {
         urgency: 'soon',
         param: 'alkalinity',
         title: 'Raise alkalinity slightly before adjusting pH',
-        chemical: 'Baking Soda',
+        chemical: 'Alkalinity Increaser (Baking Soda / Sodium Bicarbonate)',
         amount: oz(dose, 'lbs'),
-        why: `Alkalinity at ${ta} ppm is just below the 80–120 ppm ideal. Total alkalinity acts as a chemical buffer — it absorbs small pH-changing events (rain, bathers, chemical additions) without letting pH move much. A small baking soda dose now will make your upcoming pH adjustment more stable and longer-lasting.`,
+        why: `Alkalinity at ${ta} ppm is just below the 80–120 ppm ideal. Total alkalinity acts as a chemical buffer — it absorbs small pH-changing events (rain, bathers, chemical additions) without letting pH move much. A small alkalinity increaser (baking soda) dose now will make your upcoming pH adjustment more stable and longer-lasting.`,
         how: 'Broadcast across the pool surface with the pump running. Let it circulate for several hours.',
         lookFor: 'Retest next day. pH may shift slightly upward once TA rises — check pH before adding any pH increaser, so you do not overshoot.',
       })
@@ -216,7 +216,7 @@ function buildTreatmentPlan(test: TestInput, v: number): TreatmentStep[] {
         chemical: null,
         amount: null,
         why: `Alkalinity at ${ta} ppm is slightly above the 80–120 ppm sweet spot, but it is not causing problems yet. TA drifts down naturally over time through normal water loss, splash-out, and rain dilution — no chemical intervention is needed.`,
-        how: 'No chemical needed. Do not add any baking soda until TA drops below 120 ppm.',
+        how: 'No chemical needed. Do not add any alkalinity increaser (baking soda) until TA drops below 120 ppm.',
         lookFor: 'Retest weekly. If it climbs above 140 ppm and pH becomes difficult to adjust, a small muriatic acid dose will bring it down.',
       })
     }
@@ -231,7 +231,7 @@ function buildTreatmentPlan(test: TestInput, v: number): TreatmentStep[] {
         chemical: null,
         amount: null,
         why: `We do not have your alkalinity reading, and this matters. Total alkalinity is the buffer that keeps pH stable — it needs to be in range (80–120 ppm) before a pH adjustment will hold. This is one of the most common mistakes in pool care: adjusting pH repeatedly and wondering why it never stays put. The answer is almost always low TA. Low pH and low TA almost always appear together, often because frequent acid additions have slowly depleted both over time.`,
-        how: 'Pick up an alkalinity test strip or tablet test kit and check your TA. If it is below 80 ppm, treat with baking soda first. If above 120 ppm, bring it down with muriatic acid before touching pH.',
+        how: 'Pick up an alkalinity test strip or tablet test kit and check your TA. If it is below 80 ppm, treat with alkalinity increaser (baking soda) first. If above 120 ppm, bring it down with muriatic acid before touching pH.',
         lookFor: 'Once TA is confirmed in range, retest pH — it may have partially self-corrected. Then follow the pH step below if still needed.',
         note: `If you have been chasing pH adjustments that never seem to hold, low alkalinity is the most likely culprit.`,
       })
@@ -287,7 +287,7 @@ function buildTreatmentPlan(test: TestInput, v: number): TreatmentStep[] {
         amount: acidAmount(dose),
         why: `pH at ${ph} is too high — and this is where many pool owners are spending money on chlorine without getting the results they expect. Remember the efficiency curve: at pH 7.8, only about 33% of your chlorine is in its active sanitizing form. At pH 8.0, it drops to 21%. This means your pool can test positive for chlorine and still not be sanitizing effectively — the chlorine is there but it is largely inactive. Bringing pH down unlocks the full potential of the chlorine already in your water. ${sequenceNote}`,
         how: 'Add to the deep end in the evening with the pump running. Pour slowly in a thin stream along the wall — never splash muriatic acid. Wear gloves and eye protection. Avoid breathing the fumes. Do not pre-dilute in a small container.',
-        lookFor: 'Retest the next morning. Target 7.2–7.6. If pH drops below 7.2, alkalinity may have also come down — retest TA and add a small baking soda dose if needed.',
+        lookFor: 'Retest the next morning. Target 7.2–7.6. If pH drops below 7.2, alkalinity may have also come down — retest TA and add a small alkalinity increaser (baking soda) dose if needed.',
       })
     } else if (ph > 7.6) {
       const dose = Math.round(v * 13)
@@ -569,10 +569,10 @@ export function calculateRecommendations(test: TestInput, volumeGallons: number)
   if (test.total_alkalinity === null) { recs.push(MISSING.total_alkalinity) }
   else if (test.total_alkalinity < 60) {
     const dose = ((80 - test.total_alkalinity) / 10) * 1.5 * v
-    recs.push({ status: 'action', param: 'alkalinity', title: 'Raise total alkalinity', desc: `Alkalinity at ${test.total_alkalinity} ppm — too low. Fix this before adjusting pH or the adjustment will not hold.`, tags: [`Baking Soda · ${oz(dose, 'lbs')}`, 'Add in doses', 'Re-test next day'] })
+    recs.push({ status: 'action', param: 'alkalinity', title: 'Raise total alkalinity', desc: `Alkalinity at ${test.total_alkalinity} ppm — too low. Fix this before adjusting pH or the adjustment will not hold.`, tags: [`Alkalinity Increaser (Baking Soda / Sodium Bicarbonate) · ${oz(dose, 'lbs')}`, 'Add in doses', 'Re-test next day'] })
   } else if (test.total_alkalinity < 80) {
     const dose = ((80 - test.total_alkalinity) / 10) * 1.5 * v
-    recs.push({ status: 'monitor', param: 'alkalinity', title: 'Alkalinity slightly low', desc: `Alkalinity at ${test.total_alkalinity} ppm. A small baking soda dose will stabilize it.`, tags: [`Baking Soda · ${oz(dose, 'lbs')}`, 'Monitor weekly'] })
+    recs.push({ status: 'monitor', param: 'alkalinity', title: 'Alkalinity slightly low', desc: `Alkalinity at ${test.total_alkalinity} ppm. A small alkalinity increaser (baking soda) dose will stabilize it.`, tags: [`Alkalinity Increaser (Baking Soda / Sodium Bicarbonate) · ${oz(dose, 'lbs')}`, 'Monitor weekly'] })
   } else if (test.total_alkalinity > 140) {
     const dose = Math.round(v * 26 * ((test.total_alkalinity - 120) / 10))
     recs.push({ status: 'action', param: 'alkalinity', title: 'Lower total alkalinity', desc: `Alkalinity at ${test.total_alkalinity} ppm — too high. Use pH reducer and aerate afterward.`, tags: [`pH Reducer (Muriatic Acid or Dry Acid) · ${acidAmount(dose)}`, 'Aerate after adding', 'Re-test next day'] })
