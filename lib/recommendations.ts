@@ -571,9 +571,9 @@ export function calculateRecommendations(test: TestInput, volumeGallons: number)
     const dose = Math.round(v * dosePerTenK * 2) / 2
     const phNeedsWork = test.ph !== null && test.ph > 7.2
     if (phNeedsWork) {
-      recs.push({ status: 'action', param: 'chlorine', title: 'Lower pH first, then shock', desc: `Free chlorine at ${test.free_chlorine} ppm — unsafe for swimming. See the treatment plan below: lower pH to 7.2 first, then shock. Shocking at high pH wastes most of the product.`, tags: [`Lower pH first · then Pool Shock · ${oz(dose, 'lbs')}`, 'Do not swim until 1+ ppm', 'Re-test in 2 hours'] })
+      recs.push({ status: 'action', param: 'chlorine', title: 'Lower pH first, then shock', desc: `Free chlorine at ${test.free_chlorine} ppm — unsafe for swimming. Lower pH to 7.2 first, then shock. Shocking at high pH wastes most of the product.`, tags: [] })
     } else {
-      recs.push({ status: 'action', param: 'chlorine', title: 'Chlorine critically low — shock now', desc: `Free chlorine at ${test.free_chlorine} ppm — unsafe for swimming. Shock the pool this evening.`, tags: [`Pool Shock · ${oz(dose, 'lbs')}`, 'Do not swim until 1+ ppm', 'Re-test in 2 hours'] })
+      recs.push({ status: 'action', param: 'chlorine', title: 'Chlorine critically low — shock now', desc: `Free chlorine at ${test.free_chlorine} ppm — unsafe for swimming. Shock the pool this evening.`, tags: [] })
     }
   } else if (test.free_chlorine < 1) {
     const dose = Math.round(v * 13 * (1 - test.free_chlorine))

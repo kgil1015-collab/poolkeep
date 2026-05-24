@@ -416,15 +416,8 @@ export default function DashboardPage() {
                             <div className="flex-1 min-w-0">
                               <p className="font-bold text-text-primary text-sm leading-snug">{rec.title}</p>
                               <p className="text-xs text-text-muted leading-relaxed mt-0.5">{rec.desc}</p>
-                              {rec.tags.length > 0 && (
-                                <div className="flex flex-wrap gap-1.5 mt-2.5">
-                                  {rec.tags.map((tag, ti) => (
-                                    <span key={ti} className="text-[10px] font-semibold px-2.5 py-1 rounded-full" style={{
-                                      background: isMonitor ? 'rgba(217,119,6,0.1)' : 'rgba(0,120,184,0.09)',
-                                      color: isMonitor ? '#A85F00' : '#005A8E',
-                                    }}>{tag}</span>
-                                  ))}
-                                </div>
+                              {!isMonitor && (
+                                <p className="text-xs font-bold mt-2" style={{color:'#00967A'}}>↓ See treatment plan below</p>
                               )}
                             </div>
                           </div>
