@@ -18,6 +18,7 @@ export type Rec = {
 export type TreatmentStep = {
   step: number
   urgency: 'urgent' | 'soon' | 'routine'
+  when: 'today' | 'in-1-2-days' | 'this-week' | 'plan-ahead'
   param: string
   title: string
   chemical: string | null
@@ -28,9 +29,16 @@ export type TreatmentStep = {
   note?: string
 }
 
+export type MaintenanceTip = {
+  category: 'testing' | 'chlorine' | 'shock' | 'brushing' | 'seasonal' | 'filter'
+  title: string
+  body: string
+}
+
 export type RecommendationResult = {
   health_score: number
   treatment_plan: TreatmentStep[]
+  maintenance: MaintenanceTip[]
   unknown: Rec[]
   action: Rec[]
   monitor: Rec[]
@@ -426,9 +434,91 @@ function buildTreatmentPlan(test: TestInput, v: number): TreatmentStep[] {
     }
   }
 
-  return raw
-    .sort((a, b) => a.order - b.order)
-    .map(({ order, ...step }, i) => ({ ...step, step: i + 1 }))
+  const sorted = raw.sort((a, b) => a.order - b.order)
+  const taHasChemical = sorted.some(r => r.order === 1 && r.param === 'alkalinity' && r.chemical !== null)
+
+  return sorted.map(({ order, ...step }, i) => {
+    let when: TreatmentStep['when']
+    if (order === 0) when = 'today'
+    else if (order === 1) when = 'today'
+    else if (order === 2) when = taHasChemical ? 'in-1-2-days' : 'today'
+    else if (order === 3) when = 'today'
+    else if (order === 4 && step.chemical === null) when = 'plan-ahead'
+    else if (order === 4) when = 'this-week'
+    else when = step.chemical === null ? 'plan-ahead' : 'this-week'
+    return { ...step, step: i + 1, when }
+  })
+}
+
+function generateMaintenance(test: TestInput): MaintenanceTip[] {
+  const tips: MaintenanceTip[] = []
+
+  // Testing frequency
+  tips.push({
+    category: 'testing',
+    title: 'Test twice a week in warm weather',
+    body: 'Check pH and free chlorine at least twice a week during spring and summer — chemistry shifts faster in warm water and under heavy use. Once a week is usually enough in cooler months.',
+  })
+
+  // Chlorine guidance tuned to CYA level
+  if (test.cya !== null && test.cya > 60) {
+    tips.push({
+      category: 'chlorine',
+      title: `Keep chlorine at 2–3 ppm while CYA is elevated (currently ${test.cya} ppm)`,
+      body: 'High CYA reduces how much chlorine is available to sanitize. Until CYA comes down, target the higher end of the range and do not let free chlorine drop below 2 ppm.',
+    })
+  } else if (test.cya !== null && test.cya < 30) {
+    tips.push({
+      category: 'chlorine',
+      title: `Chlorine burns off fast — CYA is low (${test.cya} ppm)`,
+      body: 'Without enough stabilizer, UV destroys chlorine within hours on a sunny day. Test every 1–2 days and add chlorine more frequently until CYA reaches 30–50 ppm. Always add chlorine in the evening.',
+    })
+  } else {
+    tips.push({
+      category: 'chlorine',
+      title: 'Add chlorine when it drops below 1 ppm',
+      body: 'Check twice a week. Add liquid chlorine or granular shock when readings dip below 1 ppm. Adding in the evening prevents UV from burning off a large portion of what you just added before it circulates.',
+    })
+  }
+
+  // When to shock
+  tips.push({
+    category: 'shock',
+    title: 'Shock after heavy rain, parties, or if water looks off',
+    body: 'Shock the pool after significant rainfall (rain dilutes and destabilizes chemistry), after heavy swimmer loads, if chlorine reads 0, or if the water looks hazy. In peak summer heat, a weekly shock as prevention is a good habit.',
+  })
+
+  // Brushing
+  tips.push({
+    category: 'brushing',
+    title: 'Brush weekly — algae starts on surfaces, not in the water',
+    body: 'Brush walls, floor, steps, and shaded corners once a week. Algae and biofilm establish on surfaces before they are visible in the water — brushing breaks it loose so chlorine can reach it. Pay extra attention to low-flow areas like behind ladders and under steps.',
+  })
+
+  // Hot weather
+  tips.push({
+    category: 'seasonal',
+    title: 'In heat above 85°F — chlorine demand roughly doubles',
+    body: 'Hot water accelerates chlorine consumption and algae growth. During heat waves: keep chlorine at 2–3 ppm, run the filter 10–12 hours per day, and consider shocking weekly even if the water looks clear. After heavy rain in summer, test within 24 hours.',
+  })
+
+  // Filter runtime
+  tips.push({
+    category: 'filter',
+    title: 'Run the filter 8–12 hours per day',
+    body: 'Circulation is the foundation of clear water — chemicals cannot do their job without it. In summer or during heat waves, run closer to 12 hours. In cooler months or off-season, 6–8 hours is usually enough. If your pool stays cloudy despite correct chemistry, run the filter 24 hours until it clears.',
+  })
+
+  // Salt pool addendum
+  if (test.salt !== null && test.salt > 500) {
+    tips.push({
+      category: 'filter',
+      title: 'Salt cell: inspect every 3 months for scale',
+      body: 'Calcium scale on the salt cell reduces chlorine output significantly. Every 3 months, inspect the cell and clean with diluted muriatic acid if you see white deposits. Keep salt in the 2700–3400 ppm range for best performance.',
+    })
+  }
+
+  return tips
 }
 
 export function calculateRecommendations(test: TestInput, volumeGallons: number): RecommendationResult {
@@ -529,10 +619,12 @@ export function calculateRecommendations(test: TestInput, volumeGallons: number)
   const health_score = Math.max(10, 100 - actionCount * 18 - monitorCount * 6)
 
   const treatment_plan = buildTreatmentPlan(test, v)
+  const maintenance = generateMaintenance(test)
 
   return {
     health_score,
     treatment_plan,
+    maintenance,
     unknown: recs.filter(r => r.status === 'unknown'),
     action: recs.filter(r => r.status === 'action'),
     monitor: recs.filter(r => r.status === 'monitor'),

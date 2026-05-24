@@ -506,86 +506,138 @@ export default function DashboardPage() {
               )
             })()}
 
-            {/* Treatment plan */}
+            {/* Treatment plan — timeline grouped */}
             {lastTest.recommendations.treatment_plan && lastTest.recommendations.treatment_plan.length > 0 ? (
               <>
                 <p className="text-xs font-bold uppercase tracking-widest text-text-muted mb-3">Treatment Plan</p>
-                <div className="space-y-4 mb-6">
-                  {lastTest.recommendations.treatment_plan.map(step => {
-                    const urgencyStyle = step.step === 1
-                      ? { badge: '#DC2626', badgeBg: 'rgba(220,38,38,0.1)', label: 'Do Now' }
-                      : step.step === 2
-                      ? { badge: '#EA580C', badgeBg: 'rgba(234,88,12,0.1)', label: 'Do Next' }
-                      : { badge: '#D97706', badgeBg: 'rgba(217,119,6,0.1)', label: 'Then' }
-                    return (
-                      <div key={step.step} className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                        {/* Step header */}
-                        <div className="px-4 pt-4 pb-3 flex items-start gap-3">
-                          <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 font-bold text-sm text-white" style={{background: urgencyStyle.badge, fontFamily:"'Oswald',sans-serif"}}>
-                            {step.step}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 mb-1">
-                              <span className="text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full" style={{background: urgencyStyle.badgeBg, color: urgencyStyle.badge}}>{urgencyStyle.label}</span>
+                {(() => {
+                  const steps = lastTest.recommendations.treatment_plan
+                  const WHEN_ORDER = ['today', 'in-1-2-days', 'this-week', 'plan-ahead'] as const
+                  const WHEN_LABELS: Record<string, { label: string; sublabel: string; color: string; bg: string }> = {
+                    'today':       { label: 'Do Today',     sublabel: 'Start here',              color: '#DC2626', bg: 'rgba(220,38,38,0.07)' },
+                    'in-1-2-days': { label: 'In 1–2 Days',  sublabel: 'After first steps settle', color: '#D97706', bg: 'rgba(217,119,6,0.07)'  },
+                    'this-week':   { label: 'This Week',    sublabel: 'Once priority steps done', color: '#0078B8', bg: 'rgba(0,120,184,0.06)'  },
+                    'plan-ahead':  { label: 'Plan Ahead',   sublabel: 'Not urgent — schedule it', color: '#64748B', bg: 'rgba(100,116,139,0.06)' },
+                  }
+                  const groups = WHEN_ORDER.map(w => ({
+                    when: w,
+                    meta: WHEN_LABELS[w],
+                    steps: steps.filter(s => (s.when ?? 'today') === w),
+                  })).filter(g => g.steps.length > 0)
+
+                  return (
+                    <div className="space-y-6 mb-6">
+                      {groups.map((group, gi) => (
+                        <div key={group.when}>
+                          {/* Timeline header */}
+                          <div className="flex items-center gap-3 mb-3">
+                            <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{background: group.meta.color}} />
+                            <div className="flex-1">
+                              <span className="text-xs font-bold uppercase tracking-widest" style={{color: group.meta.color}}>{group.meta.label}</span>
+                              <span className="text-[10px] text-text-faint ml-2">{group.meta.sublabel}</span>
                             </div>
-                            <p className="font-bold text-text-primary text-sm leading-snug">{step.title}</p>
-                            {step.chemical && (
-                              <div className="mt-2 inline-flex items-center gap-1.5 bg-surface rounded-lg px-2.5 py-1.5">
-                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#0078B8" strokeWidth="2.2" strokeLinecap="round"><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18"/></svg>
-                                <span className="text-xs font-bold" style={{color:'#0078B8'}}>{step.chemical}</span>
-                                {step.amount && <span className="text-xs font-bold text-text-muted">· {step.amount}</span>}
-                              </div>
-                            )}
+                            {gi < groups.length - 1 && <div className="h-px flex-1 bg-gray-100" />}
                           </div>
-                        </div>
-                        {/* Details */}
-                        <div className="px-4 pb-4 space-y-3 border-t border-gray-50 pt-3">
-                          <div>
-                            <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{color:'#0078B8'}}>Why</p>
-                            <p className="text-xs text-text-muted leading-relaxed">{step.why}</p>
-                          </div>
-                          <div>
-                            <p className="text-[10px] font-bold uppercase tracking-widest mb-2" style={{color:'#0078B8'}}>How to apply</p>
-                            {(() => {
-                              // Split on \n\n paragraphs first; if that yields only one block,
-                              // also split on "Step N —" boundaries so old stored results work too
-                              let blocks = step.how.split('\n\n').map(s => s.trim()).filter(Boolean)
-                              if (blocks.length === 1) {
-                                blocks = step.how.split(/(?=Step \d+\s*[—–-])/).map(s => s.trim()).filter(Boolean)
-                              }
+                          <div className="space-y-4 pl-5 border-l-2" style={{borderColor: group.meta.color + '30'}}>
+                            {group.steps.map(step => {
+                              const stepColor = step.step === 1
+                                ? '#DC2626' : step.step === 2
+                                ? '#EA580C' : '#D97706'
                               return (
-                                <div className="space-y-3">
-                                  {blocks.map((block, idx) => {
-                                    const m = block.match(/^(Step \d+)\s*[—–-]\s*([\s\S]+)$/)
-                                    if (m) return (
-                                      <div key={idx}>
-                                        <p className="text-xs font-bold text-text-primary mb-0.5">{m[1]}</p>
-                                        <p className="text-xs text-text-muted leading-relaxed">{m[2]}</p>
+                                <div key={step.step} className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                                  <div className="px-4 pt-4 pb-3 flex items-start gap-3">
+                                    <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 font-bold text-sm text-white" style={{background: stepColor, fontFamily:"'Oswald',sans-serif"}}>
+                                      {step.step}
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                      <p className="font-bold text-text-primary text-sm leading-snug">{step.title}</p>
+                                      {step.chemical && (
+                                        <div className="mt-2 inline-flex items-center gap-1.5 bg-surface rounded-lg px-2.5 py-1.5">
+                                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#0078B8" strokeWidth="2.2" strokeLinecap="round"><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18"/></svg>
+                                          <span className="text-xs font-bold" style={{color:'#0078B8'}}>{step.chemical}</span>
+                                          {step.amount && <span className="text-xs font-bold text-text-muted">· {step.amount}</span>}
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+                                  <div className="px-4 pb-4 space-y-3 border-t border-gray-50 pt-3">
+                                    <div>
+                                      <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{color:'#0078B8'}}>Why</p>
+                                      <p className="text-xs text-text-muted leading-relaxed">{step.why}</p>
+                                    </div>
+                                    <div>
+                                      <p className="text-[10px] font-bold uppercase tracking-widest mb-2" style={{color:'#0078B8'}}>How to apply</p>
+                                      {(() => {
+                                        let blocks = step.how.split('\n\n').map((s: string) => s.trim()).filter(Boolean)
+                                        if (blocks.length === 1) blocks = step.how.split(/(?=Step \d+\s*[—–-])/).map((s: string) => s.trim()).filter(Boolean)
+                                        return (
+                                          <div className="space-y-3">
+                                            {blocks.map((block: string, idx: number) => {
+                                              const m = block.match(/^(Step \d+)\s*[—–-]\s*([\s\S]+)$/)
+                                              if (m) return (
+                                                <div key={idx}>
+                                                  <p className="text-xs font-bold text-text-primary mb-0.5">{m[1]}</p>
+                                                  <p className="text-xs text-text-muted leading-relaxed">{m[2]}</p>
+                                                </div>
+                                              )
+                                              return <p key={idx} className="text-xs text-text-muted leading-relaxed">{block}</p>
+                                            })}
+                                          </div>
+                                        )
+                                      })()}
+                                    </div>
+                                    <div>
+                                      <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{color:'#0078B8'}}>What to look for</p>
+                                      <p className="text-xs text-text-muted leading-relaxed">{step.lookFor}</p>
+                                    </div>
+                                    {step.note && (
+                                      <div className="bg-amber-50 rounded-xl px-3 py-2.5 flex gap-2">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#D48800" strokeWidth="2.2" strokeLinecap="round" className="shrink-0 mt-0.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                                        <p className="text-[11px] text-amber-800 leading-relaxed">{step.note}</p>
                                       </div>
-                                    )
-                                    return <p key={idx} className="text-xs text-text-muted leading-relaxed">{block}</p>
-                                  })}
+                                    )}
+                                  </div>
                                 </div>
                               )
-                            })()}
+                            })}
                           </div>
-                          <div>
-                            <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{color:'#0078B8'}}>What to look for</p>
-                            <p className="text-xs text-text-muted leading-relaxed">{step.lookFor}</p>
-                          </div>
-                          {step.note && (
-                            <div className="bg-amber-50 rounded-xl px-3 py-2.5 flex gap-2">
-                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#D48800" strokeWidth="2.2" strokeLinecap="round" className="shrink-0 mt-0.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-                              <p className="text-[11px] text-amber-800 leading-relaxed">{step.note}</p>
-                            </div>
-                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )
+                })()}
+              </>
+            ) : null}
+
+            {/* Ongoing maintenance guide */}
+            {lastTest.recommendations.maintenance && lastTest.recommendations.maintenance.length > 0 && (
+              <>
+                <p className="text-xs font-bold uppercase tracking-widest text-text-muted mb-3">Your Pool — Ongoing Guide</p>
+                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mb-6">
+                  {lastTest.recommendations.maintenance.map((tip, i) => {
+                    const icons: Record<string, JSX.Element> = {
+                      testing:  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0078B8" strokeWidth="2" strokeLinecap="round"><path d="M9 3v11l-3 3h12l-3-3V3"/><line x1="9" y1="3" x2="15" y2="3"/></svg>,
+                      chlorine: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0078B8" strokeWidth="2" strokeLinecap="round"><path d="M12 2C6 9 4 13 4 16a8 8 0 0 0 16 0c0-3-2-7-8-14z"/></svg>,
+                      shock:    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#DC2626" strokeWidth="2" strokeLinecap="round"><polyline points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>,
+                      brushing: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0078B8" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><path d="M8 12h8M12 8v8"/></svg>,
+                      seasonal: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#D97706" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>,
+                      filter:   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0078B8" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>,
+                    }
+                    return (
+                      <div key={i} className={`px-4 py-3.5 flex items-start gap-3 ${i > 0 ? 'border-t border-gray-50' : ''}`}>
+                        <div className="w-6 h-6 rounded-lg flex items-center justify-center shrink-0 mt-0.5" style={{background:'#F0F6FA'}}>
+                          {icons[tip.category]}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs font-bold text-text-primary mb-0.5">{tip.title}</p>
+                          <p className="text-[11px] text-text-muted leading-relaxed">{tip.body}</p>
                         </div>
                       </div>
                     )
                   })}
                 </div>
               </>
-            ) : null}
+            )}
 
             {/* Looking good — with descriptions */}
             {lastTest.recommendations.good.length > 0 && (
