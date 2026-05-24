@@ -48,13 +48,18 @@ export default function LandingPage() {
         <p className="text-white/80 text-lg max-w-lg mx-auto mb-8 leading-relaxed">
           Enter your test results. Get exact doses in plain English.<br className="hidden sm:block" /> Log everything. Share with a pro in one tap.
         </p>
-        <Link href="/signup?founding=1" className="inline-block bg-teal text-pool-deep text-lg font-bold px-9 py-4 rounded-xl hover:opacity-90 transition-all hover:-translate-y-0.5 shadow-lg">
-          Claim Your Founding Spot →
-        </Link>
-        <p className="mt-4 text-sm text-white/50">
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-4">
+          <Link href="/signup?founding=1" className="inline-block bg-teal text-pool-deep text-lg font-bold px-9 py-4 rounded-xl hover:opacity-90 transition-all hover:-translate-y-0.5 shadow-lg">
+            Claim Founding Spot →
+          </Link>
+          <Link href="/signup" className="inline-block bg-white/10 border border-white/25 text-white text-lg font-bold px-9 py-4 rounded-xl hover:bg-white/20 transition-all">
+            Join Free
+          </Link>
+        </div>
+        <p className="text-sm text-white/50">
           Already joined by <strong className="text-white/80">127 homeowners</strong> saving $1,200+/year in service fees.
         </p>
-        <Link href="/login" className="block mt-4 text-sm text-white/50 underline hover:text-white/70 transition-colors">
+        <Link href="/login" className="block mt-3 text-sm text-white/40 hover:text-white/60 transition-colors">
           Already a member? Sign in →
         </Link>
       </section>
