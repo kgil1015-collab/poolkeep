@@ -121,7 +121,7 @@ export default function DashboardPage() {
       localStorage.setItem('poolkeep_active_pool', active.id)
       setPool(active)
       setRemindDays(active.remind_after_days ?? null)
-      const { data: tests } = await supabase.from('test_results').select('health_score,recommendations,created_at,ph,free_chlorine,total_alkalinity,cya,calcium_hardness,salt').eq('pool_id', active.id).order('created_at', { ascending: false }).limit(1)
+      const { data: tests } = await supabase.from('test_results').select('health_score,recommendations,created_at,ph,free_chlorine,total_alkalinity,cya,calcium_hardness,salt,tds').eq('pool_id', active.id).order('created_at', { ascending: false }).limit(1)
       if (tests && tests.length > 0) setLastTest(tests[0])
       setLoading(false)
     })
@@ -142,7 +142,7 @@ export default function DashboardPage() {
     const supabase = createClient()
     const { data: tests } = await supabase
       .from('test_results')
-      .select('health_score,recommendations,created_at,ph,free_chlorine,total_alkalinity,cya,calcium_hardness,salt')
+      .select('health_score,recommendations,created_at,ph,free_chlorine,total_alkalinity,cya,calcium_hardness,salt,tds')
       .eq('pool_id', p.id)
       .order('created_at', { ascending: false })
       .limit(1)
