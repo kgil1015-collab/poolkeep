@@ -76,7 +76,7 @@ function acidAmount(floz: number): string {
   const dryStr = dryLbs < 1
     ? `${Math.round(dryLbs * 16)} oz`
     : `${dryLbs % 1 === 0 ? dryLbs : dryLbs.toFixed(2).replace(/\.?0+$/, '')} lbs`
-  return `${liquidStr} muriatic · or ${dryStr} dry acid`
+  return `${liquidStr} muriatic acid · or ${dryStr} dry acid (93% sodium bisulfate)`
 }
 
 // Correct chemical order for balancing pool water:
@@ -217,6 +217,7 @@ function buildTreatmentPlan(test: TestInput, v: number): TreatmentStep[] {
         lookFor: phAlsoHigh
           ? 'Retest both TA and pH the next day. Target TA 80–120 ppm and pH 7.2–7.6. One acid treatment typically moves both into range.'
           : 'Retest next day. Aeration is your friend after an acid treatment — it naturally raises pH without undoing your TA work. Target 80–120 ppm. pH may also need adjustment once TA settles.',
+        note: `ABOUT DRY ACID PRODUCTS\n\nThe dry acid dose shown assumes standard 93% sodium bisulfate — the active ingredient in most pool-grade "pH Down" or "Alkalinity Down" products sold at hardware stores (BioGuard, Clorox, Natural Chemistry, etc.).\n\nMany store-brand products, including some sold at Leslie's, contain only 30–35% sodium bisulfate. At that concentration you would need 2–3× the listed amount to achieve the same result. A bag that says "pH Down" or "Dry Acid" is not always the same strength.\n\nHow to check: look at the label for "Active Ingredient: Sodium Bisulfate ___%" or the percentage listed under "Guaranteed Analysis." If it reads 93%, use the dose shown. If it reads 30–35%, multiply the dose by about 2.5.\n\nBest advice: muriatic acid is the most predictable option — it is a standardized product (31.45% or 20° Baumé) sold everywhere, and our liquid acid dose will be accurate regardless of brand.`,
       })
     } else if (ta > 120) {
       raw.push({
