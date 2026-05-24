@@ -86,9 +86,11 @@ function buildTreatmentPlan(test: TestInput, v: number): TreatmentStep[] {
   const cya = test.cya
   const ca = test.calcium_hardness
 
-  // Track what the shock step already handles so we skip redundant standalone steps.
+  // Track what earlier steps already handle so we never tell the user to add
+  // muriatic acid in more than one step.
   let shockHandledPH = false
   let shockHandledTA = false
+  let taHandledPH = false
 
   // ── SHOCK (critically low chlorine — acid first, then shock) ────────────────
   if (fc !== null && fc < 0.5) {
@@ -178,16 +180,24 @@ function buildTreatmentPlan(test: TestInput, v: number): TreatmentStep[] {
       })
     } else if (ta > 140 && !shockHandledTA) {
       const dose = Math.round(v * 26 * ((ta - 120) / 10))
+      const phAlsoHigh = ph !== null && ph > 7.6
+      if (phAlsoHigh) taHandledPH = true
       raw.push({
         order: 1,
         urgency: 'soon',
         param: 'alkalinity',
-        title: 'Lower total alkalinity',
+        title: phAlsoHigh ? 'Lower alkalinity and pH' : 'Lower total alkalinity',
         chemical: 'pH Reducer (Muriatic Acid or Dry Acid / pH Down)',
         amount: acidAmount(dose),
-        why: `Alkalinity at ${ta} ppm is too high. While TA needs to be high enough to stabilize pH, too much of it has the opposite effect — it makes pH stubbornly resistant to adjustment, like trying to steer a heavy vehicle. High TA also creates conditions where calcium scale is more likely to form on pool surfaces and equipment. Bringing TA into range first makes all other chemistry easier to manage.`,
-        how: 'Add muriatic acid to the deep end in the evening with the pump running. Pour slowly along the edge — never splash acid. Wear gloves and eye protection. After adding, run the pump for 2 hours. Then aerate the water by aiming a return jet at the surface — this raises pH back up without affecting TA, which is exactly what you want here.',
-        lookFor: 'Retest next day. Aeration is your friend after an acid treatment — it naturally raises pH without undoing your TA work. Target 80–120 ppm. pH may also need adjustment once TA settles.',
+        why: phAlsoHigh
+          ? `Alkalinity at ${ta} ppm is too high, and your pH at ${ph} is elevated as well — one acid treatment handles both. High TA makes pH stubbornly resistant to adjustment and promotes scale buildup on pool surfaces. The acid addition that brings TA down will also lower your pH, so there is no need to add acid twice.`
+          : `Alkalinity at ${ta} ppm is too high. While TA needs to be high enough to stabilize pH, too much of it has the opposite effect — it makes pH stubbornly resistant to adjustment, like trying to steer a heavy vehicle. High TA also creates conditions where calcium scale is more likely to form on pool surfaces and equipment. Bringing TA into range first makes all other chemistry easier to manage.`,
+        how: phAlsoHigh
+          ? 'Add muriatic acid to the deep end in the evening with the pump running. Pour slowly along the edge — never splash acid. Wear gloves and eye protection. After adding, run the pump for 2 hours. Since your pH also needs to come down, skip the aeration step or do very little of it — let pH settle naturally rather than aerating it back up.'
+          : 'Add muriatic acid to the deep end in the evening with the pump running. Pour slowly along the edge — never splash acid. Wear gloves and eye protection. After adding, run the pump for 2 hours. Then aerate the water by aiming a return jet at the surface — this raises pH back up without affecting TA, which is exactly what you want here.',
+        lookFor: phAlsoHigh
+          ? 'Retest both TA and pH the next day. Target TA 80–120 ppm and pH 7.2–7.6. One acid treatment typically moves both into range.'
+          : 'Retest next day. Aeration is your friend after an acid treatment — it naturally raises pH without undoing your TA work. Target 80–120 ppm. pH may also need adjustment once TA settles.',
       })
     } else if (ta > 120) {
       raw.push({
@@ -221,9 +231,9 @@ function buildTreatmentPlan(test: TestInput, v: number): TreatmentStep[] {
   }
 
   // ── pH (effective only after TA is stable) ──────────────────────────────────
-  // Skip if the shock step already included an acid pre-treatment for pH —
-  // generating a second pH step would just tell the user to add acid twice.
-  if (ph !== null && !shockHandledPH) {
+  // Skip if shock or TA step already used acid that covers pH — never tell
+  // the user to add muriatic acid in more than one step.
+  if (ph !== null && !shockHandledPH && !taHandledPH) {
     const taKnownAndOff = ta !== null && (ta < 60 || ta > 140)
     const taUnknown = ta === null
     const sequenceNote = taKnownAndOff
