@@ -479,10 +479,15 @@ export default function DashboardPage() {
                                 next.has(step.step) ? next.delete(step.step) : next.add(step.step)
                                 return next
                               })
-                              // Extract a single direct action sentence from how
+                              // Extract the core action from how — show full sentences, no mid-sentence cuts
                               const paras = step.how.split('\n\n').map((s: string) => s.trim()).filter(Boolean)
                               const lastPara = paras[paras.length - 1].replace(/^Step \d+\s*[—–-]\s*/, '')
-                              const actionLine = lastPara.length > 140 ? lastPara.slice(0, 137) + '…' : lastPara
+                              // Keep up to 220 chars but always end on a complete sentence
+                              const actionLine = lastPara.length <= 220 ? lastPara : (() => {
+                                const cut = lastPara.slice(0, 220)
+                                const lastDot = cut.lastIndexOf('. ')
+                                return lastDot > 80 ? cut.slice(0, lastDot + 1) : cut + '…'
+                              })()
 
                               return (
                                 <div key={step.step} className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
