@@ -86,35 +86,61 @@ function buildTreatmentPlan(test: TestInput, v: number): TreatmentStep[] {
   const cya = test.cya
   const ca = test.calcium_hardness
 
-  // Track whether the shock step already handles the pH reduction, so we skip
-  // generating a redundant standalone pH step (order 2) in that case.
+  // Track what the shock step already handles so we skip redundant standalone steps.
   let shockHandledPH = false
+  let shockHandledTA = false
 
   // ── SHOCK (critically low chlorine — acid first, then shock) ────────────────
   if (fc !== null && fc < 0.5) {
     const dose = Math.round(v * 2 * Math.max(1, 3 - fc))
     const phHigh = ph !== null && ph > 7.2
     const phUnknown = ph === null
-    const acidDose = ph !== null && ph > 7.2
+    const taHigh = ta !== null && ta > 140
+
+    // When TA is also high, one acid dose handles both TA and pH — use the
+    // larger TA dose. When only pH is off, use the pH-specific dose.
+    const taDose = taHigh ? Math.round(v * 26 * ((ta! - 120) / 10)) : 0
+    const phOnlyDose = ph !== null && ph > 7.2
       ? Math.round(v * 13 * ((ph - 7.2) / 0.6))
       : Math.round(v * 8)
-    const needsAcid = phHigh || phUnknown
+    const acidDose = taHigh ? taDose : phOnlyDose
+    const needsAcid = phHigh || phUnknown || taHigh
+
     if (needsAcid) shockHandledPH = true
+    if (taHigh) shockHandledTA = true
+
     const phEfficiency = ph !== null
       ? ph <= 7.0 ? '73%' : ph <= 7.2 ? '66%' : ph <= 7.5 ? '49%' : ph <= 7.8 ? '33%' : '21%'
       : null
+
+    const stepTitle = !needsAcid
+      ? 'Shock the pool — do not swim yet'
+      : taHigh && phHigh
+      ? 'Lower alkalinity and pH first, then shock'
+      : taHigh
+      ? 'Lower alkalinity first, then shock'
+      : 'Lower pH first, then shock'
+
+    const stepChemical = !needsAcid
+      ? 'Pool Shock'
+      : 'pH Reducer (Muriatic Acid or Dry Acid) → then Pool Shock'
+
+    const acidHow = taHigh
+      ? `Step 1 — Add pH reducer (${acidAmount(acidDose)}) to the deep end all at once with the pump running — pouring it concentrated in one spot is what pulls alkalinity down. Wear gloves and eye protection. This dose will also lower your pH. Wait 30–60 minutes for it to circulate.\n\nStep 2 — Brush all pool surfaces — walls, floor, steps, and any corners — before adding shock. Algae and bacteria cling to surfaces and the shock cannot reach what it cannot contact. Brushing knocks it into the water where the chlorine can do its job.\n\nStep 3 — `
+      : `Step 1 — Add pH reducer (${acidAmount(acidDose)}) to the deep end with the pump running. Wear gloves and eye protection. Wait 30–60 minutes for it to fully circulate through the pool.\n\nStep 2 — Brush all pool surfaces — walls, floor, steps, and any corners — before adding shock. Algae and bacteria cling to surfaces and the shock cannot reach what it cannot contact. Brushing knocks it into the water where the chlorine can do its job.\n\nStep 3 — `
+
     raw.push({
       order: 0,
       urgency: 'urgent',
       param: 'chlorine',
-      title: needsAcid ? 'Lower pH first, then shock' : 'Shock the pool — do not swim yet',
-      chemical: needsAcid ? 'pH Reducer (Muriatic Acid or Dry Acid) → then Pool Shock' : 'Pool Shock',
+      title: stepTitle,
+      chemical: stepChemical,
       amount: needsAcid
         ? `${acidAmount(acidDose)} · then ${oz(dose, 'lbs')} shock`
         : oz(dose, 'lbs'),
       why: `Free chlorine is at ${fc} ppm — water is unsafe to swim in. Here is something most pool owners never learn: the effectiveness of chlorine is almost entirely controlled by pH. Chlorine exists in two forms in water — active (hypochlorous acid, HOCl) and inactive (hypochlorite ion, OCl⁻). Only the active form kills bacteria and algae. At pH 7.0, about 73% of your chlorine is in that active form. At pH 7.5, it drops to 49%. At pH 7.8, only 33%. At pH 8.0, just 21%. ${phHigh && phEfficiency ? `Your current pH of ${ph} means only about ${phEfficiency} of the shock you add will actually be working. Lowering pH first before shocking means 2–3× more active sanitizer from the same amount of product.` : phUnknown ? `Since pH is untested, add a small acid dose first as a precaution — if your pH is elevated you could waste the majority of the shock you add.` : `With pH already in range, a high percentage of the shock you add will be in its active, sanitizing form.`}`,
       how: `${needsAcid
-        ? `Step 1 — Add pH reducer (${acidAmount(acidDose)}) to the deep end with the pump running. Wear gloves and eye protection. Wait 30–60 minutes for it to fully circulate through the pool.\n\nStep 2 — Brush all pool surfaces — walls, floor, steps, and any corners — before adding shock. Algae and bacteria cling to surfaces and the shock cannot reach what it cannot contact. Brushing knocks it into the water where the chlorine can do its job.\n\nStep 3 — `
+        ? acidHow
         : `Step 1 — Brush all pool surfaces — walls, floor, steps, and any corners. Algae clings to surfaces and chlorine cannot sanitize what it cannot contact. Brushing first makes the shock dramatically more effective.\n\nStep 2 — `}Add shock in the evening — UV sunlight destroys chlorine rapidly, and shocking during the day means much of it is gone before it can do its job. Pour around the perimeter with the pump running.`,
       lookFor: `Retest in 2 hours and again the next morning. Do not swim until chlorine reads above 1 ppm. Chlorine will spike well above normal levels before settling — that is expected and is not a problem. If levels drop back near zero within a day or two, check your CYA. Without adequate stabilizer (30–50 ppm), UV sunlight can destroy most of your chlorine within a few hours on a sunny day — no amount of shocking will hold if the stabilizer is not protecting it.`,
       note: `Liquid chlorine (sodium hypochlorite): starts working within minutes — best if you need same-day results or want the pool ready tonight. Does not add CYA or calcium. One downside: it degrades in storage, so use within a few months of purchase.\n\nGranular shock (cal-hypo, 65–68%): takes 1–2 hours to fully dissolve and activate, but releases chlorine more slowly and lasts longer in the water — better for an overnight recovery treatment. Pre-dissolve in a bucket of water before adding — never pour dry cal-hypo directly into the pool or onto a vinyl liner (it generates heat and can bleach surfaces).\n\nAvoid dichlor shock if your CYA is already above 50 ppm — dichlor adds stabilizer with every dose and will push you toward chlorine lock over time.${phUnknown ? '\n\nIf pH is already at or below 7.2, skip the acid pre-treatment and go straight to shocking.' : ''}`,
@@ -150,7 +176,7 @@ function buildTreatmentPlan(test: TestInput, v: number): TreatmentStep[] {
         how: 'Broadcast across the pool surface with the pump running. Let it circulate for several hours.',
         lookFor: 'Retest next day. pH may shift slightly upward once TA rises — check pH before adding any pH increaser, so you do not overshoot.',
       })
-    } else if (ta > 140) {
+    } else if (ta > 140 && !shockHandledTA) {
       const dose = Math.round(v * 26 * ((ta - 120) / 10))
       raw.push({
         order: 1,
