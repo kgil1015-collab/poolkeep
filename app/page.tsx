@@ -136,10 +136,10 @@ export default function LandingPage() {
               <p className="text-xs font-bold uppercase tracking-widest text-white/60 mb-1">Pro</p>
               <div className="flex items-baseline gap-1.5 mb-1">
                 <p className="text-4xl font-bold text-white" style={{fontFamily:"'Oswald',sans-serif"}}>$4.99</p>
-                <span className="text-white/60 text-sm">/mo</span>
+                <span className="text-white/60 text-sm">/mo forever</span>
               </div>
-              <p className="text-xs text-white/50 mb-1">or $39.99/yr — save 33%</p>
-              <p className="text-[10px] text-teal font-semibold mb-5">Price locks in forever when you join today</p>
+              <p className="text-xs text-white/50 mb-1">$60 one-time to join · then $4.99/mo locked for life</p>
+              <p className="text-[10px] text-teal font-semibold mb-5">Rate never increases — even as we raise prices</p>
               <div className="space-y-2.5">
                 {['Unlimited water tests','Up to 5 pools','Full trend charts & history','Priority support','Lock in founding price for life'].map((f, i) => (
                   <div key={i} className="flex items-center gap-2.5">
