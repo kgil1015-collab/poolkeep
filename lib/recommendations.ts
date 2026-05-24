@@ -51,6 +51,14 @@ function liq(floz: number): string {
   return `${Math.round(floz)} fl oz`
 }
 
+// Shows both liquid chlorine and granular cal-hypo shock amounts for maintenance doses
+// Conversion: 13 fl oz liquid (10%) ≈ 2 dry oz granular cal-hypo (65%) per 10k gal per 1 ppm
+function chlorineBothAmounts(floz: number): string {
+  const dryOz = Math.max(1, Math.round(floz / 6.5))
+  const dryStr = dryOz < 16 ? `${dryOz} oz` : `${(dryOz / 16).toFixed(1)} lbs`
+  return `${liq(floz)} liquid chlorine · or ${dryStr} granular shock`
+}
+
 // Shows both liquid muriatic acid and dry acid (sodium bisulfate) amounts
 // Conversion: 1 lb dry acid ≈ 25.5 fl oz muriatic acid
 function acidAmount(floz: number): string {
@@ -102,11 +110,9 @@ function buildTreatmentPlan(test: TestInput, v: number): TreatmentStep[] {
       why: `Free chlorine is at ${fc} ppm — water is unsafe to swim in. Here is something most pool owners never learn: the effectiveness of chlorine is almost entirely controlled by pH. Chlorine exists in two forms in water — active (hypochlorous acid, HOCl) and inactive (hypochlorite ion, OCl⁻). Only the active form kills bacteria and algae. At pH 7.0, about 73% of your chlorine is in that active form. At pH 7.5, it drops to 49%. At pH 7.8, only 33%. At pH 8.0, just 21%. ${phHigh && phEfficiency ? `Your current pH of ${ph} means only about ${phEfficiency} of the shock you add will actually be working. Lowering pH first before shocking means 2–3× more active sanitizer from the same amount of product.` : phUnknown ? `Since pH is untested, add a small acid dose first as a precaution — if your pH is elevated you could waste the majority of the shock you add.` : `With pH already in range, a high percentage of the shock you add will be in its active, sanitizing form.`}`,
       how: `${needsAcid
         ? `Step 1 — Add pH reducer (${acidAmount(acidDose)}) to the deep end with the pump running. Wear gloves and eye protection. Wait 30–60 minutes for it to fully circulate through the pool.\n\nStep 2 — `
-        : ``}Add shock in the evening — UV sunlight destroys chlorine rapidly, and shocking during the day means much of it is gone before it can do its job. Pour around the deep end with the pump running.\n\nChoosing your shock product: Liquid chlorine starts working within minutes and is best when you need same-day results — it also does not add CYA or raise calcium. Granular shock (cal-hypo) takes longer to fully dissolve and activate, but stays in the water longer and is better for an overnight recovery treatment. Both are effective. Avoid dichlor shock if your CYA is already in the upper part of its range, since dichlor adds CYA with every single dose and can push you toward chlorine lock over time.`,
+        : ``}Add shock in the evening — UV sunlight destroys chlorine rapidly, and shocking during the day means much of it is gone before it can do its job. Pour around the deep end with the pump running.`,
       lookFor: `Retest in 2 hours and again the next morning. Do not swim until chlorine reads above 1 ppm. Chlorine will spike well above normal levels before settling — that is expected and is not a problem. If levels drop back near zero within a day or two, check your CYA. Without adequate stabilizer (30–50 ppm), UV sunlight can destroy most of your chlorine within a few hours on a sunny day — no amount of shocking will hold if the stabilizer is not protecting it.`,
-      note: phUnknown
-        ? `Test pH before adding acid if possible. If pH is already at or below 7.2, skip the acid step and go straight to shocking.`
-        : undefined,
+      note: `Liquid chlorine (sodium hypochlorite): starts working within minutes — best if you need same-day results or want the pool ready tonight. Does not add CYA or calcium. One downside: it degrades in storage, so use within a few months of purchase.\n\nGranular shock (cal-hypo, 65–68%): takes 1–2 hours to fully dissolve and activate, but releases chlorine more slowly and lasts longer in the water — better for an overnight recovery treatment. Pre-dissolve in a bucket of water before adding — never pour dry cal-hypo directly into the pool or onto a vinyl liner (it generates heat and can bleach surfaces).\n\nAvoid dichlor shock if your CYA is already above 50 ppm — dichlor adds stabilizer with every dose and will push you toward chlorine lock over time.${phUnknown ? '\n\nIf pH is already at or below 7.2, skip the acid pre-treatment and go straight to shocking.' : ''}`,
     })
   }
 
@@ -257,12 +263,12 @@ function buildTreatmentPlan(test: TestInput, v: number): TreatmentStep[] {
       urgency: 'soon',
       param: 'chlorine',
       title: 'Add chlorine',
-      chemical: 'Liquid Chlorine',
-      amount: liq(dose),
-      why: `Free chlorine at ${fc} ppm is below the 1 ppm safe minimum. Chlorine is your pool's primary line of defense against bacteria, algae, and pathogens — and its effectiveness is directly tied to pH. ${phOff ? `By completing the pH adjustment above first, you will get significantly more active sanitizer from the same amount of chlorine you add.` : `With pH in the ideal 7.2–7.6 range, the chlorine you add now will be working at close to full strength.`}\n\nLiquid chlorine (sodium hypochlorite) starts working within minutes and is the fastest way to restore safe levels. It also does not add CYA or significantly affect calcium — making it a versatile choice for regular maintenance. Granular shock works more slowly but stays in the water longer, making it better suited for overnight recovery or when you want longer-lasting results.`,
+      chemical: 'Liquid Chlorine or Granular Shock',
+      amount: chlorineBothAmounts(dose),
+      why: `Free chlorine at ${fc} ppm is below the 1 ppm safe minimum. Chlorine is your pool's primary line of defense against bacteria, algae, and pathogens — and its effectiveness is directly tied to pH. ${phOff ? `By completing the pH adjustment above first, you will get significantly more active sanitizer from the same amount of chlorine you add.` : `With pH in the ideal 7.2–7.6 range, the chlorine you add now will be working at close to full strength.`}`,
       how: 'Pour around the perimeter with the pump running. Add in the evening when possible — UV sunlight degrades chlorine rapidly, and an evening addition gives the chlorine hours to circulate and work overnight before the sun can break it down.',
       lookFor: 'Retest in 4 hours. Target 1–3 ppm for normal swimming. If chlorine drops back to low levels within a day, test your CYA — without adequate stabilizer, UV can burn off most of your chlorine within just a few hours on a sunny day.',
-      note: cya === null ? `We do not have your CYA reading. If chlorine consistently disappears faster than expected between tests, low or absent stabilizer is almost certainly why. CYA protects chlorine from UV — without it, you are essentially pouring money in and watching the sun take it.` : undefined,
+      note: `Liquid chlorine (sodium hypochlorite): works within minutes, leaves no residue, and does not add CYA or calcium — best choice for a quick same-day top-up or if you plan to swim soon.\n\nGranular shock (cal-hypo): takes 30–60 minutes to fully dissolve and activate, but releases chlorine more slowly and stays in the water longer — better for an end-of-day or overnight treatment. Pre-dissolve in a bucket of water before adding — never pour dry granular directly on a vinyl liner.\n\nAvoid dichlor shock for routine top-ups: it adds CYA with every dose and will slowly push your stabilizer levels too high over a season.${cya === null ? '\n\nNote: we do not have your CYA reading. If chlorine disappears faster than expected between tests, low stabilizer is almost certainly why.' : ''}`,
     })
   }
 
@@ -419,7 +425,7 @@ export function calculateRecommendations(test: TestInput, volumeGallons: number)
     recs.push({ status: 'action', param: 'chlorine', title: 'Chlorine critically low — shock now', desc: `Free chlorine at ${test.free_chlorine} ppm — unsafe for swimming. Shock the pool immediately.`, tags: [`Pool Shock · ${oz(dose, 'lbs')}`, 'Do not swim until 1+ ppm', 'Re-test in 2 hours'] })
   } else if (test.free_chlorine < 1) {
     const dose = Math.round(v * 13 * (1 - test.free_chlorine))
-    recs.push({ status: 'action', param: 'chlorine', title: 'Add chlorine', desc: `Free chlorine at ${test.free_chlorine} ppm — below the safe minimum of 1 ppm.`, tags: [`Liquid Chlorine · ${liq(dose)}`, 'Re-test in 4 hours'] })
+    recs.push({ status: 'action', param: 'chlorine', title: 'Add chlorine', desc: `Free chlorine at ${test.free_chlorine} ppm — below the safe minimum of 1 ppm.`, tags: [`Liquid or Granular · ${chlorineBothAmounts(dose)}`, 'Re-test in 4 hours'] })
   } else if (test.free_chlorine > 5) {
     recs.push({ status: 'monitor', param: 'chlorine', title: 'Chlorine high — wait before swimming', desc: `Free chlorine at ${test.free_chlorine} ppm. Wait 24–48 hours before swimming. Sunlight will naturally lower it.`, tags: ['No chemicals needed', 'Re-test tomorrow'] })
   } else {
