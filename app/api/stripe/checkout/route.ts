@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Not logged in — please sign in first' }, { status: 401 })
     }
 
-    const { priceId } = await req.json() as { priceId: string }
+    const { priceId, founding } = await req.json() as { priceId: string; founding?: boolean }
     if (!priceId) {
       return NextResponse.json({ error: 'Missing priceId' }, { status: 400 })
     }
@@ -61,7 +61,16 @@ export async function POST(req: NextRequest) {
       success_url: `${appUrl}/dashboard?upgraded=1`,
       cancel_url: `${appUrl}/pro`,
       subscription_data: {
-        metadata: { supabase_user_id: user.id },
+        metadata: { supabase_user_id: user.id, founding_member: founding ? 'true' : 'false' },
+        ...(founding ? {
+          add_invoice_items: [{
+            price_data: {
+              currency: 'usd',
+              product_data: { name: 'Founding Member Setup' },
+              unit_amount: 6000,
+            },
+          }],
+        } : {}),
       },
     })
 

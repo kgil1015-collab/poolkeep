@@ -34,10 +34,13 @@ const SERVICE_FEATURES = [
 
 const PRICE_MONTHLY = process.env.NEXT_PUBLIC_STRIPE_PRICE_MONTHLY ?? ''
 const PRICE_ANNUAL = process.env.NEXT_PUBLIC_STRIPE_PRICE_ANNUAL ?? ''
+const PRICE_FOUNDING = process.env.NEXT_PUBLIC_STRIPE_PRICE_FOUNDING ?? ''
+
+const FOUNDING_SPOTS_SHOWN = 200
 
 export default function ProPage() {
   const router = useRouter()
-  const [billing, setBilling] = useState<'monthly' | 'annual'>('annual')
+  const [billing, setBilling] = useState<'monthly' | 'annual' | 'founding'>('founding')
   const [loading, setLoading] = useState(false)
   const [upgradeError, setUpgradeError] = useState<string | null>(null)
   const [notified, setNotified] = useState(false)
@@ -88,7 +91,7 @@ export default function ProPage() {
   const isPro = subStatus === 'active' || subStatus === 'trialing'
 
   async function handleUpgrade() {
-    const priceId = billing === 'annual' ? PRICE_ANNUAL : PRICE_MONTHLY
+    const priceId = billing === 'annual' ? PRICE_ANNUAL : billing === 'founding' ? PRICE_FOUNDING : PRICE_MONTHLY
     if (!priceId) {
       setUpgradeError('Stripe price not configured — check environment variables.')
       return
@@ -99,7 +102,7 @@ export default function ProPage() {
       const res = await fetch('/api/stripe/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ priceId }),
+        body: JSON.stringify({ priceId, founding: billing === 'founding' }),
       })
       const data = await res.json()
       if (!res.ok || data.error) throw new Error(data.error ?? `HTTP ${res.status}`)
@@ -237,91 +240,148 @@ export default function ProPage() {
               <span className="text-[11px] font-bold uppercase tracking-widest px-3 py-1 rounded-full" style={{background:'#F0F6FA',color:'#8AAABB'}}>Free</span>
             </div>
 
-            {/* Pro card */}
-            <div className="bg-pool-deep rounded-2xl overflow-hidden shadow-lg" style={{boxShadow:'0 8px 32px rgba(0,61,92,0.25)'}}>
-              <div className="h-1 w-full" style={{background:'linear-gradient(90deg, #00E0B0 0%, #0078B8 60%, #005580 100%)'}} />
-              <div className="px-5 pt-5 pb-4">
-                <div className="flex gap-1.5 rounded-xl p-1 mb-4" style={{background:'rgba(255,255,255,0.1)'}}>
-                  <button onClick={() => setBilling('monthly')} className="flex-1 py-1.5 text-xs font-bold rounded-lg transition-all" style={billing === 'monthly' ? {background:'white',color:'#003D5C'} : {background:'transparent',color:'rgba(255,255,255,0.5)'}}>Monthly</button>
-                  <button onClick={() => setBilling('annual')} className="flex-1 py-1.5 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-1.5" style={billing === 'annual' ? {background:'white',color:'#003D5C'} : {background:'transparent',color:'rgba(255,255,255,0.5)'}}>
-                    Annual
-                    <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full" style={{background:'rgba(0,224,176,0.25)',color:'#00E0B0'}}>Save $21</span>
-                  </button>
-                </div>
+            {/* Plan selector */}
+            <div className="space-y-2.5">
 
-                <div className="flex items-start justify-between gap-3 mb-4">
+              {/* Founding Member */}
+              <button
+                onClick={() => setBilling('founding')}
+                className="w-full text-left rounded-2xl overflow-hidden transition-all"
+                style={{
+                  background: billing === 'founding' ? 'linear-gradient(135deg,#002D44 0%,#004D6B 50%,#005A52 100%)' : 'white',
+                  border: `2px solid ${billing === 'founding' ? '#00E0B0' : '#E8F2F8'}`,
+                  boxShadow: billing === 'founding' ? '0 6px 24px rgba(0,45,68,0.3)' : '0 1px 4px rgba(0,0,0,0.06)',
+                }}
+              >
+                <div className="px-4 pt-4 pb-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full"
+                          style={{background: billing === 'founding' ? 'rgba(0,224,176,0.2)' : 'rgba(0,120,184,0.08)', color: billing === 'founding' ? '#00E0B0' : '#0078B8'}}>
+                          Founding Member · {FOUNDING_SPOTS_SHOWN} spots only
+                        </span>
+                      </div>
+                      <p className="font-bold text-sm mb-0.5" style={{color: billing === 'founding' ? 'white' : '#1A2E3B'}}>Lock in 50% off — forever</p>
+                      <p className="text-xs leading-relaxed" style={{color: billing === 'founding' ? 'rgba(255,255,255,0.55)' : '#8AAABB'}}>
+                        $60 now · then $4.99/mo for life. Pays for itself in year one.
+                      </p>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <p className="text-xs font-semibold mb-0.5" style={{color: billing === 'founding' ? 'rgba(255,255,255,0.4)' : '#8AAABB'}}>then</p>
+                      <div className="flex items-start gap-0.5 leading-none justify-end">
+                        <span className="text-sm font-bold mt-0.5" style={{color: billing === 'founding' ? 'rgba(255,255,255,0.6)' : '#8AAABB', fontFamily:"'Oswald',sans-serif"}}>$</span>
+                        <span className="text-3xl font-bold" style={{color: billing === 'founding' ? 'white' : '#1A2E3B', fontFamily:"'Oswald',sans-serif"}}>4.99</span>
+                      </div>
+                      <p className="text-[10px]" style={{color: billing === 'founding' ? 'rgba(255,255,255,0.4)' : '#8AAABB'}}>/mo forever</p>
+                    </div>
+                  </div>
+                  {billing === 'founding' && (
+                    <div className="mt-3 flex items-center gap-2 pt-3" style={{borderTop:'1px solid rgba(255,255,255,0.1)'}}>
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#00E0B0" strokeWidth="2.2" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><polyline points="20 6 9 17 4 12"/></svg>
+                      <p className="text-[11px]" style={{color:'rgba(255,255,255,0.5)'}}>$60 one-time + $4.99/mo · same cost as regular monthly in year one — then you save $60 every year after</p>
+                    </div>
+                  )}
+                </div>
+              </button>
+
+              {/* Annual */}
+              <button
+                onClick={() => setBilling('annual')}
+                className="w-full text-left rounded-2xl px-4 py-3.5 transition-all"
+                style={{
+                  background: billing === 'annual' ? '#F0F8FF' : 'white',
+                  border: `2px solid ${billing === 'annual' ? '#0078B8' : '#E8F2F8'}`,
+                  boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
+                }}
+              >
+                <div className="flex items-center justify-between">
                   <div>
-                    {billing === 'annual' && (
-                      <span className="text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full" style={{background:'rgba(0,224,176,0.15)',color:'#00E0B0'}}>Most Popular</span>
-                    )}
-                    <h2 className="text-white text-xl font-bold mt-2" style={{fontFamily:"'Oswald',sans-serif"}}>Pro</h2>
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-[10px] font-bold uppercase tracking-widest px-2.5 py-0.5 rounded-full"
+                        style={{background:'rgba(0,120,184,0.1)', color:'#0078B8'}}>Most Popular</span>
+                    </div>
+                    <p className="font-bold text-sm text-text-primary">Annual</p>
+                    <p className="text-xs text-text-muted">$8.25/month · save $21 vs monthly</p>
                   </div>
                   <div className="text-right">
-                    {billing === 'annual' ? (
-                      <>
-                        <p className="text-white/40 text-xs font-semibold uppercase tracking-widest">Billed annually</p>
-                        <div className="flex items-start gap-0.5 mt-1 leading-none">
-                          <span className="text-white/60 text-sm font-bold mt-1" style={{fontFamily:"'Oswald',sans-serif"}}>$</span>
-                          <span className="text-white text-4xl font-bold" style={{fontFamily:"'Oswald',sans-serif"}}>99</span>
-                        </div>
-                        <p className="text-white/50 text-xs mt-0.5">$8.25 / month</p>
-                      </>
-                    ) : (
-                      <>
-                        <p className="text-white/40 text-xs font-semibold uppercase tracking-widest">Billed monthly</p>
-                        <div className="flex items-start gap-0.5 mt-1 leading-none">
-                          <span className="text-white/60 text-sm font-bold mt-1" style={{fontFamily:"'Oswald',sans-serif"}}>$</span>
-                          <span className="text-white text-4xl font-bold" style={{fontFamily:"'Oswald',sans-serif"}}>9.99</span>
-                        </div>
-                        <p className="text-white/50 text-xs mt-0.5">per month</p>
-                      </>
-                    )}
+                    <div className="flex items-start gap-0.5 leading-none justify-end">
+                      <span className="text-sm font-bold mt-0.5 text-text-muted" style={{fontFamily:"'Oswald',sans-serif"}}>$</span>
+                      <span className="text-3xl font-bold text-text-primary" style={{fontFamily:"'Oswald',sans-serif"}}>99</span>
+                    </div>
+                    <p className="text-[10px] text-text-muted">/year</p>
                   </div>
                 </div>
+              </button>
 
-                <div className="space-y-2.5 mb-5">
-                  {PRO_FEATURES.map((f, i) => (
-                    <div key={i} className="flex items-center gap-2.5">
-                      <div className="w-4 h-4 rounded-full flex items-center justify-center shrink-0" style={{background:'rgba(0,224,176,0.2)'}}>
-                        <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#00E0B0" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                      </div>
-                      <span className="text-white/85 text-sm">{f.text}</span>
+              {/* Monthly */}
+              <button
+                onClick={() => setBilling('monthly')}
+                className="w-full text-left rounded-2xl px-4 py-3.5 transition-all"
+                style={{
+                  background: billing === 'monthly' ? '#F0F8FF' : 'white',
+                  border: `2px solid ${billing === 'monthly' ? '#0078B8' : '#E8F2F8'}`,
+                  boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
+                }}
+              >
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-bold text-sm text-text-primary">Monthly</p>
+                    <p className="text-xs text-text-muted">Cancel anytime</p>
+                  </div>
+                  <div className="text-right">
+                    <div className="flex items-start gap-0.5 leading-none justify-end">
+                      <span className="text-sm font-bold mt-0.5 text-text-muted" style={{fontFamily:"'Oswald',sans-serif"}}>$</span>
+                      <span className="text-3xl font-bold text-text-primary" style={{fontFamily:"'Oswald',sans-serif"}}>9.99</span>
                     </div>
-                  ))}
+                    <p className="text-[10px] text-text-muted">/month</p>
+                  </div>
                 </div>
+              </button>
+            </div>
 
-                <button
-                  onClick={handleUpgrade}
-                  disabled={loading || !PRICE_MONTHLY}
-                  className="w-full font-bold py-4 rounded-xl text-sm flex items-center justify-center gap-2 transition-opacity"
-                  style={{background:'#00E0B0', color:'#003D5C', opacity: loading ? 0.7 : 1, boxShadow: loading ? 'none' : '0 4px 20px rgba(0,224,176,0.45)'}}
-                >
-                  {loading ? <svg className="animate-spin" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg> : <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>}
-                  {loading ? 'Redirecting…' : 'Upgrade to Pro'}
-                </button>
-                <p className="text-white/40 text-xs text-center mt-2">Cancel anytime · Secure checkout by Stripe</p>
-                <p className="text-white/30 text-[10px] text-center mt-1">
-                  By upgrading you agree to our{' '}
-                  <a href="/terms" className="underline hover:text-white/50">Terms</a>
-                  {' '}and{' '}
-                  <a href="/privacy" className="underline hover:text-white/50">Privacy Policy</a>
-                </p>
-                {upgradeError && <p className="text-red-300 text-xs text-center mt-2">{upgradeError}</p>}
-              </div>
-
-              <div className="px-5 pb-5">
-                <p className="text-white/40 text-[10px] font-bold uppercase tracking-widest mb-3">Free plan includes</p>
-                <div className="space-y-2">
-                  {FREE_FEATURES.map((f, i) => (
-                    <div key={i} className="flex items-center gap-2.5">
-                      <div className="w-4 h-4 rounded-full flex items-center justify-center shrink-0" style={{background:'rgba(255,255,255,0.08)'}}>
-                        <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.4)" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                      </div>
-                      <span className="text-white/45 text-sm">{f}</span>
+            {/* Features */}
+            <div className="bg-white rounded-2xl px-5 py-4 shadow-sm border border-gray-100">
+              <p className="text-xs font-bold uppercase tracking-widest text-text-muted mb-3">Everything in Pro</p>
+              <div className="space-y-2.5">
+                {PRO_FEATURES.map((f, i) => (
+                  <div key={i} className="flex items-center gap-2.5">
+                    <div className="w-4 h-4 rounded-full flex items-center justify-center shrink-0" style={{background:'rgba(0,120,184,0.1)'}}>
+                      <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#0078B8" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
                     </div>
-                  ))}
-                </div>
+                    <span className="text-sm text-text-primary">{f.text}</span>
+                  </div>
+                ))}
               </div>
+            </div>
+
+            {/* CTA */}
+            <div>
+              <button
+                onClick={handleUpgrade}
+                disabled={loading}
+                className="w-full font-bold py-4 rounded-xl text-sm flex items-center justify-center gap-2 transition-opacity"
+                style={{
+                  background: billing === 'founding' ? 'linear-gradient(135deg,#00C49A,#0078B8)' : '#0078B8',
+                  color: 'white',
+                  opacity: loading ? 0.7 : 1,
+                  boxShadow: loading ? 'none' : billing === 'founding' ? '0 4px 20px rgba(0,196,154,0.4)' : '0 4px 20px rgba(0,120,184,0.35)',
+                }}
+              >
+                {loading
+                  ? <svg className="animate-spin" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+                  : <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>}
+                {loading ? 'Redirecting…' : billing === 'founding' ? 'Claim Founding Spot — $60 + $4.99/mo' : billing === 'annual' ? 'Get Pro — $99/year' : 'Get Pro — $9.99/month'}
+              </button>
+              <p className="text-text-faint text-xs text-center mt-2">
+                {billing === 'founding' ? 'Rate locked for life · Secure checkout by Stripe' : 'Cancel anytime · Secure checkout by Stripe'}
+              </p>
+              <p className="text-text-faint text-[10px] text-center mt-1">
+                By upgrading you agree to our{' '}
+                <a href="/terms" className="underline">Terms</a>{' '}and{' '}
+                <a href="/privacy" className="underline">Privacy Policy</a>
+              </p>
+              {upgradeError && <p className="text-red-500 text-xs text-center mt-2">{upgradeError}</p>}
             </div>
 
             {/* Pool Service Pro — coming soon */}
