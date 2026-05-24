@@ -144,7 +144,7 @@ export default function LandingPage() {
                   </div>
                 ))}
               </div>
-              <Link href="/signup" className="block w-full text-center bg-surface border border-gray-200 text-text-primary text-sm font-bold py-3 rounded-xl hover:bg-gray-50 transition-colors">
+              <Link href="/signup" className="block w-full text-center text-sm font-bold py-3 rounded-xl hover:opacity-90 transition-opacity" style={{background:'linear-gradient(135deg,#F5A623,#F7C548)',color:'#1A2E3B',boxShadow:'0 4px 16px rgba(245,166,35,0.35)'}}>
                 Start Free →
               </Link>
             </div>
@@ -177,23 +177,23 @@ export default function LandingPage() {
 
           {/* Standard Pro plans */}
           <div className="mt-4">
-            <p className="text-center text-xs text-text-muted mb-3">Prefer a standard plan? No one-time fee.</p>
+            <p className="text-center text-xs font-semibold mb-3" style={{color:'#B97A00'}}>Prefer a standard plan? No one-time fee.</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <Link href="/signup" className="bg-white border border-gray-200 rounded-2xl px-5 py-4 flex items-center justify-between hover:border-pool-dark transition-colors group">
+              <Link href="/signup" className="rounded-2xl px-5 py-4 flex items-center justify-between transition-all group" style={{background:'linear-gradient(135deg,#F0F8FF,#E0F0FA)',border:'2px solid #B8D8EE'}}>
                 <div>
-                  <p className="text-xs font-bold uppercase tracking-widest text-text-muted mb-0.5">Pro · Monthly</p>
+                  <p className="text-xs font-bold uppercase tracking-widest mb-0.5" style={{color:'#0078B8'}}>Pro · Monthly</p>
                   <p className="text-xl font-bold text-text-primary" style={{fontFamily:"'Oswald',sans-serif"}}>$9.99<span className="text-sm font-normal text-text-muted">/mo</span></p>
                   <p className="text-[11px] text-text-muted">Cancel anytime</p>
                 </div>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8AAABB" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="group-hover:stroke-pool-dark transition-colors"><polyline points="9 18 15 12 9 6"/></svg>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0078B8" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
               </Link>
-              <Link href="/signup" className="bg-white border border-gray-200 rounded-2xl px-5 py-4 flex items-center justify-between hover:border-pool-dark transition-colors group">
+              <Link href="/signup" className="rounded-2xl px-5 py-4 flex items-center justify-between transition-all group" style={{background:'linear-gradient(135deg,#F0F8FF,#E0F0FA)',border:'2px solid #B8D8EE'}}>
                 <div>
-                  <p className="text-xs font-bold uppercase tracking-widest text-text-muted mb-0.5">Pro · Annual</p>
+                  <p className="text-xs font-bold uppercase tracking-widest mb-0.5" style={{color:'#0078B8'}}>Pro · Annual</p>
                   <p className="text-xl font-bold text-text-primary" style={{fontFamily:"'Oswald',sans-serif"}}>$99<span className="text-sm font-normal text-text-muted">/yr</span></p>
-                  <p className="text-[11px] text-text-muted">$8.25/mo · save $21</p>
+                  <p className="text-[11px]"><span className="text-text-muted">$8.25/mo · </span><span className="font-bold" style={{color:'#1DB869'}}>save $21</span></p>
                 </div>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8AAABB" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="group-hover:stroke-pool-dark transition-colors"><polyline points="9 18 15 12 9 6"/></svg>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0078B8" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
               </Link>
             </div>
           </div>
