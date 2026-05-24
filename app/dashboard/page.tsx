@@ -416,9 +416,6 @@ export default function DashboardPage() {
                             <div className="flex-1 min-w-0">
                               <p className="font-bold text-text-primary text-sm leading-snug">{rec.title}</p>
                               <p className="text-xs text-text-muted leading-relaxed mt-0.5">{rec.desc}</p>
-                              {!isMonitor && (
-                                <p className="text-xs font-bold mt-2" style={{color:'#00967A'}}>↓ See treatment plan below</p>
-                              )}
                             </div>
                           </div>
                         </div>
@@ -506,6 +503,12 @@ export default function DashboardPage() {
                                                   <div>
                                                     <p className="text-xs font-bold" style={{color: ci === 0 ? '#0078B8' : '#DC2626'}}>{chem}</p>
                                                     {lineAmount && <p className="text-xs font-semibold text-text-muted mt-0.5">{lineAmount}</p>}
+                                                    {ci === 0 && step.chemical && step.chemical.includes('\n') && (
+                                                      <div className="flex items-center gap-1 mt-1">
+                                                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#0078B8" strokeWidth="2.5" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                                                        <p className="text-[10px] italic" style={{color:'#0078B8'}}>Wait 30–60 min before adding chlorine</p>
+                                                      </div>
+                                                    )}
                                                     {isShock && (
                                                       <div className="flex items-start gap-1 mt-1">
                                                         <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#00967A" strokeWidth="2.5" strokeLinecap="round" className="shrink-0 mt-px"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>

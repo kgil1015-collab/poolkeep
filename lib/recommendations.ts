@@ -135,16 +135,16 @@ function buildTreatmentPlan(test: TestInput, v: number): TreatmentStep[] {
       : null
 
     const stepTitle = !needsAcid
-      ? 'Shock the pool — do not swim yet'
+      ? 'Add chlorine — do not swim yet'
       : taHigh && phHigh
-      ? 'Lower alkalinity and pH first, then shock'
+      ? 'Lower alkalinity and pH first, then add chlorine'
       : taHigh
-      ? 'Lower alkalinity first, then shock'
-      : 'Lower pH first, then shock'
+      ? 'Lower alkalinity first, then add chlorine'
+      : 'Lower pH first, then add chlorine'
 
     const stepChemical = !needsAcid
-      ? 'Pool Shock'
-      : 'pH Reducer (Muriatic Acid or Dry Acid)\nPool Shock'
+      ? 'Chlorine'
+      : 'pH Reducer (Muriatic Acid or Dry Acid)\nChlorine'
 
     const acidHow = taHigh
       ? `Step 1 — Add pH reducer (${acidAmount(acidDose)}) to the deep end all at once with the pump running — pouring it concentrated in one spot is what pulls alkalinity down. Wear gloves and eye protection. This dose will also lower your pH. Wait 30–60 minutes for it to circulate.\n\nStep 2 — Brush all pool surfaces — walls, floor, steps, and any corners — before adding shock. Algae and bacteria cling to surfaces and the shock cannot reach what it cannot contact. Brushing knocks it into the water where the chlorine can do its job.\n\nStep 3 — `
@@ -157,8 +157,8 @@ function buildTreatmentPlan(test: TestInput, v: number): TreatmentStep[] {
       title: stepTitle,
       chemical: stepChemical,
       amount: needsAcid
-        ? `${acidAmount(acidDose)}\n${oz(dose, 'lbs')} granular cal-hypo · or ${liquidDose} gal liquid chlorine`
-        : `${oz(dose, 'lbs')} granular cal-hypo · or ${liquidDose} gal liquid chlorine`,
+        ? `${acidAmount(acidDose)}\n${liquidDose} gal liquid chlorine · or ${oz(dose, 'lbs')} granular shock (${Math.ceil(dose)} × 1-lb bag${Math.ceil(dose) !== 1 ? 's' : ''})`
+        : `${liquidDose} gal liquid chlorine · or ${oz(dose, 'lbs')} granular shock (${Math.ceil(dose)} × 1-lb bag${Math.ceil(dose) !== 1 ? 's' : ''})`,
       why: `Free chlorine is at ${fc} ppm — water is unsafe to swim in. Here is something most pool owners never learn: the effectiveness of chlorine is almost entirely controlled by pH. Chlorine exists in two forms in water — active (hypochlorous acid, HOCl) and inactive (hypochlorite ion, OCl⁻). Only the active form kills bacteria and algae. At pH 7.0, about 73% of your chlorine is in that active form. At pH 7.5, it drops to 49%. At pH 7.8, only 33%. At pH 8.0, just 21%. ${phHigh && phEfficiency ? `Your current pH of ${ph} means only about ${phEfficiency} of the shock you add will actually be working. Lowering pH first before shocking means 2–3× more active sanitizer from the same amount of product.` : phUnknown ? `Since pH is untested, add a small acid dose first as a precaution — if your pH is elevated you could waste the majority of the shock you add.` : `With pH already in range, a high percentage of the shock you add will be in its active, sanitizing form.`}${cyaLow ? ` CYA (stabilizer) is ${cya === null ? 'untested' : `at ${cya} ppm — below the effective range`}. Without stabilizer protecting it, UV sunlight destroys chlorine within hours. The dose shown is higher than usual to account for this — but the real fix is getting CYA into the 30–50 ppm range so future chlorine actually holds.` : cyaHigh ? ` CYA at ${cya} ppm is elevated — stabilizer at high levels partially binds chlorine and reduces how much stays "free" and active. A higher shock dose is needed to push past this and reach effective sanitizing levels.` : ''}`,
       how: `${needsAcid
         ? acidHow
@@ -571,7 +571,7 @@ export function calculateRecommendations(test: TestInput, volumeGallons: number)
     const dose = Math.round(v * dosePerTenK * 2) / 2
     const phNeedsWork = test.ph !== null && test.ph > 7.2
     if (phNeedsWork) {
-      recs.push({ status: 'action', param: 'chlorine', title: 'Lower pH first, then shock', desc: `Free chlorine at ${test.free_chlorine} ppm — unsafe for swimming. Lower pH to 7.2 first, then shock. Shocking at high pH wastes most of the product.`, tags: [] })
+      recs.push({ status: 'action', param: 'chlorine', title: 'Lower pH first, then add chlorine', desc: `Free chlorine at ${test.free_chlorine} ppm — unsafe for swimming. Lower pH to 7.2 first, then add chlorine. High pH wastes most of the product.`, tags: [] })
     } else {
       recs.push({ status: 'action', param: 'chlorine', title: 'Chlorine critically low — shock now', desc: `Free chlorine at ${test.free_chlorine} ppm — unsafe for swimming. Shock the pool this evening.`, tags: [] })
     }
