@@ -410,32 +410,49 @@ export default function DashboardPage() {
                     {actionItems.map((rec, i) => {
                       const meta = paramMeta[rec.param as keyof typeof paramMeta] ?? defaultMeta
                       const isMonitor = lastTest.recommendations.monitor.some(m => m.title === rec.title)
+                      const isUrgentAction = !isMonitor
+                      const borderColor = isUrgentAction ? meta.color : '#D97706'
+                      const isCriticalChlorine = rec.param === 'chlorine' && (lastTest.free_chlorine ?? 99) < 0.5
+
+                      // Build display desc with patches for old stored data
+                      let displayDesc = rec.desc
+                        .replace(/\s*See the treatment plan below[\s\S]*?(?:then shock|add chlorine)\.\s*/g, ' ')
+                        .replace(/[Aa]nd aerate afterward\.?/g, 'then aim a return jet at the surface for 2–4 hrs to raise pH naturally.')
+                        .replace(/[Aa]erate afterward\.?/g, 'aim a return jet at the surface for 2–4 hrs to raise pH naturally.')
+                        .trim()
+                      if (rec.param === 'chlorine' && displayDesc.includes('Lower pH to 7.2 first, then add chlorine')) {
+                        const ph = lastTest.ph ?? 7.4
+                        displayDesc = `Free chlorine at ${lastTest.free_chlorine} ppm — unsafe for swimming. Step 1: add pH reducer to bring pH to 7.2. Step 2: shock the pool. At pH ${ph}, most of the shock is ineffective — lower it first and the same dose works 2–3× better.`
+                      }
+
+                      // Split into alert sentence + detail for visual hierarchy
+                      const firstDot = displayDesc.search(/[.!?](\s|$)/)
+                      const alertLine = firstDot > 0 ? displayDesc.slice(0, firstDot + 1) : displayDesc
+                      const detailLine = firstDot > 0 ? displayDesc.slice(firstDot + 1).trim() : ''
+
+                      const displayTitle = rec.param === 'chlorine' && rec.title === 'Lower pH first, then add chlorine'
+                        ? 'Chlorine critically low — two steps'
+                        : rec.title
+
                       return (
-                        <div key={i} className="bg-white rounded-2xl px-4 py-3.5 shadow-sm border border-gray-100">
-                          <div className="flex items-start gap-3">
-                            <div className="w-10 h-10 rounded-full flex items-center justify-center shrink-0 mt-0.5" style={{background: meta.bg, color: meta.color}}>
-                              {meta.icon}
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <p className="font-bold text-text-primary text-sm leading-snug">{
-                                // Patch old stored title for the "lower pH first" chlorine card
-                                rec.param === 'chlorine' && rec.title === 'Lower pH first, then add chlorine'
-                                  ? 'Chlorine critically low — two steps'
-                                  : rec.title
-                              }</p>
-                              <p className="text-xs text-text-muted leading-relaxed mt-0.5">{(() => {
-                                let d = rec.desc
-                                  .replace(/\s*See the treatment plan below[\s\S]*?(?:then shock|add chlorine)\.\s*/g, ' ')
-                                  .replace(/[Aa]nd aerate afterward\.?/g, 'then aim a return jet at the surface for 2–4 hrs to raise pH naturally.')
-                                  .replace(/[Aa]erate afterward\.?/g, 'aim a return jet at the surface for 2–4 hrs to raise pH naturally.')
-                                  .trim()
-                                // Patch old stored chlorine desc when pH needed work
-                                if (rec.param === 'chlorine' && d.includes('Lower pH to 7.2 first, then add chlorine')) {
-                                  const ph = lastTest.ph ?? 7.4
-                                  d = `Free chlorine at ${lastTest.free_chlorine} ppm — unsafe for swimming. Step 1: add pH reducer to bring pH to 7.2. Step 2: shock the pool. At pH ${ph}, most of the shock is ineffective — lower it first and the same dose works 2–3× better.`
-                                }
-                                return d
-                              })()}</p>
+                        <div key={i} className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                          {/* Urgency left border strip */}
+                          <div className="flex">
+                            <div className="w-1 shrink-0 rounded-l-2xl" style={{background: borderColor}} />
+                            <div className="flex items-start gap-3 px-4 py-3.5 flex-1 min-w-0">
+                              <div className="w-10 h-10 rounded-full flex items-center justify-center shrink-0 mt-0.5" style={{background: meta.bg, color: meta.color}}>
+                                {meta.icon}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2 flex-wrap mb-0.5">
+                                  <p className="font-bold text-text-primary text-sm leading-snug">{displayTitle}</p>
+                                  {isCriticalChlorine && (
+                                    <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full shrink-0" style={{background:'rgba(220,38,38,0.1)', color:'#DC2626'}}>DO NOT SWIM</span>
+                                  )}
+                                </div>
+                                <p className="text-xs leading-relaxed" style={{color:'#3D5566', fontWeight:500}}>{alertLine}</p>
+                                {detailLine ? <p className="text-xs text-text-muted leading-relaxed mt-0.5">{detailLine}</p> : null}
+                              </div>
                             </div>
                           </div>
                         </div>
