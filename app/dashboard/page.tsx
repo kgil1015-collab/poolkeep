@@ -545,7 +545,7 @@ export default function DashboardPage() {
                                                     {isChlorine && (
                                                       <div className="flex items-start gap-1 mt-1">
                                                         <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#00967A" strokeWidth="2.5" strokeLinecap="round" className="shrink-0 mt-px"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                                                        <p className="text-[10px] italic" style={{color:'#00967A'}}>Liquid: retest in 4–8 hrs, swim when FC &lt; 5 ppm · Granular: retest next morning</p>
+                                                        <p className="text-[10px] italic" style={{color:'#00967A'}}>Liquid: fades fast in heat &amp; sun — retest in 1–4 hrs, swim when FC &lt; 5 ppm · Granular: retest next morning</p>
                                                       </div>
                                                     )}
                                                   </div>
