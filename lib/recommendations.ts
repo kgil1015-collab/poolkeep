@@ -646,7 +646,10 @@ export function calculateRecommendations(test: TestInput, volumeGallons: number)
 
   const actionCount = recs.filter(r => r.status === 'action').length
   const monitorCount = recs.filter(r => r.status === 'monitor').length
-  const health_score = Math.max(10, 100 - actionCount * 18 - monitorCount * 6)
+  // Unknown (untested) params reduce score — you can't claim a perfect pool without a complete picture.
+  // Salt is optional (salt pools only) so excluded from the penalty.
+  const unknownCount = recs.filter(r => r.status === 'unknown' && r.param !== 'salt').length
+  const health_score = Math.max(10, 100 - actionCount * 18 - monitorCount * 6 - unknownCount * 8)
 
   const treatment_plan = buildTreatmentPlan(test, v)
   const maintenance = generateMaintenance(test)
