@@ -493,13 +493,23 @@ export default function DashboardPage() {
                                     <div className="flex-1 min-w-0">
                                       <p className="font-bold text-text-primary text-sm leading-snug mb-1.5">{step.title}</p>
                                       {step.chemical && (
-                                        step.chemical.includes('\n') ? (
+                                        step.chemical.includes('\n') ? (() => {
+                                          // Build sub-step arrays — inject aerate for old stored data when TA was high
+                                          const chemLines = (step.chemical ?? '').split('\n')
+                                          const amountLines = step.amount ? step.amount.split('\n') : []
+                                          const hasJet = chemLines.some((c: string) => c.toLowerCase().includes('jet') || c.toLowerCase().includes('aerate'))
+                                          const hasAcidAndChlorine = chemLines.length >= 2
+                                            && (chemLines[0].toLowerCase().includes('acid') || chemLines[0].toLowerCase().includes('reducer'))
+                                            && (chemLines[1].toLowerCase().includes('chlorine') || chemLines[1].toLowerCase().includes('shock'))
+                                          if (!hasJet && hasAcidAndChlorine && (lastTest.total_alkalinity ?? 0) > 140) {
+                                            chemLines.push('Aim pool jets at surface')
+                                            amountLines.push('Point a return jet toward the water surface — run 2–4 hrs to off-gas CO₂ and raise pH back naturally')
+                                          }
+                                          return (
                                           // Multi-chemical step — numbered sub-steps
                                           <div className="bg-surface rounded-lg px-2.5 py-2 mb-2 space-y-2.5">
-                                            {step.chemical.split('\n').map((chem: string, ci: number) => {
-                                              const amounts = step.amount ? step.amount.split('\n') : []
-                                              const lineAmount = amounts[ci] ?? ''
-                                              const chemLines = (step.chemical ?? '').split('\n')
+                                            {chemLines.map((chem: string, ci: number) => {
+                                              const lineAmount = amountLines[ci] ?? ''
                                               const isAcid = ci === 0 && chemLines.length > 1
                                               const isChlorine = chem.toLowerCase().includes('chlorine') || chem === 'Pool Shock'
                                               const isAerate = chem.toLowerCase().includes('jet') || chem.toLowerCase().includes('aerate')
@@ -527,7 +537,8 @@ export default function DashboardPage() {
                                               )
                                             })}
                                           </div>
-                                        ) : (
+                                          )
+                                        })() : (
                                           // Single chemical
                                           <div className="bg-surface rounded-lg px-2.5 py-2 mb-2">
                                             <div className="flex items-start gap-1.5">
