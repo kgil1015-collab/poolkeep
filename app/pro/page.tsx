@@ -288,11 +288,12 @@ export default function ProPage() {
               {/* Annual */}
               <button
                 onClick={() => setBilling('annual')}
-                className="w-full text-left rounded-2xl px-4 py-3.5 transition-all"
+                className="w-full text-left rounded-2xl px-4 pt-3.5 transition-all"
                 style={{
                   background: billing === 'annual' ? '#F0F8FF' : 'white',
                   border: `2px solid ${billing === 'annual' ? '#0078B8' : '#E8F2F8'}`,
                   boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
+                  paddingBottom: billing === 'annual' ? 0 : 14,
                 }}
               >
                 <div className="flex items-center justify-between">
@@ -302,7 +303,7 @@ export default function ProPage() {
                         style={{background:'rgba(0,120,184,0.1)', color:'#0078B8'}}>Most Popular</span>
                     </div>
                     <p className="font-bold text-sm text-text-primary">Annual</p>
-                    <p className="text-xs text-text-muted">$8.25/month · save $21 vs monthly</p>
+                    <p className="text-xs text-text-muted">$8.25/mo — paid once a year</p>
                   </div>
                   <div className="text-right">
                     <div className="flex items-start gap-0.5 leading-none justify-end">
@@ -312,6 +313,27 @@ export default function ProPage() {
                     <p className="text-[10px] text-text-muted">/year</p>
                   </div>
                 </div>
+                {billing === 'annual' && (
+                  <div className="mt-3 pb-3.5 space-y-1.5 pt-3" style={{borderTop:'1.5px solid #D8EAF5'}}>
+                    {[
+                      { label: 'Monthly cost', monthly: '$9.99', annual: '$8.25' },
+                      { label: 'Billed today', monthly: '—', annual: '$99' },
+                      { label: 'You save per year', monthly: '—', annual: '$20.88' },
+                    ].map((row, i) => (
+                      <div key={i} className="flex items-center justify-between text-xs">
+                        <span className="text-text-muted">{row.label}</span>
+                        <div className="flex items-center gap-4">
+                          <span className="text-text-faint w-12 text-right">{row.monthly}</span>
+                          <span className="font-bold w-14 text-right" style={{color:'#0078B8'}}>{row.annual}</span>
+                        </div>
+                      </div>
+                    ))}
+                    <div className="flex items-center justify-between text-[10px] pt-1" style={{borderTop:'1px solid #D8EAF5'}}>
+                      <span className="text-text-faint">vs monthly</span>
+                      <span className="font-bold" style={{color:'#1DB869'}}>Like getting 2 months free every year</span>
+                    </div>
+                  </div>
+                )}
               </button>
 
               {/* Monthly */}
