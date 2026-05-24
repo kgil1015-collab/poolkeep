@@ -133,7 +133,7 @@ export default function LandingPage() {
                 <span className="text-white/60 text-sm">/mo forever</span>
               </div>
               <p className="text-xs text-white/50 mb-1">$60 one-time to join · then $4.99/mo locked for life</p>
-              <p className="text-[10px] text-teal font-semibold mb-5">Rate never increases — even as we raise prices</p>
+              <p className="text-[10px] text-teal font-semibold mb-5">Your rate is locked in forever</p>
               <div className="space-y-2.5">
                 {['Unlimited water tests','Up to 5 pools','Full trend charts & history','Priority support','Lock in founding price for life'].map((f, i) => (
                   <div key={i} className="flex items-center gap-2.5">
