@@ -68,11 +68,11 @@ function chlorineBothAmounts(floz: number): string {
 }
 
 // Shows both liquid muriatic acid and dry acid (sodium bisulfate) amounts
-// Conversion: 26 fl oz muriatic (31.45%) = 2 lbs dry acid (sodium bisulfate 93%)
-// Industry standard from TFP/PoolMath: 1 lb dry acid ≈ 13 fl oz muriatic
+// Conversion: 26 fl oz muriatic (31.45%) ≈ 1.3 lbs dry acid (sodium bisulfate 93%)
+// Source: TFP PoolMath standard — 1 lb dry acid ≈ 20 fl oz muriatic
 function acidAmount(floz: number): string {
   const liquidStr = liq(floz)
-  const dryLbs = Math.round((floz / 13) * 4) / 4
+  const dryLbs = Math.round((floz / 20) * 4) / 4
   const dryStr = dryLbs < 1
     ? `${Math.round(dryLbs * 16)} oz`
     : `${dryLbs % 1 === 0 ? dryLbs : dryLbs.toFixed(2).replace(/\.?0+$/, '')} lbs`
@@ -213,7 +213,7 @@ function buildTreatmentPlan(test: TestInput, v: number): TreatmentStep[] {
           : `Alkalinity at ${ta} ppm is too high. While TA needs to be high enough to stabilize pH, too much of it has the opposite effect — it makes pH stubbornly resistant to adjustment, like trying to steer a heavy vehicle. High TA also creates conditions where calcium scale is more likely to form on pool surfaces and equipment. Bringing TA into range first makes all other chemistry easier to manage.`,
         how: phAlsoHigh
           ? 'Add muriatic acid to the deep end in the evening with the pump running. Pour slowly along the edge — never splash acid. Wear gloves and eye protection. After adding, run the pump for 2 hours. Since your pH also needs to come down, skip the aeration step or do very little of it — let pH settle naturally rather than aerating it back up.'
-          : 'Add muriatic acid to the deep end in the evening with the pump running. Pour slowly along the edge — never splash acid. Wear gloves and eye protection. After adding, run the pump for 2 hours. Then aerate the water by aiming a return jet at the surface — this raises pH back up without affecting TA, which is exactly what you want here.',
+          : 'Add muriatic acid to the deep end in the evening with the pump running. Pour slowly along the edge — never splash acid. Wear gloves and eye protection. After adding, run the pump for 2 hours. Then angle a return jet toward the water surface so it agitates and splashes — this releases CO₂ from the water, which raises pH back up naturally without reversing the alkalinity reduction. Run it 2–4 hours.',
         lookFor: phAlsoHigh
           ? 'Retest both TA and pH the next day. Target TA 80–120 ppm and pH 7.2–7.6. One acid treatment typically moves both into range.'
           : 'Retest next day. Aeration is your friend after an acid treatment — it naturally raises pH without undoing your TA work. Target 80–120 ppm. pH may also need adjustment once TA settles.',
@@ -594,7 +594,7 @@ export function calculateRecommendations(test: TestInput, volumeGallons: number)
     recs.push({ status: 'monitor', param: 'alkalinity', title: 'Alkalinity slightly low', desc: `Alkalinity at ${test.total_alkalinity} ppm. A small alkalinity increaser (baking soda) dose will stabilize it.`, tags: [`Alkalinity Increaser (Baking Soda / Sodium Bicarbonate) · ${oz(dose, 'lbs')}`, 'Monitor weekly'] })
   } else if (test.total_alkalinity > 140) {
     const dose = Math.round(v * 26 * ((test.total_alkalinity - 120) / 10))
-    recs.push({ status: 'action', param: 'alkalinity', title: 'Lower total alkalinity', desc: `Alkalinity at ${test.total_alkalinity} ppm — too high. Use pH reducer and aerate afterward.`, tags: [`pH Reducer (Muriatic Acid or Dry Acid) · ${acidAmount(dose)}`, 'Aerate after adding', 'Re-test next day'] })
+    recs.push({ status: 'action', param: 'alkalinity', title: 'Lower total alkalinity', desc: `Alkalinity at ${test.total_alkalinity} ppm — too high. Add pH reducer to the deep end, then aim a return jet toward the surface and run the pump 2–4 hours — this naturally raises pH back up without reversing the alkalinity drop.`, tags: [] })
   } else if (test.total_alkalinity > 120) {
     recs.push({ status: 'monitor', param: 'alkalinity', title: 'Alkalinity slightly high', desc: `Alkalinity at ${test.total_alkalinity} ppm. Monitor weekly — it will drift down naturally.`, tags: ['Monitor weekly'] })
   } else {
