@@ -282,7 +282,7 @@ export default function ProPage() {
                           Founding Member · {FOUNDING_SPOTS_SHOWN} spots only
                         </span>
                       </div>
-                      <p className="font-bold text-sm mb-0.5" style={{color: billing === 'founding' ? 'white' : '#1A2E3B'}}>Lock in 50% off — forever</p>
+                      <p className="font-bold text-sm mb-0.5" style={{color: billing === 'founding' ? 'white' : '#1A2E3B'}}>Founding Member Rate — locked for life</p>
                       <p className="text-xs leading-relaxed" style={{color: billing === 'founding' ? 'rgba(255,255,255,0.55)' : '#8AAABB'}}>
                         $60 upfront · then $4.99/mo ($59.88/yr) for life.
                       </p>
