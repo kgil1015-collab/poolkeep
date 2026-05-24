@@ -281,6 +281,10 @@ export default function DashboardPage() {
         {(() => {
           const score = lastTest?.health_score ?? null
           const { color } = statusAccent(score)
+          const unknownCount = lastTest
+            ? lastTest.recommendations.unknown.filter(u => u.param !== 'salt').length
+            : 0
+          const testedCount = 5 - unknownCount
           return (
             <div className="flex flex-col items-center pb-5">
               <p className="text-white/40 text-[10px] font-bold uppercase tracking-widest mb-1">Health Score</p>
@@ -293,6 +297,11 @@ export default function DashboardPage() {
                   {score !== null ? scoreLabel(score) : 'Log your first test'}
                 </span>
               </div>
+              {unknownCount > 0 && score !== null && (
+                <p className="text-white/45 text-[11px] text-center mt-2 px-6 leading-snug">
+                  Based on {testedCount} of 5 parameters — test more for a complete score
+                </p>
+              )}
             </div>
           )
         })()}
@@ -391,17 +400,29 @@ export default function DashboardPage() {
               }
               const defaultMeta = { bg:'rgba(245,166,35,0.15)', color:'#B97A00', icon:<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg> }
 
-              if (actionItems.length === 0) return (
-                <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex items-center gap-3 mb-2">
-                  <div className="w-10 h-10 rounded-full flex items-center justify-center shrink-0" style={{background:'rgba(29,184,105,0.12)'}}>
-                    <IconCheck size={20} style={{color:'#1DB869'}} />
+              if (actionItems.length === 0) {
+                const hasUnknowns = lastTest.recommendations.unknown.filter(u => u.param !== 'salt').length > 0
+                return (
+                  <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex items-start gap-3 mb-2">
+                    <div className="w-10 h-10 rounded-full flex items-center justify-center shrink-0 mt-0.5" style={{background: hasUnknowns ? 'rgba(245,166,35,0.12)' : 'rgba(29,184,105,0.12)'}}>
+                      {hasUnknowns
+                        ? <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#D97706" strokeWidth="2.2" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                        : <IconCheck size={20} style={{color:'#1DB869'}} />
+                      }
+                    </div>
+                    <div>
+                      <p className="font-bold text-text-primary text-sm">
+                        {hasUnknowns ? 'Tested parameters look good' : 'Your pool looks great'}
+                      </p>
+                      <p className="text-text-muted text-xs mt-0.5">
+                        {hasUnknowns
+                          ? 'No issues found in what you tested — log the remaining parameters for a complete health score.'
+                          : 'All parameters in range — no action needed.'}
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="font-bold text-text-primary text-sm">Your pool looks great</p>
-                    <p className="text-text-muted text-xs mt-0.5">All parameters in range — no action needed.</p>
-                  </div>
-                </div>
-              )
+                )
+              }
 
               return (
                 <div className="mb-5">
