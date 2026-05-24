@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 
-import type { TreatmentStep } from '@/lib/recommendations'
+import type { TreatmentStep, MaintenanceTip } from '@/lib/recommendations'
 
 type User = { email: string; user_metadata: { full_name?: string } }
 
@@ -19,6 +19,7 @@ type TestResult = {
   salt: number | null
   recommendations: {
     treatment_plan?: TreatmentStep[]
+    maintenance?: MaintenanceTip[]
     unknown: { title: string; desc: string; tags: string[] }[]
     action: { title: string; desc: string; tags: string[] }[]
     monitor: { title: string; desc: string; tags: string[] }[]
@@ -626,7 +627,7 @@ export default function DashboardPage() {
                     return (
                       <div key={i} className={`px-4 py-3.5 flex items-start gap-3 ${i > 0 ? 'border-t border-gray-50' : ''}`}>
                         <div className="w-6 h-6 rounded-lg flex items-center justify-center shrink-0 mt-0.5" style={{background:'#F0F6FA'}}>
-                          {icons[tip.category]}
+                          {icons[tip.category as keyof typeof icons]}
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="text-xs font-bold text-text-primary mb-0.5">{tip.title}</p>
