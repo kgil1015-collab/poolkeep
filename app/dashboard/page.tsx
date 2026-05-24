@@ -415,7 +415,7 @@ export default function DashboardPage() {
                             </div>
                             <div className="flex-1 min-w-0">
                               <p className="font-bold text-text-primary text-sm leading-snug">{rec.title}</p>
-                              <p className="text-xs text-text-muted leading-relaxed mt-0.5">{rec.desc}</p>
+                              <p className="text-xs text-text-muted leading-relaxed mt-0.5">{rec.desc.replace(/\s*See the treatment plan below[^.]*\.\s*/g, ' ').trim()}</p>
                             </div>
                           </div>
                         </div>
