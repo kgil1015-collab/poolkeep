@@ -412,9 +412,9 @@ export default function DashboardPage() {
                 </div>
               )
               if (!firstStep) return null
-              const u = firstStep.urgency === 'urgent'
+              const u = firstStep.step === 1
                 ? { badge:'#DC2626', bg:'rgba(220,38,38,0.07)', border:'rgba(220,38,38,0.18)', label:'Do Now' }
-                : firstStep.urgency === 'soon'
+                : firstStep.step === 2
                 ? { badge:'#EA580C', bg:'rgba(234,88,12,0.07)', border:'rgba(234,88,12,0.2)', label:'Do Next' }
                 : { badge:'#D97706', bg:'rgba(217,119,6,0.06)', border:'rgba(217,119,6,0.18)', label:'Then' }
               return (
@@ -512,9 +512,9 @@ export default function DashboardPage() {
                 <p className="text-xs font-bold uppercase tracking-widest text-text-muted mb-3">Treatment Plan</p>
                 <div className="space-y-4 mb-6">
                   {lastTest.recommendations.treatment_plan.map(step => {
-                    const urgencyStyle = step.urgency === 'urgent'
+                    const urgencyStyle = step.step === 1
                       ? { badge: '#DC2626', badgeBg: 'rgba(220,38,38,0.1)', label: 'Do Now' }
-                      : step.urgency === 'soon'
+                      : step.step === 2
                       ? { badge: '#EA580C', badgeBg: 'rgba(234,88,12,0.1)', label: 'Do Next' }
                       : { badge: '#D97706', badgeBg: 'rgba(217,119,6,0.1)', label: 'Then' }
                     return (
