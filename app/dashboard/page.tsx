@@ -20,10 +20,10 @@ type TestResult = {
   recommendations: {
     treatment_plan?: TreatmentStep[]
     maintenance?: MaintenanceTip[]
-    unknown: { title: string; desc: string; tags: string[] }[]
-    action: { title: string; desc: string; tags: string[] }[]
-    monitor: { title: string; desc: string; tags: string[] }[]
-    good: { title: string; desc: string }[]
+    unknown: { param: string; title: string; desc: string; tags: string[] }[]
+    action:  { param: string; title: string; desc: string; tags: string[] }[]
+    monitor: { param: string; title: string; desc: string; tags: string[] }[]
+    good:    { param: string; title: string; desc: string; tags: string[] }[]
   }
 }
 
