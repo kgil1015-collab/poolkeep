@@ -49,10 +49,13 @@ export default function LandingPage() {
           Enter your test results. Get exact doses in plain English.<br className="hidden sm:block" /> Log everything. Share with a pro in one tap.
         </p>
         {/* Primary CTAs */}
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-5">
-          <Link href="/signup?founding=1" className="inline-block bg-teal text-pool-deep text-lg font-bold px-9 py-4 rounded-xl hover:opacity-90 transition-all hover:-translate-y-0.5 shadow-lg">
-            Claim Founding Spot — $4.99/mo →
-          </Link>
+        <div className="flex flex-col sm:flex-row items-start justify-center gap-3 mb-5">
+          <div className="flex flex-col items-center gap-1">
+            <Link href="/signup?founding=1" className="inline-block bg-teal text-pool-deep text-lg font-bold px-9 py-4 rounded-xl hover:opacity-90 transition-all hover:-translate-y-0.5 shadow-lg">
+              Claim Founding Spot →
+            </Link>
+            <p className="text-[11px]" style={{color:'rgba(0,224,176,0.7)'}}>💳 $60 once · then $4.99/mo forever</p>
+          </div>
           <Link href="/signup" className="inline-block bg-white/10 border border-white/25 text-white text-lg font-bold px-9 py-4 rounded-xl hover:bg-white/20 transition-all">
             Join Free
           </Link>
