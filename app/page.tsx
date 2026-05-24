@@ -60,25 +60,22 @@ export default function LandingPage() {
 
         {/* Secondary plan options */}
         <div className="flex items-center justify-center gap-3 flex-wrap mb-5">
-          <Link href="/signup" className="flex items-center gap-2 bg-white/8 border border-white/15 text-white/70 text-xs font-semibold px-4 py-2 rounded-full hover:bg-white/15 hover:text-white transition-all">
+          <Link href="/signup" className="flex items-center gap-2 text-xs font-semibold px-4 py-2 rounded-full hover:opacity-80 transition-all" style={{background:'rgba(245,166,35,0.18)',color:'#F5C842',border:'1px solid rgba(245,166,35,0.35)'}}>
             <span>Pro Monthly</span>
-            <span className="text-white/40">·</span>
-            <span className="text-white font-bold">$9.99/mo</span>
+            <span className="opacity-50">·</span>
+            <span className="font-bold">$9.99/mo</span>
           </Link>
-          <Link href="/signup" className="flex items-center gap-2 bg-white/8 border border-white/15 text-white/70 text-xs font-semibold px-4 py-2 rounded-full hover:bg-white/15 hover:text-white transition-all">
+          <Link href="/signup" className="flex items-center gap-2 text-xs font-semibold px-4 py-2 rounded-full hover:opacity-80 transition-all" style={{background:'rgba(245,166,35,0.18)',color:'#F5C842',border:'1px solid rgba(245,166,35,0.35)'}}>
             <span>Pro Annual</span>
-            <span className="text-white/40">·</span>
-            <span className="text-white font-bold">$99/yr</span>
-            <span className="text-teal text-[10px] font-bold ml-1">SAVE $21</span>
+            <span className="opacity-50">·</span>
+            <span className="font-bold">$99/yr</span>
+            <span className="text-[10px] font-bold ml-1" style={{color:'#00E0B0'}}>SAVE $21</span>
           </Link>
         </div>
 
         <p className="text-sm text-white/50">
           Already joined by <strong className="text-white/80">127 homeowners</strong> saving $1,200+/year in service fees.
         </p>
-        <Link href="/login" className="block mt-3 text-sm text-white/40 hover:text-white/60 transition-colors">
-          Already a member? Sign in →
-        </Link>
       </section>
 
       {/* Stats bar */}
