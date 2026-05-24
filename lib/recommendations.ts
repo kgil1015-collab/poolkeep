@@ -563,6 +563,10 @@ export function calculateRecommendations(test: TestInput, volumeGallons: number)
   } else if (test.ph > 7.6) {
     const dose = Math.round(v * 13)
     recs.push({ status: 'monitor', param: 'ph', title: 'pH slightly high', desc: `pH is at ${test.ph}. A small dose of pH reducer will bring it into range.`, tags: [`pH Reducer (Muriatic Acid or Dry Acid) · ${acidAmount(dose)}`, 'Monitor daily'] })
+  } else if (test.free_chlorine !== null && test.free_chlorine < 0.5 && test.ph > 7.2) {
+    // pH is technically in range, but needs to come down to 7.2 before shocking —
+    // high pH wastes most of a shock dose. Show as monitor so it doesn't contradict the treatment plan.
+    recs.push({ status: 'monitor', param: 'ph', title: 'Lower pH to 7.2 before shocking', desc: `pH at ${test.ph} is in range for normal use, but lower it to 7.2 first — at higher pH most of the shock you add is wasted and won't sanitize effectively.`, tags: [] })
   } else {
     recs.push({ status: 'good', param: 'ph', title: 'pH is perfect', desc: `pH at ${test.ph} — right in the ideal range of 7.2–7.6.`, tags: [] })
   }
