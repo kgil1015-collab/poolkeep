@@ -30,8 +30,8 @@ export default function LandingPage() {
           <Link href="/login" className="text-white/70 text-sm font-medium hover:text-white transition-colors px-3 py-2 rounded-lg hover:bg-white/8">
             Sign In
           </Link>
-          <Link href="/signup" className="bg-teal text-pool-deep text-sm font-bold px-4 py-2 rounded-full hover:opacity-90 transition-opacity">
-            Get Started Free
+          <Link href="/signup?founding=1" className="bg-teal text-pool-deep text-sm font-bold px-4 py-2 rounded-full hover:opacity-90 transition-opacity">
+            Claim Founding Spot
           </Link>
         </div>
       </nav>
@@ -54,14 +54,14 @@ export default function LandingPage() {
         <p className="text-white/80 text-lg max-w-lg mx-auto mb-8 leading-relaxed">
           Enter your test results. Get exact doses in plain English.<br className="hidden sm:block" /> Log everything. Share with a pro in one tap.
         </p>
-        <Link href="/signup" className="inline-block bg-teal text-pool-deep text-lg font-bold px-9 py-4 rounded-xl hover:opacity-90 transition-all hover:-translate-y-0.5 shadow-lg">
+        <Link href="/signup?founding=1" className="inline-block bg-teal text-pool-deep text-lg font-bold px-9 py-4 rounded-xl hover:opacity-90 transition-all hover:-translate-y-0.5 shadow-lg">
           Claim Your Founding Spot →
         </Link>
         <p className="mt-4 text-sm text-white/50">
           Already joined by <strong className="text-white/80">127 homeowners</strong> saving $1,200+/year in service fees.
         </p>
-        <Link href="/signup" className="block mt-4 text-sm text-white/50 underline hover:text-white/70 transition-colors">
-          Create free account →
+        <Link href="/login" className="block mt-4 text-sm text-white/50 underline hover:text-white/70 transition-colors">
+          Already a member? Sign in →
         </Link>
       </section>
 
@@ -99,6 +99,117 @@ export default function LandingPage() {
                 <p className="text-text-muted text-sm leading-relaxed">{s.desc}</p>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Founding Member Pricing */}
+      <section className="py-16 px-6 bg-white">
+        <div className="max-w-2xl mx-auto">
+          <div className="text-center mb-10">
+            <span className="inline-block bg-red-50 border border-red-200 text-red-600 text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full mb-4">Limited — 73 Spots Left</span>
+            <h2 className="text-3xl font-bold tracking-tight" style={{fontFamily:"'Oswald',sans-serif"}}>Lock in the founding rate. Forever.</h2>
+            <p className="text-text-muted text-sm mt-3 max-w-md mx-auto">Founding members lock in today&apos;s price for life — even when the price goes up. Start free, upgrade when you&apos;re ready.</p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {/* Free */}
+            <div className="bg-surface rounded-2xl p-6 border border-gray-100">
+              <p className="text-xs font-bold uppercase tracking-widest text-text-muted mb-1">Free</p>
+              <p className="text-4xl font-bold text-text-primary mb-1" style={{fontFamily:"'Oswald',sans-serif"}}>$0</p>
+              <p className="text-xs text-text-muted mb-5">5 free tests to try it out</p>
+              <div className="space-y-2.5">
+                {['5 water tests with full recommendations','1 pool','Treatment plan with exact doses','Share your results'].map((f, i) => (
+                  <div key={i} className="flex items-center gap-2.5">
+                    <div className="w-4 h-4 rounded-full flex items-center justify-center shrink-0" style={{background:'rgba(29,184,105,0.12)'}}>
+                      <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="#1DB869" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                    </div>
+                    <span className="text-xs text-text-muted">{f}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Pro - Founding */}
+            <div className="rounded-2xl p-6 border-2 relative overflow-hidden" style={{background:'#003D5C', borderColor:'#00E0B0'}}>
+              <div className="absolute top-3 right-3 bg-teal text-pool-deep text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full">Founding Rate</div>
+              <p className="text-xs font-bold uppercase tracking-widest text-white/60 mb-1">Pro</p>
+              <div className="flex items-baseline gap-1.5 mb-1">
+                <p className="text-4xl font-bold text-white" style={{fontFamily:"'Oswald',sans-serif"}}>$4.99</p>
+                <span className="text-white/60 text-sm">/mo</span>
+              </div>
+              <p className="text-xs text-white/50 mb-1">or $39.99/yr — save 33%</p>
+              <p className="text-[10px] text-teal font-semibold mb-5">Price locks in forever when you join today</p>
+              <div className="space-y-2.5">
+                {['Unlimited water tests','Up to 5 pools','Full trend charts & history','Priority support','Lock in founding price for life'].map((f, i) => (
+                  <div key={i} className="flex items-center gap-2.5">
+                    <div className="w-4 h-4 rounded-full flex items-center justify-center shrink-0" style={{background:'rgba(0,224,176,0.2)'}}>
+                      <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="#00E0B0" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                    </div>
+                    <span className="text-xs text-white/80">{f}</span>
+                  </div>
+                ))}
+              </div>
+              <Link href="/signup?founding=1" className="block w-full text-center mt-6 bg-teal text-pool-deep text-sm font-bold py-3 rounded-xl hover:opacity-90 transition-opacity">
+                Claim This Rate →
+              </Link>
+            </div>
+          </div>
+          <p className="text-center text-xs text-text-muted mt-4">Start free. Upgrade anytime. Founding rate locked in forever.</p>
+        </div>
+      </section>
+
+      {/* Get it on your phone */}
+      <section className="py-16 px-6 bg-surface">
+        <div className="max-w-2xl mx-auto text-center">
+          <p className="text-pool-dark text-sm font-bold uppercase tracking-widest mb-3">Works Like a Native App</p>
+          <h2 className="text-3xl font-bold tracking-tight mb-4" style={{fontFamily:"'Oswald',sans-serif"}}>Add PoolKeep to your home screen.</h2>
+          <p className="text-text-muted text-sm mb-10 max-w-md mx-auto">No app store required. Add it to your phone in seconds and it works just like a regular app — even offline.</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-left">
+            {/* iPhone */}
+            <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{background:'rgba(0,120,184,0.08)'}}>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0078B8" strokeWidth="2" strokeLinecap="round"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18" strokeWidth="2.5"/></svg>
+                </div>
+                <p className="font-bold text-sm text-text-primary">iPhone (Safari)</p>
+              </div>
+              <ol className="space-y-2">
+                {[
+                  'Open poolkeep.vercel.app in Safari',
+                  'Tap the Share button at the bottom',
+                  'Scroll down and tap "Add to Home Screen"',
+                  'Tap Add — done',
+                ].map((step, i) => (
+                  <li key={i} className="flex items-start gap-2.5 text-xs text-text-muted">
+                    <span className="w-4 h-4 rounded-full bg-pool-dark text-white flex items-center justify-center shrink-0 mt-0.5 text-[9px] font-bold">{i+1}</span>
+                    {step}
+                  </li>
+                ))}
+              </ol>
+            </div>
+            {/* Android */}
+            <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{background:'rgba(0,120,184,0.08)'}}>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0078B8" strokeWidth="2" strokeLinecap="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+                </div>
+                <p className="font-bold text-sm text-text-primary">Android (Chrome)</p>
+              </div>
+              <ol className="space-y-2">
+                {[
+                  'Open poolkeep.vercel.app in Chrome',
+                  'Tap the three-dot menu (top right)',
+                  'Tap "Add to Home screen"',
+                  'Tap Add — done',
+                ].map((step, i) => (
+                  <li key={i} className="flex items-start gap-2.5 text-xs text-text-muted">
+                    <span className="w-4 h-4 rounded-full bg-pool-dark text-white flex items-center justify-center shrink-0 mt-0.5 text-[9px] font-bold">{i+1}</span>
+                    {step}
+                  </li>
+                ))}
+              </ol>
+            </div>
           </div>
         </div>
       </section>
@@ -168,7 +279,7 @@ export default function LandingPage() {
               ['Full test history', true, false],
               ['Shareable reports', true, true],
               ['Works on your schedule', true, false],
-              ['Cost per month', '$9.99', '$80–$200'],
+              ['Cost per month', '$4.99', '$80–$200'],
             ].map(([feature, pool, pro], i) => (
               <div key={i} className={`grid grid-cols-3 items-center text-sm px-4 py-3.5 ${i % 2 === 0 ? '' : 'bg-surface/60'}`}>
                 <span className="text-text-muted text-xs">{feature}</span>
@@ -194,14 +305,16 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* CTA */}
+      {/* Final CTA */}
       <section className="bg-pool-deep py-16 px-6 text-center">
-        <h2 className="text-3xl font-bold text-white tracking-tight mb-4" style={{fontFamily:"'Oswald',sans-serif"}}>Ready to take back your weekends?</h2>
-        <p className="text-white/70 mb-8 max-w-md mx-auto">Join 127 homeowners who stopped guessing and started swimming.</p>
-        <Link href="/signup" className="inline-block bg-teal text-pool-deep text-lg font-bold px-9 py-4 rounded-xl hover:opacity-90 transition-all">
-          Get Started Free →
+        <div className="inline-block bg-red-500/20 border border-red-400/30 text-white/80 text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full mb-6">73 founding spots remaining</div>
+        <h2 className="text-3xl font-bold text-white tracking-tight mb-3" style={{fontFamily:"'Oswald',sans-serif"}}>Your pool should be the best part of summer.</h2>
+        <p className="text-white/70 mb-2 max-w-md mx-auto">Start free. Lock in $4.99/mo when you upgrade. That rate stays yours forever.</p>
+        <p className="text-white/40 text-xs mb-8">Regular price will increase as founding spots fill.</p>
+        <Link href="/signup?founding=1" className="inline-block bg-teal text-pool-deep text-lg font-bold px-9 py-4 rounded-xl hover:opacity-90 transition-all">
+          Claim Your Founding Spot →
         </Link>
-        <p className="mt-4 text-xs text-white/40">Free plan available · No credit card required · Cancel anytime</p>
+        <p className="mt-4 text-xs text-white/40">Try free · No credit card to start · Upgrade when you&apos;re ready</p>
       </section>
 
       {/* Footer */}
