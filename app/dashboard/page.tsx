@@ -401,12 +401,21 @@ export default function DashboardPage() {
               const defaultMeta = { bg:'rgba(245,166,35,0.15)', color:'#B97A00', icon:<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg> }
 
               if (actionItems.length === 0) {
-                const hasUnknowns = lastTest.recommendations.unknown.filter(u => u.param !== 'salt').length > 0
+                const unknownNonSalt = lastTest.recommendations.unknown.filter(u => u.param !== 'salt').length
+                const hasUnknowns = unknownNonSalt > 0
+                const testedBars = 5 - unknownNonSalt
                 return (
                   <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex items-start gap-3 mb-2">
-                    <div className="w-10 h-10 rounded-full flex items-center justify-center shrink-0 mt-0.5" style={{background: hasUnknowns ? 'rgba(245,166,35,0.12)' : 'rgba(29,184,105,0.12)'}}>
+                    <div className="w-10 h-10 rounded-full flex items-center justify-center shrink-0 mt-0.5" style={{background: hasUnknowns ? 'rgba(0,150,122,0.10)' : 'rgba(29,184,105,0.12)'}}>
                       {hasUnknowns
-                        ? <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#D97706" strokeWidth="2.2" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                        ? (
+                          <svg width="20" height="18" viewBox="0 0 20 18" fill="none">
+                            {[0,1,2,3,4].map(i => (
+                              <rect key={i} x={i * 4.2} y={i < testedBars ? 18 - (6 + i * 2.5) : 13} width="3" height={i < testedBars ? 6 + i * 2.5 : 5} rx="1"
+                                fill={i < testedBars ? '#00967A' : '#D1E8E2'} />
+                            ))}
+                          </svg>
+                        )
                         : <IconCheck size={20} style={{color:'#1DB869'}} />
                       }
                     </div>
