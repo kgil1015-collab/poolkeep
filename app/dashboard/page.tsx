@@ -513,7 +513,12 @@ export default function DashboardPage() {
                                                   <div>
                                                     <p className="text-xs font-bold" style={{color: ci === 0 ? '#0078B8' : '#DC2626'}}>{chem}</p>
                                                     {lineAmount && <p className="text-xs font-semibold text-text-muted mt-0.5">{lineAmount}</p>}
-                                                    {isShock && <p className="text-[10px] font-semibold mt-0.5" style={{color:'#3D5A6B'}}>Liquid: retest in 4–8 hrs, swim when FC &lt; 5 ppm · Granular: retest next morning</p>}
+                                                    {isShock && (
+                                                      <div className="flex items-start gap-1 mt-1">
+                                                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#00967A" strokeWidth="2.5" strokeLinecap="round" className="shrink-0 mt-px"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                                                        <p className="text-[10px] italic" style={{color:'#00967A'}}>Liquid: retest in 4–8 hrs, swim when FC &lt; 5 ppm · Granular: retest next morning</p>
+                                                      </div>
+                                                    )}
                                                   </div>
                                                 </div>
                                               )
