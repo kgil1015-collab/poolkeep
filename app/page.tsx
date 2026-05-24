@@ -76,6 +76,7 @@ export default function LandingPage() {
         <p className="text-sm text-white/50">
           Already joined by <strong className="text-white/80">127 homeowners</strong> saving $1,200+/year in service fees.
         </p>
+        <p className="mt-2 text-xs text-white/35">Start free · Upgrade anytime · Founding rate locked in forever</p>
       </section>
 
       {/* Stats bar */}
@@ -128,16 +129,16 @@ export default function LandingPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {/* Free */}
             <div className="rounded-2xl p-6" style={{background:'linear-gradient(160deg,#F0FAF6,#E8F5FF)',border:'2px solid #C8E8D8'}}>
-              <p className="text-xs font-bold uppercase tracking-widest text-text-muted mb-1">Free</p>
+              <p className="text-xs font-bold uppercase tracking-widest mb-1" style={{color:'#2A7A5A'}}>Free</p>
               <p className="text-4xl font-bold text-text-primary mb-1" style={{fontFamily:"'Oswald',sans-serif"}}>$0</p>
-              <p className="text-xs text-text-muted mb-5">5 free tests to try it out</p>
+              <p className="text-xs font-medium mb-5" style={{color:'#3A6B5A'}}>5 free tests to try it out</p>
               <div className="space-y-2.5 mb-6">
                 {['5 water tests with full recommendations','1 pool','Treatment plan with exact doses','Share your results'].map((f, i) => (
                   <div key={i} className="flex items-center gap-2.5">
-                    <div className="w-4 h-4 rounded-full flex items-center justify-center shrink-0" style={{background:'rgba(29,184,105,0.12)'}}>
-                      <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="#1DB869" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                    <div className="w-4 h-4 rounded-full flex items-center justify-center shrink-0" style={{background:'rgba(29,184,105,0.25)'}}>
+                      <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="#1A9A5A" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
                     </div>
-                    <span className="text-xs text-text-muted">{f}</span>
+                    <span className="text-xs font-medium" style={{color:'#1A3A2A'}}>{f}</span>
                   </div>
                 ))}
               </div>
@@ -195,7 +196,6 @@ export default function LandingPage() {
             </div>
           </div>
 
-          <p className="text-center text-xs text-text-muted mt-4">Start free. Upgrade anytime. Founding rate locked in forever.</p>
         </div>
       </section>
 
