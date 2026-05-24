@@ -322,7 +322,7 @@ export default function LandingPage() {
               ['Full test history', true, false],
               ['Shareable reports', true, true],
               ['Works on your schedule', true, false],
-              ['Cost per month', '$4.99', '$80–$200'],
+              ['Cost per month', 'From $4.99*', '$80–$200'],
             ].map(([feature, pool, pro], i) => (
               <div key={i} className={`grid grid-cols-3 items-center text-sm px-4 py-3.5 ${i % 2 === 0 ? '' : 'bg-surface/60'}`}>
                 <span className="text-text-muted text-xs">{feature}</span>
@@ -345,6 +345,7 @@ export default function LandingPage() {
               </div>
             ))}
           </div>
+          <p className="text-[11px] text-text-muted mt-3 text-center">* $4.99/mo is the founding member rate ($60 one-time to join). Regular plans from $9.99/mo.</p>
         </div>
       </section>
 
