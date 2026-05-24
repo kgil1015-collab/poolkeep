@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
@@ -378,12 +378,9 @@ export default function DashboardPage() {
             {/* ACTION NEEDED — icon cards */}
             {(() => {
               const actionItems = [...lastTest.recommendations.action, ...lastTest.recommendations.monitor]
-              // Patch old stored data: if FC is critically low and pH > 7.2, pH needs lowering before shocking
-              // but old stored recs may have it in 'good'. Inject it here if missing from action/monitor.
-              const phNeedsShockPrep = (lastTest.free_chlorine ?? 99) < 0.5 && (lastTest.ph ?? 0) > 7.2
-              if (phNeedsShockPrep && !actionItems.some(r => r.param === 'ph')) {
-                actionItems.push({ param: 'ph', title: 'Lower pH to 7.2 before shocking', desc: `pH at ${lastTest.ph} is in range for normal use, but lower it to 7.2 first — at higher pH most of the shock you add is wasted and won’t sanitize effectively.`, tags: [] })
-              }
+              // Sort: chlorine (most urgent safety issue) always first
+              const chlorineFirst = (x: {param: string}) => x.param === 'chlorine' ? -1 : 0
+              actionItems.sort((a, b) => chlorineFirst(a) - chlorineFirst(b))
               const paramMeta: Record<string, { icon: React.ReactElement; bg: string; color: string }> = {
                 ph:        { bg:'rgba(124,58,237,0.13)',  color:'#6D28D9', icon:<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 2h4M10 2v7l-4.5 9.5A1 1 0 0 0 6.4 20h11.2a1 1 0 0 0 .9-1.5L14 9V2"/></svg> },
                 chlorine:  { bg:'rgba(229,48,74,0.12)',   color:'#C0102E', icon:<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polyline points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> },
@@ -420,12 +417,25 @@ export default function DashboardPage() {
                               {meta.icon}
                             </div>
                             <div className="flex-1 min-w-0">
-                              <p className="font-bold text-text-primary text-sm leading-snug">{rec.title}</p>
-                              <p className="text-xs text-text-muted leading-relaxed mt-0.5">{rec.desc
-                                .replace(/\s*See the treatment plan below[\s\S]*?(?:then shock|add chlorine)\.\s*/g, ' ')
-                                .replace(/[Aa]nd aerate afterward\.?/g, 'then aim a return jet at the surface for 2–4 hrs to raise pH naturally.')
-                                .replace(/[Aa]erate afterward\.?/g, 'aim a return jet at the surface for 2–4 hrs to raise pH naturally.')
-                                .trim()}</p>
+                              <p className="font-bold text-text-primary text-sm leading-snug">{
+                                // Patch old stored title for the "lower pH first" chlorine card
+                                rec.param === 'chlorine' && rec.title === 'Lower pH first, then add chlorine'
+                                  ? 'Chlorine critically low — two steps'
+                                  : rec.title
+                              }</p>
+                              <p className="text-xs text-text-muted leading-relaxed mt-0.5">{(() => {
+                                let d = rec.desc
+                                  .replace(/\s*See the treatment plan below[\s\S]*?(?:then shock|add chlorine)\.\s*/g, ' ')
+                                  .replace(/[Aa]nd aerate afterward\.?/g, 'then aim a return jet at the surface for 2–4 hrs to raise pH naturally.')
+                                  .replace(/[Aa]erate afterward\.?/g, 'aim a return jet at the surface for 2–4 hrs to raise pH naturally.')
+                                  .trim()
+                                // Patch old stored chlorine desc when pH needed work
+                                if (rec.param === 'chlorine' && d.includes('Lower pH to 7.2 first, then add chlorine')) {
+                                  const ph = lastTest.ph ?? 7.4
+                                  d = `Free chlorine at ${lastTest.free_chlorine} ppm — unsafe for swimming. Step 1: add pH reducer to bring pH to 7.2. Step 2: shock the pool. At pH ${ph}, most of the shock is ineffective — lower it first and the same dose works 2–3× better.`
+                                }
+                                return d
+                              })()}</p>
                             </div>
                           </div>
                         </div>
@@ -781,3 +791,4 @@ export default function DashboardPage() {
     </div>
   )
 }
+

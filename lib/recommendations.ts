@@ -580,9 +580,9 @@ export function calculateRecommendations(test: TestInput, volumeGallons: number)
     const dose = Math.round(v * dosePerTenK * 2) / 2
     const phNeedsWork = test.ph !== null && test.ph > 7.2
     if (phNeedsWork) {
-      recs.push({ status: 'action', param: 'chlorine', title: 'Lower pH first, then add chlorine', desc: `Free chlorine at ${test.free_chlorine} ppm — unsafe for swimming. Lower pH to 7.2 first, then add chlorine. High pH wastes most of the product.`, tags: [] })
+      recs.push({ status: 'action', param: 'chlorine', title: 'Chlorine critically low — two steps', desc: `Free chlorine at ${test.free_chlorine} ppm — unsafe for swimming. Step 1: add pH reducer to bring pH to 7.2. Step 2: shock the pool. At pH ${test.ph}, high pH makes most of the shock ineffective — lower it first and the same dose works 2–3× better.`, tags: [] })
     } else {
-      recs.push({ status: 'action', param: 'chlorine', title: 'Chlorine critically low — shock now', desc: `Free chlorine at ${test.free_chlorine} ppm — unsafe for swimming. Shock the pool this evening.`, tags: [] })
+      recs.push({ status: 'action', param: 'chlorine', title: 'Chlorine critically low — shock now', desc: `Free chlorine at ${test.free_chlorine} ppm — unsafe for swimming. Shock the pool this evening. See the treatment plan below for exact dose.`, tags: [] })
     }
   } else if (test.free_chlorine < 1) {
     const dose = Math.round(v * 13 * (1 - test.free_chlorine))
