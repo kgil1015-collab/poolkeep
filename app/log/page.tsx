@@ -12,8 +12,8 @@ const PARAMS = [
   { key: 'total_alkalinity', label: 'Total Alkalinity',    unit: 'ppm', placeholder: '100', min: 0,    max: 500,  step: '1',   range: '80 – 120 ppm' },
   { key: 'cya',              label: 'Cyanuric Acid (CYA)', unit: 'ppm', placeholder: '40',  min: 0,    max: 300,  step: '1',   range: '30 – 50 ppm' },
   { key: 'calcium_hardness', label: 'Calcium Hardness',    unit: 'ppm', placeholder: '300', min: 0,    max: 1000, step: '1',   range: '200 – 400 ppm' },
-  { key: 'salt',             label: 'Salt (salt pools only)', unit: 'ppm', placeholder: '—',   min: 0,    max: 6000, step: '1',   range: '2700 – 3400 ppm · skip if not a salt pool' },
   { key: 'tds',              label: 'TDS (Total Dissolved Solids)', unit: 'ppm', placeholder: '—', min: 0, max: 5000, step: '1', range: '< 1,500 ppm · skip if untested or salt pool' },
+  { key: 'salt',             label: 'Salt', unit: 'ppm', placeholder: '—',   min: 0,    max: 6000, step: '1',   range: '2700 – 3400 ppm' },
 ]
 
 const FREE_LIMIT = 5
@@ -133,6 +133,7 @@ export default function LogTestPage() {
   const [error, setError] = useState('')
   const [testCount, setTestCount] = useState(0)
   const [isPro, setIsPro] = useState(false)
+  const [isSaltPool, setIsSaltPool] = useState(false)
 
   useEffect(() => {
     const supabase = createClient()
@@ -149,6 +150,8 @@ export default function LogTestPage() {
       const active = (savedId && pools.find(p => p.id === savedId)) || pools[0]
       localStorage.setItem('poolkeep_active_pool', active.id)
       setPool(active)
+      const saltKey = `poolkeep_salt_pool_${active.id}`
+      setIsSaltPool(localStorage.getItem(saltKey) === 'true')
       if (!pro) {
         const { count } = await supabase
           .from('test_results')
@@ -254,8 +257,27 @@ export default function LogTestPage() {
         {showNudge && <NudgeBanner count={testCount} />}
         {error && <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl px-4 py-3 mb-4">{error}</div>}
 
+        {/* Salt pool toggle */}
+        <div className="flex items-center justify-between bg-white rounded-2xl px-4 py-3 mb-3 shadow-sm" style={{border:'2px solid #C8DCE8'}}>
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-widest text-text-muted">Salt Pool?</p>
+            <p className="text-[10px] text-text-faint">Shows salt field and adjusts recommendations</p>
+          </div>
+          <button
+            onClick={() => {
+              const next = !isSaltPool
+              setIsSaltPool(next)
+              if (pool) localStorage.setItem(`poolkeep_salt_pool_${pool.id}`, String(next))
+            }}
+            className="relative w-12 h-6 rounded-full transition-colors shrink-0"
+            style={{background: isSaltPool ? '#0078B8' : '#C8DCE8'}}
+          >
+            <span className="absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-all" style={{left: isSaltPool ? '26px' : '4px'}} />
+          </button>
+        </div>
+
         <div className="space-y-3 mb-6">
-          {PARAMS.map((p, i) => {
+          {PARAMS.filter(p => p.key !== 'salt' || isSaltPool).map((p, i) => {
             const val = values[p.key] ?? ''
             const num = parseFloat(val)
             const hasVal = val !== '' && !isNaN(num)
