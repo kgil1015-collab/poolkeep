@@ -258,19 +258,25 @@ export default function LogTestPage() {
             const num = parseFloat(val)
             const hasVal = val !== '' && !isNaN(num)
             return (
-              <div key={p.key} className="bg-white rounded-2xl px-4 py-3.5 shadow-sm flex items-center gap-4">
-                <div className="w-6 h-6 rounded-full flex items-center justify-center shrink-0 text-xs font-bold" style={{background: hasVal ? '#0078B8' : '#E8F2F8', color: hasVal ? 'white' : '#8AAABB'}}>
-                  {i + 1}
+              <div key={p.key} className="bg-white rounded-2xl shadow-sm overflow-hidden flex items-stretch"
+                style={{border: `2px solid ${hasVal ? '#0078B8' : '#C8DCE8'}`}}>
+                {/* Label side */}
+                <div className="flex items-center gap-3 flex-1 px-4 py-3.5">
+                  <div className="w-6 h-6 rounded-full flex items-center justify-center shrink-0 text-xs font-bold" style={{background: hasVal ? '#0078B8' : '#E8F2F8', color: hasVal ? 'white' : '#8AAABB'}}>
+                    {i + 1}
+                  </div>
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-widest text-text-muted mb-0.5">{p.label}</p>
+                    <p className="text-[10px] text-text-faint">{p.range}</p>
+                  </div>
                 </div>
-                <div className="flex-1">
-                  <p className="text-xs font-semibold uppercase tracking-widest text-text-muted mb-0.5">{p.label}</p>
-                  <p className="text-[10px] text-text-faint">{p.range}</p>
-                </div>
+                {/* Input side — visually distinct tap target */}
                 <div
-                  className="flex items-baseline gap-1.5 rounded-xl px-3 py-2"
+                  className="flex items-center gap-1.5 px-4 shrink-0"
                   style={{
-                    background: hasVal ? 'rgba(0,120,184,0.07)' : '#F0F6FA',
-                    border: `1.5px solid ${hasVal ? 'rgba(0,120,184,0.35)' : '#D8E8F0'}`,
+                    background: hasVal ? 'rgba(0,120,184,0.08)' : '#EEF5FA',
+                    borderLeft: `2px solid ${hasVal ? '#0078B8' : '#C8DCE8'}`,
+                    minWidth: 100,
                   }}
                 >
                   <input
@@ -285,10 +291,10 @@ export default function LogTestPage() {
                     autoCorrect="off"
                     autoCapitalize="none"
                     spellCheck={false}
-                    className="w-16 text-right text-base font-bold outline-none bg-transparent text-text-primary placeholder:text-gray-300"
+                    className="w-20 text-right text-lg font-bold outline-none bg-transparent text-text-primary placeholder:text-slate-400"
                     style={{fontFamily:"'DM Mono',monospace"}}
                   />
-                  {p.unit && <span className="text-xs font-medium" style={{color: hasVal ? '#0078B8' : '#8AAABB'}}>{p.unit}</span>}
+                  {p.unit && <span className="text-xs font-semibold shrink-0" style={{color: hasVal ? '#0078B8' : '#7A9DB0'}}>{p.unit}</span>}
                 </div>
               </div>
             )
