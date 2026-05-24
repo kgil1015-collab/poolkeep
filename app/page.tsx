@@ -176,7 +176,7 @@ export default function LandingPage() {
           <div className="mt-4">
             <p className="text-center text-xs font-semibold mb-3" style={{color:'#B97A00'}}>Prefer a standard plan? No one-time fee.</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <Link href="/signup" className="rounded-2xl px-5 py-4 flex items-center justify-between transition-all group" style={{background:'linear-gradient(135deg,#E8F4FF,#D0E8F8)',border:'2px solid #0078B8'}}>
+              <Link href="/signup" className="rounded-2xl px-5 py-4 flex items-center justify-between transition-all group" style={{background:'#C8E6FF',border:'2px solid #0078B8',boxShadow:'0 2px 12px rgba(0,120,184,0.15)'}}>
                 <div>
                   <p className="text-xs font-bold uppercase tracking-widest mb-0.5" style={{color:'#0078B8'}}>Pro · Monthly</p>
                   <p className="text-xl font-bold text-text-primary" style={{fontFamily:"'Oswald',sans-serif"}}>$9.99<span className="text-sm font-normal text-text-muted">/mo</span></p>
@@ -184,7 +184,7 @@ export default function LandingPage() {
                 </div>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0078B8" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
               </Link>
-              <Link href="/signup" className="rounded-2xl px-5 py-4 flex items-center justify-between transition-all group" style={{background:'linear-gradient(135deg,#E8F4FF,#D0E8F8)',border:'2px solid #0078B8'}}>
+              <Link href="/signup" className="rounded-2xl px-5 py-4 flex items-center justify-between transition-all group" style={{background:'#C8E6FF',border:'2px solid #0078B8',boxShadow:'0 2px 12px rgba(0,120,184,0.15)'}}>
                 <div>
                   <p className="text-xs font-bold uppercase tracking-widest mb-0.5" style={{color:'#0078B8'}}>Pro · Annual</p>
                   <p className="text-xl font-bold text-text-primary" style={{fontFamily:"'Oswald',sans-serif"}}>$99<span className="text-sm font-normal text-text-muted">/yr</span></p>
