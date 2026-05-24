@@ -285,7 +285,7 @@ export default function LandingPage() {
                 stars: 5,
               },
               {
-                quote: "I knew the basics but my pool still frustrated me constantly. Turns out I was missing the chemistry underneath — why the order matters, how pH actually affects chlorine, what CYA does. PoolKeep gave me that knowledge. Now I'm not just following steps — I actually own my pool care.",
+                quote: "My pool frustrated me and I was constantly chasing the right numbers. Turns out I was missing the chemistry underneath — why the order matters, how pH actually affects chlorine, what CYA does. PoolKeep gave me that knowledge. Now I'm not just following steps — I actually own my pool care.",
                 name: 'Jennifer R.',
                 pool: '14,000 gal inground · Gilbert, AZ',
                 stars: 5,
