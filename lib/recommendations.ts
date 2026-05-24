@@ -86,6 +86,10 @@ function buildTreatmentPlan(test: TestInput, v: number): TreatmentStep[] {
   const cya = test.cya
   const ca = test.calcium_hardness
 
+  // Track whether the shock step already handles the pH reduction, so we skip
+  // generating a redundant standalone pH step (order 2) in that case.
+  let shockHandledPH = false
+
   // ── SHOCK (critically low chlorine — acid first, then shock) ────────────────
   if (fc !== null && fc < 0.5) {
     const dose = Math.round(v * 2 * Math.max(1, 3 - fc))
@@ -95,6 +99,7 @@ function buildTreatmentPlan(test: TestInput, v: number): TreatmentStep[] {
       ? Math.round(v * 13 * ((ph - 7.2) / 0.6))
       : Math.round(v * 8)
     const needsAcid = phHigh || phUnknown
+    if (needsAcid) shockHandledPH = true
     const phEfficiency = ph !== null
       ? ph <= 7.0 ? '73%' : ph <= 7.2 ? '66%' : ph <= 7.5 ? '49%' : ph <= 7.8 ? '33%' : '21%'
       : null
@@ -190,7 +195,9 @@ function buildTreatmentPlan(test: TestInput, v: number): TreatmentStep[] {
   }
 
   // ── pH (effective only after TA is stable) ──────────────────────────────────
-  if (ph !== null) {
+  // Skip if the shock step already included an acid pre-treatment for pH —
+  // generating a second pH step would just tell the user to add acid twice.
+  if (ph !== null && !shockHandledPH) {
     const taKnownAndOff = ta !== null && (ta < 60 || ta > 140)
     const taUnknown = ta === null
     const sequenceNote = taKnownAndOff
@@ -303,15 +310,15 @@ function buildTreatmentPlan(test: TestInput, v: number): TreatmentStep[] {
     } else if (cya > 80) {
       raw.push({
         order: 4,
-        urgency: 'soon',
+        urgency: 'routine',
         param: 'cya',
-        title: 'Dilute CYA — partial drain and refill needed',
+        title: 'CYA elevated — plan a partial drain when conditions are right',
         chemical: null,
         amount: null,
-        why: `CYA at ${cya} ppm is too high, and this creates a condition most pool owners have heard of but do not fully understand: chlorine lock. Here is what happens — as CYA rises above 80 ppm, the bond it forms with chlorine becomes too strong. The chlorine cannot break free to sanitize. You can have 3 ppm of chlorine on a test strip and still have unsafe, algae-prone water because nearly none of it is in an active form. There is no chemical treatment for this. The only fix is physical dilution — replacing a portion of the water to bring CYA concentration down.`,
-        how: 'Drain 20–30% of the pool and refill with fresh water. After refilling, retest CYA and repeat if still above 80 ppm. Stop using any products that contain CYA — this includes stabilizer, trichlor tablets, and dichlor shock — until levels come down.',
-        lookFor: 'Retest CYA after refilling and allowing the water to mix for 24 hours. Switch to liquid chlorine or cal-hypo shock for sanitizing while managing this — both are CYA-free and will not continue pushing levels up.',
-        note: `The most common cause of chronically high CYA is regular use of slow-dissolve chlorine tabs (trichlor). Each tablet contains a significant amount of CYA, and it accumulates all season. Many pool owners who use tabs year after year eventually reach chlorine lock and do not know why their pool always looks slightly off despite adding chemicals.`,
+        why: `CYA at ${cya} ppm is above the 80 ppm threshold where chlorine lock can begin. When CYA gets too high, the bond it forms with chlorine becomes so strong that the chlorine cannot break free to sanitize. You can test positive for chlorine and still have water that is not effectively killing bacteria. There is no chemical treatment — the only fix is replacing a portion of the water. This is not an emergency this week, but it is worth planning for.`,
+        how: `Plan this for a mild-weather day — not during a heat wave, and not right after you have just refilled the pool. Drain 20–30% and refill with fresh water. After refilling, retest CYA and repeat if still above 80 ppm. While waiting for the right time, switch to liquid chlorine or cal-hypo shock — both are CYA-free and will not push levels higher. Stop using trichlor tabs or dichlor products until CYA comes down.`,
+        lookFor: 'Retest CYA 24 hours after refilling and mixing. Target 30–50 ppm. If your local tap water is already high in CYA, consider having it tested — some municipal supplies contain stabilizer.',
+        note: `The most common cause of chronically high CYA is regular use of slow-dissolve trichlor tabs. Each tablet adds CYA alongside chlorine, and it accumulates all season with no way to remove it except dilution. Many pool owners who use tabs year after year hit chlorine lock and never understand why the pool never looks quite right despite constant chemical additions.`,
       })
     } else if (cya > 60) {
       raw.push({
