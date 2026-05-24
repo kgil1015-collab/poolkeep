@@ -272,11 +272,11 @@ export default function LogTestPage() {
                 </div>
                 {/* Input side — visually distinct tap target */}
                 <div
-                  className="flex items-center gap-1.5 px-4 shrink-0"
+                  className="flex items-center justify-end gap-1.5 py-3.5 px-4 shrink-0"
                   style={{
-                    background: hasVal ? 'rgba(0,120,184,0.08)' : '#EEF5FA',
-                    borderLeft: `2px solid ${hasVal ? '#0078B8' : '#C8DCE8'}`,
-                    minWidth: 100,
+                    background: hasVal ? 'rgba(0,120,184,0.09)' : '#EEF5FA',
+                    width: 110,
+                    borderLeft: `1.5px solid ${hasVal ? 'rgba(0,120,184,0.25)' : '#D8E8F0'}`,
                   }}
                 >
                   <input
@@ -291,7 +291,7 @@ export default function LogTestPage() {
                     autoCorrect="off"
                     autoCapitalize="none"
                     spellCheck={false}
-                    className="w-20 text-right text-lg font-bold outline-none bg-transparent text-text-primary placeholder:text-slate-400"
+                    className="w-16 text-right text-lg font-bold outline-none bg-transparent text-text-primary placeholder:text-slate-400"
                     style={{fontFamily:"'DM Mono',monospace"}}
                   />
                   {p.unit && <span className="text-xs font-semibold shrink-0" style={{color: hasVal ? '#0078B8' : '#7A9DB0'}}>{p.unit}</span>}
