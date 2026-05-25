@@ -389,17 +389,18 @@ export default function SharePage() {
                   </div>
                 </button>
 
-                {isMobile && (
-                  <button onClick={handleSms} className="w-full bg-white rounded-2xl px-4 py-3.5 shadow-sm border border-gray-100 flex items-center gap-3 text-left hover:border-pool-dark transition-colors">
-                    <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{background:'rgba(0,120,184,0.08)'}}>
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0078B8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-                    </div>
-                    <div>
+                <button onClick={isMobile ? handleSms : undefined} disabled={!isMobile} className="w-full bg-white rounded-2xl px-4 py-3.5 shadow-sm border border-gray-100 flex items-center gap-3 text-left transition-colors" style={{opacity: isMobile ? 1 : 0.5, cursor: isMobile ? 'pointer' : 'default'}}>
+                  <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{background:'rgba(0,120,184,0.08)'}}>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0078B8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
                       <p className="text-sm font-bold text-text-primary">Text Message</p>
-                      <p className="text-xs text-text-muted">Send a summary via SMS</p>
+                      {!isMobile && <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full" style={{background:'rgba(0,120,184,0.08)',color:'#0078B8'}}>Available on mobile</span>}
                     </div>
-                  </button>
-                )}
+                    <p className="text-xs text-text-muted">Send a summary via SMS</p>
+                  </div>
+                </button>
 
                 <button onClick={handlePrint} className="w-full bg-white rounded-2xl px-4 py-3.5 shadow-sm border border-gray-100 flex items-center gap-3 text-left hover:border-pool-dark transition-colors">
                   <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{background:'rgba(0,120,184,0.08)'}}>
