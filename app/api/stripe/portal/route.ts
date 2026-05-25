@@ -31,7 +31,7 @@ export async function POST() {
       return NextResponse.json({ error: 'No billing account found' }, { status: 404 })
     }
 
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://poolkeep.vercel.app'
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://www.poolkeep.app'
 
     const session = await stripe.billingPortal.sessions.create({
       customer: profile.stripe_customer_id,

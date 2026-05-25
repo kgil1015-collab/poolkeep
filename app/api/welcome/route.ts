@@ -5,7 +5,7 @@ export const runtime = 'nodejs'
 
 const RESEND_API_KEY = process.env.RESEND_API_KEY
 const FROM_EMAIL = process.env.FROM_EMAIL ?? 'PoolKeep <onboarding@resend.dev>'
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'https://poolkeep.vercel.app'
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'https://www.poolkeep.app'
 
 function welcomeEmail(name: string): string {
   const firstName = name.split(' ')[0] || 'there'

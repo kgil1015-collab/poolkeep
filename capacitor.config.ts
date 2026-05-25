@@ -5,7 +5,7 @@ const config: CapacitorConfig = {
   appName: 'PoolKeep',
   webDir: 'out',
   server: {
-    url: 'https://poolkeep.vercel.app',
+    url: 'https://www.poolkeep.app',
     cleartext: false,
   },
   ios: {

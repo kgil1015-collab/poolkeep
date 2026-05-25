@@ -219,7 +219,7 @@ export default function LandingPage() {
               </div>
               <ol className="space-y-2">
                 {[
-                  'Open poolkeep.vercel.app in Safari',
+                  'Open poolkeep.app in Safari',
                   'Tap the Share button at the bottom',
                   'Scroll down and tap "Add to Home Screen"',
                   'Tap Add — done',
@@ -241,7 +241,7 @@ export default function LandingPage() {
               </div>
               <ol className="space-y-2">
                 {[
-                  'Open poolkeep.vercel.app in Chrome',
+                  'Open poolkeep.app in Chrome',
                   'Tap the three-dot menu (top right)',
                   'Tap "Add to Home screen"',
                   'Tap Add — done',

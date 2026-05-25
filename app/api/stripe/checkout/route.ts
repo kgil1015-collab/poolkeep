@@ -51,7 +51,7 @@ export async function POST(req: NextRequest) {
       await adminClient.from('profiles').upsert({ id: user.id, stripe_customer_id: customerId })
     }
 
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://poolkeep.vercel.app'
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://www.poolkeep.app'
 
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
