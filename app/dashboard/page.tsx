@@ -46,6 +46,15 @@ function scoreLabel(score: number) {
   return 'Action required'
 }
 
+// Compute score from stored recommendations so it always reflects the current
+// formula, even for tests logged before the formula was updated.
+function computeScore(recs: TestResult['recommendations']): number {
+  const actionCount = recs.action.length
+  const monitorCount = recs.monitor.length
+  const unknownCount = recs.unknown.filter(u => u.param !== 'salt').length
+  return Math.max(10, 100 - actionCount * 18 - monitorCount * 6 - unknownCount * 8)
+}
+
 function statusAccent(score: number | null) {
   if (score === null) return { color: '#00CCA3', overlay: 'none' }
   if (score >= 90) return { color: '#00E0B0', overlay: 'none' }
@@ -196,7 +205,7 @@ export default function DashboardPage() {
       <div className="bg-pool-deep px-5 pt-5 pb-6 relative overflow-hidden">
         {/* Dynamic status overlay */}
         {lastTest && (
-          <div className="absolute inset-0 pointer-events-none" style={{background: statusAccent(lastTest.health_score).overlay}} />
+          <div className="absolute inset-0 pointer-events-none" style={{background: statusAccent(computeScore(lastTest.recommendations)).overlay}} />
         )}
         <div className="flex items-center justify-between mb-5">
           <div className="flex items-center gap-2">
@@ -279,7 +288,7 @@ export default function DashboardPage() {
 
         {/* Health score — simple large number */}
         {(() => {
-          const score = lastTest?.health_score ?? null
+          const score = lastTest ? computeScore(lastTest.recommendations) : null
           const { color } = statusAccent(score)
           const unknownCount = lastTest
             ? lastTest.recommendations.unknown.filter(u => u.param !== 'salt').length

@@ -16,11 +16,20 @@ type TestResult = {
   calcium_hardness: number | null
   salt: number | null
   recommendations: {
-    action: { title: string; desc: string; tags: string[] }[]
-    monitor: { title: string; desc: string; tags: string[] }[]
-    good: { title: string; desc: string }[]
-    unknown: { title: string; desc: string; tags: string[] }[]
+    action: { param: string; title: string; desc: string; tags: string[] }[]
+    monitor: { param: string; title: string; desc: string; tags: string[] }[]
+    good: { param?: string; title: string; desc: string }[]
+    unknown: { param: string; title: string; desc: string; tags: string[] }[]
   }
+}
+
+// Compute score from recommendations so the share page always matches the dashboard,
+// regardless of what health_score value was stored in the database.
+function computeScore(recs: TestResult['recommendations']): number {
+  const actionCount = recs.action.length
+  const monitorCount = recs.monitor.length
+  const unknownCount = recs.unknown.filter(u => u.param !== 'salt').length
+  return Math.max(10, 100 - actionCount * 18 - monitorCount * 6 - unknownCount * 8)
 }
 
 const READINGS = [
@@ -44,10 +53,11 @@ function scoreLabel(score: number) {
 }
 
 function buildReportText(poolName: string, test: TestResult): string {
+  const score = computeScore(test.recommendations)
   const lines: string[] = []
   lines.push(`POOL REPORT — ${poolName}`)
   lines.push(`Tested: ${formatDate(test.created_at)}`)
-  lines.push(`Health Score: ${test.health_score}/100 (${scoreLabel(test.health_score)})`)
+  lines.push(`Health Score: ${score}/100 (${scoreLabel(score)})`)
   lines.push('')
   lines.push('READINGS')
   READINGS.forEach(p => {
@@ -88,7 +98,8 @@ function buildReportText(poolName: string, test: TestResult): string {
 }
 
 function buildSmsText(poolName: string, test: TestResult): string {
-  const parts = [`${poolName} pool report (score ${test.health_score}/100 — ${scoreLabel(test.health_score)})`]
+  const score = computeScore(test.recommendations)
+  const parts = [`${poolName} pool report (score ${score}/100 — ${scoreLabel(score)})`]
   if (test.recommendations.action.length > 0) {
     parts.push(`Action needed: ${test.recommendations.action.map(r => r.title).join(', ')}`)
   } else {
@@ -115,13 +126,16 @@ export default function SharePage() {
     const supabase = createClient()
     supabase.auth.getUser().then(async ({ data }) => {
       if (!data.user) { router.push('/login'); return }
-      const { data: pools } = await supabase.from('pools').select('id,name').limit(1)
+      const { data: pools } = await supabase.from('pools').select('id,name').order('created_at', { ascending: true })
       if (!pools || pools.length === 0) { router.push('/setup/pool'); return }
-      setPool(pools[0])
+      // Use the same active pool the dashboard uses
+      const savedId = typeof window !== 'undefined' ? localStorage.getItem('poolkeep_active_pool') : null
+      const activePool = (savedId && pools.find(p => p.id === savedId)) || pools[0]
+      setPool(activePool)
       const { data: tests } = await supabase
         .from('test_results')
         .select('health_score,recommendations,created_at,ph,free_chlorine,total_alkalinity,cya,calcium_hardness,salt')
-        .eq('pool_id', pools[0].id)
+        .eq('pool_id', activePool.id)
         .order('created_at', { ascending: false })
         .limit(1)
       if (tests && tests.length > 0) setTest(tests[0])
@@ -250,11 +264,20 @@ export default function SharePage() {
                       <p className="font-bold text-text-primary text-base">{pool?.name}</p>
                       <p className="text-text-muted text-xs mt-0.5">{formatDate(test.created_at)}</p>
                     </div>
-                    <div className="text-right shrink-0">
-                      <p className="text-3xl font-bold leading-none" style={{fontFamily:"'Oswald',sans-serif",color:'#0078B8'}}>{test.health_score}</p>
-                      <p className="text-[10px] font-semibold uppercase tracking-wide mt-0.5" style={{color:'#0078B8'}}>/ 100</p>
-                      <p className="text-[11px] text-text-muted mt-0.5">{scoreLabel(test.health_score)}</p>
-                    </div>
+                    {(() => {
+                      const score = computeScore(test.recommendations)
+                      const unknownNonSalt = test.recommendations.unknown.filter(u => u.param !== 'salt').length
+                      return (
+                        <div className="text-right shrink-0">
+                          <p className="text-3xl font-bold leading-none" style={{fontFamily:"'Oswald',sans-serif",color:'#0078B8'}}>{score}</p>
+                          <p className="text-[10px] font-semibold uppercase tracking-wide mt-0.5" style={{color:'#0078B8'}}>/ 100</p>
+                          <p className="text-[11px] text-text-muted mt-0.5">{scoreLabel(score)}</p>
+                          {unknownNonSalt > 0 && (
+                            <p className="text-[10px] text-text-faint mt-0.5">Based on {5 - unknownNonSalt} of 5</p>
+                          )}
+                        </div>
+                      )
+                    })()}
                   </div>
                 </div>
 
