@@ -82,7 +82,7 @@ export default function InstallPrompt() {
       >
         {/* Icon */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/logo.png" alt="PoolKeep" width={44} height={44} className="rounded-xl shrink-0" style={{background:'white'}} />
+        <img src="/poolkeep-logo.png" alt="PoolKeep" width={44} height={44} className="rounded-xl shrink-0" style={{background:'white'}} />
 
         <div className="flex-1 min-w-0">
           <p className="text-white font-bold text-sm leading-tight">Add PoolKeep to your home screen</p>
