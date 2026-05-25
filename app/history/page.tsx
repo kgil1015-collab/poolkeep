@@ -17,10 +17,10 @@ type TestResult = {
   calcium_hardness: number | null
   salt: number | null
   recommendations: {
-    action: { title: string; desc: string; tags: string[] }[]
-    monitor: { title: string; desc: string; tags: string[] }[]
-    good: { title: string; desc: string }[]
-    unknown: { title: string }[]
+    action: { param: string; title: string; desc: string; tags: string[] }[]
+    monitor: { param: string; title: string; desc: string; tags: string[] }[]
+    good: { param?: string; title: string; desc: string }[]
+    unknown: { param: string; title: string; desc: string; tags: string[] }[]
   }
 }
 
@@ -52,6 +52,13 @@ function scoreLabel(score: number) {
   return 'Poor'
 }
 
+function computeScore(recs: TestResult['recommendations']): number {
+  const actionCount = recs.action.length
+  const monitorCount = recs.monitor.length
+  const unknownCount = recs.unknown.filter(u => u.param !== 'salt').length
+  return Math.max(10, 100 - actionCount * 18 - monitorCount * 6 - unknownCount * 8)
+}
+
 const PARAM_LABELS: Record<string, string> = {
   ph: 'pH',
   free_chlorine: 'Cl',
@@ -68,7 +75,7 @@ const PARAM_CONFIG: {
   idealMin: number; idealMax: number; viewMin: number; viewMax: number
   decimals: number; color: string
 }[] = [
-  { key: 'ph', label: 'pH', unit: '', idealMin: 7.4, idealMax: 7.6, viewMin: 6.8, viewMax: 8.4, decimals: 1, color: '#0078B8' },
+  { key: 'ph', label: 'pH', unit: '', idealMin: 7.2, idealMax: 7.6, viewMin: 6.8, viewMax: 8.4, decimals: 1, color: '#0078B8' },
   { key: 'free_chlorine', label: 'Free Chlorine', unit: 'ppm', idealMin: 1, idealMax: 3, viewMin: 0, viewMax: 6, decimals: 1, color: '#1DB869' },
   { key: 'total_alkalinity', label: 'Alkalinity', unit: 'ppm', idealMin: 80, idealMax: 120, viewMin: 40, viewMax: 180, decimals: 0, color: '#9B59B6' },
   { key: 'cya', label: 'CYA', unit: 'ppm', idealMin: 30, idealMax: 50, viewMin: 0, viewMax: 120, decimals: 0, color: '#F59E0B' },
@@ -226,20 +233,21 @@ export default function HistoryPage() {
                       <text x={W-2} y={H-2} textAnchor="end" fontSize="7.5" fill="rgba(29,184,105,0.65)" fontWeight="600">Excellent</text>
                       {/* Trend line */}
                       <path
-                        d={makePath(chronTests.map((t,i) => ({x: chartX(i, chronTests.length, W), y: chartY(t.health_score, 0, 100, H)})))}
+                        d={makePath(chronTests.map((t,i) => ({x: chartX(i, chronTests.length, W), y: chartY(computeScore(t.recommendations), 0, 100, H)})))}
                         fill="none" stroke="#0078B8" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
                       />
                       {/* Score dots + labels */}
                       {chronTests.map((t, i) => {
-                        const c = scoreColor(t.health_score)
+                        const score = computeScore(t.recommendations)
+                        const c = scoreColor(score)
                         const cx = chartX(i, chronTests.length, W)
-                        const cy = chartY(t.health_score, 0, 100, H)
+                        const cy = chartY(score, 0, 100, H)
                         const showLabel = i === 0 || i === chronTests.length - 1 || chronTests.length <= 7
                         return (
                           <g key={t.id}>
                             <circle cx={cx} cy={cy} r="4" fill={c.text} stroke="white" strokeWidth="1.5"/>
                             {showLabel && (
-                              <text x={cx} y={Math.max(12, cy - 7)} textAnchor="middle" fontSize="9" fill={c.text} fontWeight="700">{t.health_score}</text>
+                              <text x={cx} y={Math.max(12, cy - 7)} textAnchor="middle" fontSize="9" fill={c.text} fontWeight="700">{score}</text>
                             )}
                           </g>
                         )
@@ -343,7 +351,8 @@ export default function HistoryPage() {
                 </div>
               )}
               {tests.map(test => {
-                const colors = scoreColor(test.health_score)
+                const score = computeScore(test.recommendations)
+                const colors = scoreColor(score)
                 const isOpen = expanded === test.id
                 const testedParams = Object.entries(PARAM_LABELS).filter(([key]) => test[key as keyof TestResult] !== null)
                 const actionCount = test.recommendations?.action?.length ?? 0
@@ -358,8 +367,8 @@ export default function HistoryPage() {
                     >
                       {/* Score badge */}
                       <div className="w-12 h-12 rounded-xl flex flex-col items-center justify-center shrink-0" style={{background: colors.bg}}>
-                        <span className="text-lg font-bold leading-none" style={{fontFamily:"'Oswald',sans-serif",color: colors.text}}>{test.health_score}</span>
-                        <span className="text-[9px] font-semibold uppercase tracking-wide" style={{color: colors.text}}>{scoreLabel(test.health_score)}</span>
+                        <span className="text-lg font-bold leading-none" style={{fontFamily:"'Oswald',sans-serif",color: colors.text}}>{score}</span>
+                        <span className="text-[9px] font-semibold uppercase tracking-wide" style={{color: colors.text}}>{scoreLabel(score)}</span>
                       </div>
 
                       <div className="flex-1 min-w-0">

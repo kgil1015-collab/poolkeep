@@ -11,7 +11,7 @@ const PARAMS = [
   { key: 'free_chlorine',    label: 'Free Chlorine',       unit: 'ppm', placeholder: '—',   min: 0,    max: 20,   step: '0.1', range: '1 – 3 ppm',       hint: '' },
   { key: 'total_alkalinity', label: 'Total Alkalinity',    unit: 'ppm', placeholder: '100', min: 0,    max: 500,  step: '1',   range: '80 – 120 ppm',    hint: '' },
   { key: 'cya',              label: 'Cyanuric Acid (CYA)', unit: 'ppm', placeholder: '40',  min: 0,    max: 300,  step: '1',   range: '30 – 50 ppm',     hint: '' },
-  { key: 'calcium_hardness', label: 'Calcium Hardness',    unit: 'ppm', placeholder: '300', min: 0,    max: 1000, step: '1',   range: '200 – 400 ppm',   hint: 'Use calcium hardness — not total hardness. Test strips often show total hardness (higher). Use a drop-test or Leslie\'s result for calcium hardness specifically.' },
+  { key: 'calcium_hardness', label: 'Calcium Hardness',    unit: 'ppm', placeholder: '300', min: 0,    max: 1000, step: '1',   range: '200 – 400 ppm',   hint: 'Use calcium hardness — not total hardness. Test strips often show total hardness (higher). Use a drop-test or a result from a professional pool retailer for calcium hardness specifically.' },
   { key: 'salt',             label: 'Salt',                unit: 'ppm', placeholder: '—',   min: 0,    max: 6000, step: '1',   range: '2700 – 3400 ppm', hint: '' },
 ]
 
