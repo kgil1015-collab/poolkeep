@@ -444,7 +444,7 @@ export default function DashboardPage() {
 
               return (
                 <div className="mb-5">
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-text-muted mb-2.5">Action Needed</p>
+                  <p className="text-xs font-bold uppercase tracking-widest mb-2.5" style={{color:'#1A3A4A'}}>Action Needed</p>
                   <div className="space-y-2.5">
                     {actionItems.map((rec, i) => {
                       const meta = paramMeta[rec.param as keyof typeof paramMeta] ?? defaultMeta
@@ -505,7 +505,7 @@ export default function DashboardPage() {
             {/* Treatment plan — timeline grouped */}
             {lastTest.recommendations.treatment_plan && lastTest.recommendations.treatment_plan.length > 0 ? (
               <>
-                <p className="text-xs font-bold uppercase tracking-widest text-text-muted mb-3">Treatment Plan</p>
+                <p className="text-xs font-bold uppercase tracking-widest mb-3" style={{color:'#1A3A4A'}}>Treatment Plan</p>
                 {(() => {
                   const steps = lastTest.recommendations.treatment_plan
                   const WHEN_ORDER = ['today', 'in-1-2-days', 'this-week', 'plan-ahead'] as const
@@ -696,25 +696,38 @@ export default function DashboardPage() {
             {/* Ongoing maintenance guide */}
             {lastTest.recommendations.maintenance && lastTest.recommendations.maintenance.length > 0 && (
               <>
-                <p className="text-xs font-bold uppercase tracking-widest text-text-muted mb-3">Your Pool — Ongoing Guide</p>
-                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mb-6">
+                <p className="text-xs font-bold uppercase tracking-widest mb-3" style={{color:'#1A3A4A'}}>Your Pool — Ongoing Guide</p>
+                <div className="rounded-2xl overflow-hidden mb-6" style={{boxShadow:'0 2px 12px rgba(0,45,68,0.10)', border:'1.5px solid #D0E2ED'}}>
                   {lastTest.recommendations.maintenance.map((tip, i) => {
-                    const icons = {
-                      testing:  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0078B8" strokeWidth="2" strokeLinecap="round"><path d="M9 3v11l-3 3h12l-3-3V3"/><line x1="9" y1="3" x2="15" y2="3"/></svg>,
-                      chlorine: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0078B8" strokeWidth="2" strokeLinecap="round"><path d="M12 2C6 9 4 13 4 16a8 8 0 0 0 16 0c0-3-2-7-8-14z"/></svg>,
-                      shock:    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#DC2626" strokeWidth="2" strokeLinecap="round"><polyline points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>,
-                      brushing: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0078B8" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><path d="M8 12h8M12 8v8"/></svg>,
-                      seasonal: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#D97706" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>,
-                      filter:   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0078B8" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>,
+                    const catStyles: Record<string, { bg: string; color: string; accent: string }> = {
+                      testing:  { bg:'rgba(0,150,122,0.13)',  color:'#00967A', accent:'#00967A' },
+                      chlorine: { bg:'rgba(0,120,184,0.13)',  color:'#0078B8', accent:'#0078B8' },
+                      shock:    { bg:'rgba(220,38,38,0.11)',  color:'#DC2626', accent:'#DC2626' },
+                      brushing: { bg:'rgba(29,184,105,0.13)', color:'#1DB869', accent:'#1DB869' },
+                      seasonal: { bg:'rgba(217,119,6,0.13)',  color:'#D97706', accent:'#D97706' },
+                      filter:   { bg:'rgba(79,70,229,0.12)',  color:'#4F46E5', accent:'#4F46E5' },
+                    }
+                    const cs = catStyles[tip.category as keyof typeof catStyles] ?? { bg:'rgba(0,120,184,0.12)', color:'#0078B8', accent:'#0078B8' }
+                    const icons: Record<string, React.ReactElement> = {
+                      testing:  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={cs.color} strokeWidth="2" strokeLinecap="round"><path d="M9 3v11l-3 3h12l-3-3V3"/><line x1="9" y1="3" x2="15" y2="3"/></svg>,
+                      chlorine: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={cs.color} strokeWidth="2" strokeLinecap="round"><path d="M12 2C6 9 4 13 4 16a8 8 0 0 0 16 0c0-3-2-7-8-14z"/></svg>,
+                      shock:    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={cs.color} strokeWidth="2" strokeLinecap="round"><polyline points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>,
+                      brushing: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={cs.color} strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><path d="M8 12h8M12 8v8"/></svg>,
+                      seasonal: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={cs.color} strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>,
+                      filter:   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={cs.color} strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>,
                     }
                     return (
-                      <div key={i} className={`px-4 py-3.5 flex items-start gap-3 ${i > 0 ? 'border-t border-gray-50' : ''}`}>
-                        <div className="w-6 h-6 rounded-lg flex items-center justify-center shrink-0 mt-0.5" style={{background:'#F0F6FA'}}>
-                          {icons[tip.category as keyof typeof icons]}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-xs font-bold text-text-primary mb-0.5">{tip.title}</p>
-                          <p className="text-[11px] text-text-muted leading-relaxed">{tip.body}</p>
+                      <div key={i} className="flex items-stretch bg-white" style={{borderTop: i > 0 ? '1.5px solid #E8F0F6' : 'none'}}>
+                        {/* Left accent strip */}
+                        <div className="w-1 shrink-0" style={{background: cs.accent}} />
+                        <div className="flex items-start gap-3 px-4 py-4 flex-1 min-w-0">
+                          <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 mt-0.5" style={{background: cs.bg}}>
+                            {icons[tip.category as keyof typeof icons]}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-bold mb-0.5" style={{color:'#1A3A4A'}}>{tip.title}</p>
+                            <p className="text-xs text-text-muted leading-relaxed">{tip.body}</p>
+                          </div>
                         </div>
                       </div>
                     )
@@ -731,12 +744,12 @@ export default function DashboardPage() {
               const goodItems = lastTest.recommendations.good.filter(g => !(g.param === 'ph' && phNeedsShockPrep))
               return goodItems.length > 0 ? (
               <div className="mb-5">
-                <p className="text-[10px] font-bold uppercase tracking-widest text-text-muted mb-2.5">Looking Good</p>
+                <p className="text-xs font-bold uppercase tracking-widest mb-2.5" style={{color:'#1A3A4A'}}>Looking Good</p>
                 <div className="space-y-2">
                   {goodItems.map((a, i) => (
-                    <div key={i} className="bg-white rounded-2xl px-4 py-3 shadow-sm border border-gray-100 flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0" style={{background:'rgba(29,184,105,0.12)'}}>
-                        <IconCheck size={15} style={{color:'#1DB869'}} />
+                    <div key={i} className="bg-white rounded-2xl px-4 py-3 flex items-center gap-3" style={{boxShadow:'0 2px 8px rgba(0,45,68,0.08)', border:'1.5px solid #D0EDD8'}}>
+                      <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{background:'rgba(29,184,105,0.14)', border:'1px solid rgba(29,184,105,0.25)'}}>
+                        <IconCheck size={17} style={{color:'#1DB869'}} />
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-bold text-text-primary">{a.title}</p>
@@ -752,7 +765,7 @@ export default function DashboardPage() {
             {/* Not tested */}
             {lastTest.recommendations.unknown && lastTest.recommendations.unknown.length > 0 && (
               <>
-                <p className="text-xs font-bold uppercase tracking-widest text-text-muted mb-3">Not Tested</p>
+                <p className="text-xs font-bold uppercase tracking-widest mb-3" style={{color:'#1A3A4A'}}>Not Tested</p>
                 <div className="space-y-3">
                   {lastTest.recommendations.unknown.map((a, i) => (
                     <div key={i} className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 opacity-80">
