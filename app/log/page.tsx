@@ -256,10 +256,10 @@ export default function LogTestPage() {
         {error && <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl px-4 py-3 mb-4">{error}</div>}
 
         {/* Salt pool toggle */}
-        <div className="flex items-center justify-between bg-white rounded-2xl px-4 py-3 mb-3 shadow-sm" style={{border:'2px solid #C8DCE8'}}>
+        <div className="flex items-center justify-between bg-white rounded-2xl px-4 py-3 mb-3 shadow-md" style={{border:'2px solid #A8C4D4'}}>
           <div>
-            <p className="text-xs font-semibold uppercase tracking-widest text-text-muted">Salt Pool?</p>
-            <p className="text-[10px] text-text-faint">Shows salt field and adjusts recommendations</p>
+            <p className="text-xs font-bold uppercase tracking-widest" style={{color:'#1A3A4A'}}>Salt Pool?</p>
+            <p className="text-[10px] text-text-muted">Shows salt field and adjusts recommendations</p>
           </div>
           <button
             onClick={() => {
@@ -268,7 +268,7 @@ export default function LogTestPage() {
               if (pool) localStorage.setItem(`poolkeep_salt_pool_${pool.id}`, String(next))
             }}
             className="relative w-12 h-6 rounded-full transition-colors shrink-0"
-            style={{background: isSaltPool ? '#0078B8' : '#C8DCE8'}}
+            style={{background: isSaltPool ? '#0078B8' : '#A8C4D4'}}
           >
             <span className="absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-all" style={{left: isSaltPool ? '26px' : '4px'}} />
           </button>
@@ -280,16 +280,19 @@ export default function LogTestPage() {
             const num = parseFloat(val)
             const hasVal = val !== '' && !isNaN(num)
             return (
-              <div key={p.key} className="bg-white rounded-2xl shadow-sm overflow-hidden flex items-stretch"
-                style={{border: `2px solid ${hasVal ? '#0078B8' : '#C8DCE8'}`}}>
+              <div key={p.key} className="bg-white rounded-2xl overflow-hidden flex items-stretch"
+                style={{
+                  border: `2px solid ${hasVal ? '#0078B8' : '#A8C4D4'}`,
+                  boxShadow: hasVal ? '0 4px 16px rgba(0,120,184,0.18)' : '0 2px 8px rgba(0,60,100,0.10)',
+                }}>
                 {/* Label side */}
                 <div className="flex items-center gap-3 flex-1 px-4 py-3.5">
-                  <div className="w-6 h-6 rounded-full flex items-center justify-center shrink-0 text-xs font-bold" style={{background: hasVal ? '#0078B8' : '#E8F2F8', color: hasVal ? 'white' : '#8AAABB'}}>
+                  <div className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 text-xs font-bold text-white" style={{background: hasVal ? '#0078B8' : '#4A7A9B'}}>
                     {i + 1}
                   </div>
                   <div>
-                    <p className="text-xs font-semibold uppercase tracking-widest text-text-muted mb-0.5">{p.label}</p>
-                    <p className="text-[10px] text-text-faint">{p.range}</p>
+                    <p className="text-xs font-bold uppercase tracking-widest mb-0.5" style={{color:'#1A3A4A'}}>{p.label}</p>
+                    <p className="text-[10px] font-medium" style={{color:'#5A7A8A'}}>{p.range}</p>
                     {p.hint && <p className="text-[10px] leading-snug mt-0.5" style={{color:'#B97A00'}}>{p.hint}</p>}
                   </div>
                 </div>
@@ -297,9 +300,9 @@ export default function LogTestPage() {
                 <div
                   className="flex items-center justify-end gap-1.5 py-3.5 px-4 shrink-0"
                   style={{
-                    background: hasVal ? 'rgba(0,120,184,0.09)' : '#EEF5FA',
+                    background: hasVal ? 'rgba(0,120,184,0.10)' : '#D8E8F0',
                     width: 110,
-                    borderLeft: `1.5px solid ${hasVal ? 'rgba(0,120,184,0.25)' : '#D8E8F0'}`,
+                    borderLeft: `2px solid ${hasVal ? 'rgba(0,120,184,0.3)' : '#A8C4D4'}`,
                   }}
                 >
                   <input
@@ -314,10 +317,10 @@ export default function LogTestPage() {
                     autoCorrect="off"
                     autoCapitalize="none"
                     spellCheck={false}
-                    className="w-16 text-right text-lg font-bold outline-none bg-transparent text-text-primary placeholder:text-slate-400"
-                    style={{fontFamily:"'DM Mono',monospace"}}
+                    className="w-16 text-right text-2xl font-bold outline-none bg-transparent placeholder:text-slate-400"
+                    style={{fontFamily:"'DM Mono',monospace", color: hasVal ? '#0078B8' : '#7A9DB0'}}
                   />
-                  {p.unit && <span className="text-xs font-semibold shrink-0" style={{color: hasVal ? '#0078B8' : '#7A9DB0'}}>{p.unit}</span>}
+                  {p.unit && <span className="text-xs font-bold shrink-0 mt-1" style={{color: hasVal ? '#0078B8' : '#7A9DB0'}}>{p.unit}</span>}
                 </div>
               </div>
             )
@@ -327,8 +330,8 @@ export default function LogTestPage() {
         <button
           onClick={handleSubmit}
           disabled={loading}
-          className="w-full text-white font-bold py-4 rounded-xl hover:opacity-90 transition-opacity disabled:opacity-50 text-sm"
-          style={{background:'#0078B8'}}
+          className="w-full text-white font-bold py-4 rounded-xl hover:opacity-90 transition-opacity disabled:opacity-50 text-base"
+          style={{background:'#0078B8', boxShadow:'0 6px 20px rgba(0,120,184,0.4)'}}
         >
           {loading ? 'Calculating…' : 'Get My Recommendations →'}
         </button>
