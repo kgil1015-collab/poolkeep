@@ -57,20 +57,21 @@ export async function POST(req: NextRequest) {
       customer: customerId,
       mode: 'subscription',
       payment_method_types: ['card'],
-      line_items: [{ price: priceId, quantity: 1 }],
+      line_items: [
+        { price: priceId, quantity: 1 },
+        ...(founding ? [{
+          price_data: {
+            currency: 'usd' as const,
+            product_data: { name: 'Founding Member — One-Time Setup' },
+            unit_amount: 6000,
+          },
+          quantity: 1,
+        }] : []),
+      ],
       success_url: `${appUrl}/dashboard?upgraded=1`,
       cancel_url: `${appUrl}/pro`,
       subscription_data: {
         metadata: { supabase_user_id: user.id, founding_member: founding ? 'true' : 'false' },
-        ...(founding ? {
-          add_invoice_items: [{
-            price_data: {
-              currency: 'usd',
-              product_data: { name: 'Founding Member Setup' },
-              unit_amount: 6000,
-            },
-          }],
-        } : {}),
       },
     })
 
