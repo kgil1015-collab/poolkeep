@@ -14,11 +14,15 @@ async function upsertSubscription(sub: Stripe.Subscription) {
   const userId = sub.metadata?.supabase_user_id
   if (!userId) return
 
+  const isAnnual = sub.items.data[0]?.price.recurring?.interval === 'year'
+  const isFounding = sub.metadata?.founding_member === 'true'
+  const plan = isAnnual ? 'annual' : isFounding ? 'founding' : 'monthly'
+
   await adminClient.from('profiles').upsert({
     id: userId,
     stripe_subscription_id: sub.id,
     subscription_status: sub.status,
-    plan: (sub.items.data[0]?.price.recurring?.interval === 'year') ? 'annual' : 'monthly',
+    plan,
     current_period_end: new Date((sub as unknown as { current_period_end: number }).current_period_end * 1000).toISOString(),
   })
 }
