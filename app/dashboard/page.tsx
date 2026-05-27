@@ -307,9 +307,12 @@ export default function DashboardPage() {
                 </span>
               </div>
               {unknownCount > 0 && score !== null && (
-                <p className="text-white/45 text-[11px] text-center mt-2 px-6 leading-snug">
-                  Based on {testedCount} of 5 parameters — test more for a complete score
-                </p>
+                <button onClick={() => router.push('/log')} className="text-center mt-2 px-6 leading-snug hover:opacity-90 transition-opacity">
+                  <span className="text-xs" style={{color:'rgba(255,255,255,0.72)'}}>
+                    Based on {testedCount} of 5 parameters —{' '}
+                    <span style={{color:'rgba(255,255,255,0.92)', textDecoration:'underline', textUnderlineOffset:3}}>tap to log more →</span>
+                  </span>
+                </button>
               )}
             </div>
           )
