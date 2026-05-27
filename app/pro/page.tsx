@@ -158,9 +158,10 @@ export default function ProPage() {
           <p className="text-white/50 text-xs font-semibold uppercase tracking-widest mb-1">{isPro ? 'Your Plan' : 'Upgrade'}</p>
           <div className="flex items-center gap-2.5 mb-1">
             <h1 className="text-white text-2xl font-bold" style={{fontFamily:"'Oswald',sans-serif",letterSpacing:'-.01em'}}>PoolKeep Pro</h1>
-            {/* Crown */}
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style={{opacity:0.7}}>
-              <path d="M3 18h18M5 18l2-8 5 4 4-7 4 7-5-4 2 8" stroke="#00E0B0" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+            {/* Diamond */}
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style={{opacity:0.85}}>
+              <path d="M2 9l10 13L22 9 16 3H8L2 9z" fill="rgba(0,224,176,0.18)" stroke="#00E0B0" strokeWidth="1.6" strokeLinejoin="round"/>
+              <path d="M2 9h20M8 3l4 6 4-6" stroke="#00E0B0" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
           </div>
           <p className="text-white/55 text-sm">Everything you need to keep your pool perfect</p>
