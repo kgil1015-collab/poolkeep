@@ -115,6 +115,30 @@ export default function ProPage() {
     }
   }
 
+  async function handleUpgradeWith(plan: 'founding' | 'annual' | 'monthly') {
+    const priceId = plan === 'annual' ? PRICE_ANNUAL : plan === 'founding' ? PRICE_FOUNDING : PRICE_MONTHLY
+    setBilling(plan)
+    if (!priceId) {
+      setUpgradeError('Stripe price not configured — check environment variables.')
+      return
+    }
+    setLoading(true)
+    setUpgradeError(null)
+    try {
+      const res = await fetch('/api/stripe/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ priceId, founding: plan === 'founding' }),
+      })
+      const data = await res.json()
+      if (!res.ok || data.error) throw new Error(data.error ?? `HTTP ${res.status}`)
+      window.location.href = data.url
+    } catch (err) {
+      setUpgradeError(err instanceof Error ? err.message : 'Something went wrong')
+      setLoading(false)
+    }
+  }
+
   return (
     <div className="min-h-screen bg-surface flex flex-col" style={{maxWidth:480,margin:'0 auto'}}>
 
@@ -260,71 +284,51 @@ export default function ProPage() {
               <span className="text-[11px] font-bold uppercase tracking-widest px-3 py-1 rounded-full" style={{background:'#F0F6FA',color:'#8AAABB'}}>Free</span>
             </div>
 
-            {/* Plan selector */}
-            <p className="text-xs font-bold uppercase tracking-widest text-text-muted px-1">Select a plan</p>
-            <div className="space-y-2.5">
+            {/* Plans — each card has its own CTA */}
+            <div className="space-y-3">
 
               {/* Founding Member */}
-              <button
-                onClick={() => setBilling('founding')}
-                className="w-full text-left rounded-2xl overflow-hidden transition-all"
-                style={{
-                  background: billing === 'founding' ? 'linear-gradient(135deg,#002D44 0%,#004D6B 50%,#005A52 100%)' : 'white',
-                  border: `2px solid ${billing === 'founding' ? '#00E0B0' : '#E8F2F8'}`,
-                  boxShadow: billing === 'founding' ? '0 6px 24px rgba(0,45,68,0.3)' : '0 1px 4px rgba(0,0,0,0.06)',
-                }}
-              >
+              <div className="rounded-2xl overflow-hidden" style={{background:'linear-gradient(135deg,#002D44 0%,#004D6B 50%,#005A52 100%)', boxShadow:'0 6px 24px rgba(0,45,68,0.3)'}}>
                 <div className="px-4 pt-4 pb-4">
-                  <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-start justify-between gap-3 mb-3">
                     <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
-                        <span className="text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full"
-                          style={{background: billing === 'founding' ? 'rgba(0,224,176,0.2)' : 'rgba(0,120,184,0.08)', color: billing === 'founding' ? '#00E0B0' : '#0078B8'}}>
-                          Founding Member · {FOUNDING_SPOTS_SHOWN} spots only
-                        </span>
-                      </div>
-                      <p className="font-bold text-sm mb-0.5" style={{color: billing === 'founding' ? 'white' : '#1A2E3B'}}>Founding Member Rate — locked for life</p>
-                      <p className="text-xs leading-relaxed" style={{color: billing === 'founding' ? 'rgba(255,255,255,0.55)' : '#8AAABB'}}>
-                        $60 one-time · then $4.99/mo locked forever.
-                      </p>
+                      <span className="text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full inline-block mb-2" style={{background:'rgba(0,224,176,0.2)',color:'#00E0B0'}}>
+                        Founding Member · {FOUNDING_SPOTS_SHOWN} spots only
+                      </span>
+                      <p className="font-bold text-sm text-white mb-0.5">Rate locked for life</p>
+                      <p className="text-xs" style={{color:'rgba(255,255,255,0.55)'}}>$60 one-time · then $4.99/mo forever</p>
                     </div>
                     <div className="text-right shrink-0">
-                      <p className="text-xs font-semibold mb-0.5" style={{color: billing === 'founding' ? 'rgba(255,255,255,0.4)' : '#8AAABB'}}>then</p>
+                      <p className="text-xs mb-0.5" style={{color:'rgba(255,255,255,0.4)'}}>then</p>
                       <div className="flex items-start gap-0.5 leading-none justify-end">
-                        <span className="text-sm font-bold mt-0.5" style={{color: billing === 'founding' ? 'rgba(255,255,255,0.6)' : '#8AAABB', fontFamily:"'Oswald',sans-serif"}}>$</span>
-                        <span className="text-3xl font-bold" style={{color: billing === 'founding' ? 'white' : '#1A2E3B', fontFamily:"'Oswald',sans-serif"}}>4.99</span>
+                        <span className="text-sm font-bold mt-0.5" style={{color:'rgba(255,255,255,0.6)',fontFamily:"'Oswald',sans-serif"}}>$</span>
+                        <span className="text-3xl font-bold text-white" style={{fontFamily:"'Oswald',sans-serif"}}>4.99</span>
                       </div>
-                      <p className="text-[10px]" style={{color: billing === 'founding' ? 'rgba(255,255,255,0.4)' : '#8AAABB'}}>/mo forever</p>
+                      <p className="text-[10px]" style={{color:'rgba(255,255,255,0.4)'}}>/mo forever</p>
                     </div>
                   </div>
-                  {billing === 'founding' && (
-                    <div className="mt-3 flex items-center gap-2 pt-3" style={{borderTop:'1px solid rgba(255,255,255,0.1)'}}>
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#00E0B0" strokeWidth="2.2" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><polyline points="20 6 9 17 4 12"/></svg>
-                      <p className="text-[11px]" style={{color:'rgba(255,255,255,0.5)'}}>Year 1: $119.88 total · Year 2+: $59.88/yr · Save $60/yr vs monthly forever</p>
-                    </div>
-                  )}
+                  <button
+                    onClick={() => { setBilling('founding'); handleUpgradeWith('founding') }}
+                    disabled={loading}
+                    className="w-full font-bold py-3 rounded-xl text-sm flex items-center justify-center gap-2 transition-opacity disabled:opacity-60"
+                    style={{background:'linear-gradient(135deg,#00C49A,#0078B8)',color:'white',boxShadow:'0 4px 16px rgba(0,196,154,0.35)'}}
+                  >
+                    {loading && billing === 'founding'
+                      ? <svg className="animate-spin" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+                      : null}
+                    Claim Founding Spot — $60 + $4.99/mo
+                  </button>
+                  <p className="text-[10px] text-center mt-2" style={{color:'rgba(255,255,255,0.35)'}}>Year 1: $119.88 · Year 2+: $59.88/yr · Rate locked for life</p>
                 </div>
-              </button>
+              </div>
 
               {/* Annual */}
-              <button
-                onClick={() => setBilling('annual')}
-                className="w-full text-left rounded-2xl px-4 pt-3.5 transition-all"
-                style={{
-                  background: billing === 'annual' ? '#F0F8FF' : 'white',
-                  border: `2px solid ${billing === 'annual' ? '#0078B8' : '#E8F2F8'}`,
-                  boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
-                  paddingBottom: billing === 'annual' ? 0 : 14,
-                }}
-              >
-                <div className="flex items-center justify-between">
+              <div className="bg-white rounded-2xl px-4 py-4 shadow-sm border-2 border-gray-100">
+                <div className="flex items-center justify-between mb-3">
                   <div>
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="text-[10px] font-bold uppercase tracking-widest px-2.5 py-0.5 rounded-full"
-                        style={{background:'rgba(0,120,184,0.1)', color:'#0078B8'}}>Most Popular</span>
-                    </div>
+                    <span className="text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full inline-block mb-1" style={{background:'rgba(0,120,184,0.1)',color:'#0078B8'}}>Most Popular</span>
                     <p className="font-bold text-sm text-text-primary">Annual</p>
-                    <p className="text-xs text-text-muted">$8.25/mo — paid once a year</p>
+                    <p className="text-xs text-text-muted">$8.25/mo — billed once a year</p>
                   </div>
                   <div className="text-right">
                     <div className="flex items-start gap-0.5 leading-none justify-end">
@@ -334,27 +338,19 @@ export default function ProPage() {
                     <p className="text-[10px] text-text-muted">/year</p>
                   </div>
                 </div>
-                {billing === 'annual' && (
-                  <div className="mt-3 pb-3.5 pt-3" style={{borderTop:'1.5px solid #D8EAF5'}}>
-                    <div className="inline-flex items-center gap-2 px-3 py-2 rounded-xl" style={{background:'linear-gradient(135deg,#FFF8E1,#FFF3CD)', border:'1.5px solid #F5C842'}}>
-                      <span style={{fontSize:16}}>⭐</span>
-                      <p className="text-xs font-bold" style={{color:'#92650A'}}>Save $21 on Pro — pay $99 now instead of $9.99/mo</p>
-                    </div>
-                  </div>
-                )}
-              </button>
+                <button
+                  onClick={() => { setBilling('annual'); handleUpgradeWith('annual') }}
+                  disabled={loading}
+                  className="w-full font-bold py-3 rounded-xl text-sm text-white transition-opacity disabled:opacity-60"
+                  style={{background:'#0078B8',boxShadow:'0 4px 16px rgba(0,120,184,0.25)'}}
+                >
+                  {loading && billing === 'annual' ? 'Redirecting…' : 'Get Pro — $99/year'}
+                </button>
+              </div>
 
               {/* Monthly */}
-              <button
-                onClick={() => setBilling('monthly')}
-                className="w-full text-left rounded-2xl px-4 py-3.5 transition-all"
-                style={{
-                  background: billing === 'monthly' ? '#F0F8FF' : 'white',
-                  border: `2px solid ${billing === 'monthly' ? '#0078B8' : '#E8F2F8'}`,
-                  boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
-                }}
-              >
-                <div className="flex items-center justify-between">
+              <div className="bg-white rounded-2xl px-4 py-4 shadow-sm border-2 border-gray-100">
+                <div className="flex items-center justify-between mb-3">
                   <div>
                     <p className="font-bold text-sm text-text-primary">Monthly</p>
                     <p className="text-xs text-text-muted">Cancel anytime</p>
@@ -367,7 +363,16 @@ export default function ProPage() {
                     <p className="text-[10px] text-text-muted">/month</p>
                   </div>
                 </div>
-              </button>
+                <button
+                  onClick={() => { setBilling('monthly'); handleUpgradeWith('monthly') }}
+                  disabled={loading}
+                  className="w-full font-bold py-3 rounded-xl text-sm text-white transition-opacity disabled:opacity-60"
+                  style={{background:'#0078B8'}}
+                >
+                  {loading && billing === 'monthly' ? 'Redirecting…' : 'Get Pro — $9.99/month'}
+                </button>
+              </div>
+
             </div>
 
             {/* Features */}
@@ -385,39 +390,12 @@ export default function ProPage() {
               </div>
             </div>
 
-            {/* CTA */}
-            <div>
-              <p className="text-xs text-text-muted text-center mb-2">
-                Selected: <span className="font-bold text-text-primary">
-                  {billing === 'founding' ? 'Founding Member — $60 + $4.99/mo' : billing === 'annual' ? 'Annual — $99/yr' : 'Monthly — $9.99/mo'}
-                </span>
-              </p>
-              <button
-                onClick={handleUpgrade}
-                disabled={loading}
-                className="w-full font-bold py-4 rounded-xl text-sm flex items-center justify-center gap-2 transition-opacity"
-                style={{
-                  background: billing === 'founding' ? 'linear-gradient(135deg,#00C49A,#0078B8)' : '#0078B8',
-                  color: 'white',
-                  opacity: loading ? 0.7 : 1,
-                  boxShadow: loading ? 'none' : billing === 'founding' ? '0 4px 20px rgba(0,196,154,0.4)' : '0 4px 20px rgba(0,120,184,0.35)',
-                }}
-              >
-                {loading
-                  ? <svg className="animate-spin" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
-                  : <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>}
-                {loading ? 'Redirecting…' : billing === 'founding' ? 'Claim Founding Spot — $60 + $4.99/mo' : billing === 'annual' ? 'Get Pro — $99/year' : 'Get Pro — $9.99/month'}
-              </button>
-              <p className="text-text-faint text-xs text-center mt-2">
-                {billing === 'founding' ? 'Rate locked for life · Secure checkout by Stripe' : 'Cancel anytime · Secure checkout by Stripe'}
-              </p>
-              <p className="text-text-faint text-[10px] text-center mt-1">
-                By upgrading you agree to our{' '}
-                <a href="/terms" className="underline">Terms</a>{' '}and{' '}
-                <a href="/privacy" className="underline">Privacy Policy</a>
-              </p>
-              {upgradeError && <p className="text-red-500 text-xs text-center mt-2">{upgradeError}</p>}
-            </div>
+            {upgradeError && <p className="text-red-500 text-xs text-center">{upgradeError}</p>}
+            <p className="text-text-faint text-[10px] text-center">
+              By upgrading you agree to our{' '}
+              <a href="/terms" className="underline">Terms</a>{' '}and{' '}
+              <a href="/privacy" className="underline">Privacy Policy</a>
+            </p>
 
             {/* Pool Service Pro — coming soon */}
             <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100">
