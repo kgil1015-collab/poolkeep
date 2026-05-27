@@ -376,15 +376,15 @@ export default function ProPage() {
             </div>
 
             {/* Features */}
-            <div className="bg-white rounded-2xl px-5 py-4 shadow-sm border border-gray-100">
-              <p className="text-xs font-bold uppercase tracking-widest text-text-muted mb-3">Everything in Pro</p>
-              <div className="space-y-2.5">
+            <div className="rounded-2xl px-5 py-4 shadow-sm" style={{background:'linear-gradient(145deg,#002D44 0%,#004D6B 100%)'}}>
+              <p className="text-xs font-bold uppercase tracking-widest mb-3" style={{color:'rgba(255,255,255,0.45)'}}>Everything in Pro</p>
+              <div className="space-y-3">
                 {PRO_FEATURES.map((f, i) => (
-                  <div key={i} className="flex items-center gap-2.5">
-                    <div className="w-4 h-4 rounded-full flex items-center justify-center shrink-0" style={{background:'rgba(0,120,184,0.1)'}}>
-                      <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#0078B8" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                  <div key={i} className="flex items-center gap-3">
+                    <div className="w-5 h-5 rounded-full flex items-center justify-center shrink-0" style={{background:'rgba(0,224,176,0.2)',border:'1px solid rgba(0,224,176,0.35)'}}>
+                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#00E0B0" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
                     </div>
-                    <span className="text-sm text-text-primary">{f.text}</span>
+                    <span className="text-sm font-medium" style={{color:'rgba(255,255,255,0.85)'}}>{f.text}</span>
                   </div>
                 ))}
               </div>
