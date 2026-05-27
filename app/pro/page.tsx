@@ -284,10 +284,11 @@ export default function ProPage() {
                       </div>
                       <p className="font-bold text-sm mb-0.5" style={{color: billing === 'founding' ? 'white' : '#1A2E3B'}}>Founding Member Rate — locked for life</p>
                       <p className="text-xs leading-relaxed" style={{color: billing === 'founding' ? 'rgba(255,255,255,0.55)' : '#8AAABB'}}>
-                        Lock in $4.99/mo forever — only for early members.
+                        $60 one-time · then $4.99/mo locked forever.
                       </p>
                     </div>
                     <div className="text-right shrink-0">
+                      <p className="text-xs font-semibold mb-0.5" style={{color: billing === 'founding' ? 'rgba(255,255,255,0.4)' : '#8AAABB'}}>then</p>
                       <div className="flex items-start gap-0.5 leading-none justify-end">
                         <span className="text-sm font-bold mt-0.5" style={{color: billing === 'founding' ? 'rgba(255,255,255,0.6)' : '#8AAABB', fontFamily:"'Oswald',sans-serif"}}>$</span>
                         <span className="text-3xl font-bold" style={{color: billing === 'founding' ? 'white' : '#1A2E3B', fontFamily:"'Oswald',sans-serif"}}>4.99</span>
@@ -298,7 +299,7 @@ export default function ProPage() {
                   {billing === 'founding' && (
                     <div className="mt-3 flex items-center gap-2 pt-3" style={{borderTop:'1px solid rgba(255,255,255,0.1)'}}>
                       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#00E0B0" strokeWidth="2.2" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><polyline points="20 6 9 17 4 12"/></svg>
-                      <p className="text-[11px]" style={{color:'rgba(255,255,255,0.5)'}}>$59.88/yr · Save $60/yr vs monthly · Rate locked for life</p>
+                      <p className="text-[11px]" style={{color:'rgba(255,255,255,0.5)'}}>Year 1: $119.88 total · Year 2+: $59.88/yr · Save $60/yr vs monthly forever</p>
                     </div>
                   )}
                 </div>
@@ -399,7 +400,7 @@ export default function ProPage() {
                 {loading
                   ? <svg className="animate-spin" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
                   : <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>}
-                {loading ? 'Redirecting…' : billing === 'founding' ? 'Claim Founding Spot — $4.99/mo' : billing === 'annual' ? 'Get Pro — $99/year' : 'Get Pro — $9.99/month'}
+                {loading ? 'Redirecting…' : billing === 'founding' ? 'Claim Founding Spot — $60 + $4.99/mo' : billing === 'annual' ? 'Get Pro — $99/year' : 'Get Pro — $9.99/month'}
               </button>
               <p className="text-text-faint text-xs text-center mt-2">
                 {billing === 'founding' ? 'Rate locked for life · Secure checkout by Stripe' : 'Cancel anytime · Secure checkout by Stripe'}
