@@ -261,6 +261,7 @@ export default function ProPage() {
             </div>
 
             {/* Plan selector */}
+            <p className="text-xs font-bold uppercase tracking-widest text-text-muted px-1">Select a plan</p>
             <div className="space-y-2.5">
 
               {/* Founding Member */}
@@ -386,6 +387,11 @@ export default function ProPage() {
 
             {/* CTA */}
             <div>
+              <p className="text-xs text-text-muted text-center mb-2">
+                Selected: <span className="font-bold text-text-primary">
+                  {billing === 'founding' ? 'Founding Member — $60 + $4.99/mo' : billing === 'annual' ? 'Annual — $99/yr' : 'Monthly — $9.99/mo'}
+                </span>
+              </p>
               <button
                 onClick={handleUpgrade}
                 disabled={loading}
