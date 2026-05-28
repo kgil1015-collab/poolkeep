@@ -353,7 +353,7 @@ export default function DashboardPage() {
           )}
         </div>
 
-        {/* Health score — simple large number */}
+        {/* Health score — half-circle speedometer */}
         {(() => {
           const score = lastTest ? computeScore(lastTest.recommendations) : null
           const { color, glow } = statusAccent(score)
@@ -361,46 +361,54 @@ export default function DashboardPage() {
             ? lastTest.recommendations.unknown.filter(u => u.param !== 'salt').length
             : 0
           const testedCount = 5 - unknownCount
-          const circumference = 2 * Math.PI * 54
-          const arcLength = score !== null ? (score / 100) * circumference : 0
-          // Spectrum track zones matching scoreLabel thresholds
-          const redLen   = 0.55 * circumference  // 0–55: action/attention
-          const amberLen = 0.20 * circumference  // 55–75: needs attention
-          const greenLen = 0.25 * circumference  // 75–100: good/excellent
+
+          // Semicircle geometry: arc sweeps 180° from left (0%) to right (100%)
+          const CX = 110, CY = 116, R = 94
+          const pt = (pct: number): [number, number] => {
+            const a = Math.PI * (1 - pct)
+            return [CX + R * Math.cos(a), CY - R * Math.sin(a)]
+          }
+          const arcPath = (p0: number, p1: number) => {
+            const [x0, y0] = pt(p0)
+            const [x1, y1] = pt(p1)
+            const large = (p1 - p0) > 0.5 ? 1 : 0
+            return `M${x0.toFixed(1)},${y0.toFixed(1)} A${R},${R} 0 ${large},1 ${x1.toFixed(1)},${y1.toFixed(1)}`
+          }
+          const scorePct = score !== null ? Math.max(0.015, score / 100) : 0
+
           return (
             <div className="flex flex-col items-center pb-5">
-              <p className="text-white/40 text-[10px] font-bold uppercase tracking-widest mb-3">Health Score</p>
-              {/* Score ring */}
-              <div className="relative flex items-center justify-center" style={{width:148, height:148}}>
-                <svg width="148" height="148" viewBox="0 0 148 148" style={{position:'absolute',top:0,left:0}}>
-                  {/* Spectrum track — always shows full red→amber→green range */}
-                  <circle cx="74" cy="74" r="54" fill="none" stroke="#FF4444" strokeWidth="6" strokeOpacity="0.22" strokeLinecap="butt"
-                    strokeDasharray={`${redLen} ${circumference}`}
-                    transform="rotate(-90 74 74)"
-                  />
-                  <circle cx="74" cy="74" r="54" fill="none" stroke="#F5A623" strokeWidth="6" strokeOpacity="0.22" strokeLinecap="butt"
-                    strokeDasharray={`${amberLen} ${circumference}`}
-                    transform={`rotate(${-90 + 0.55 * 360} 74 74)`}
-                  />
-                  <circle cx="74" cy="74" r="54" fill="none" stroke="#00E0B0" strokeWidth="6" strokeOpacity="0.22" strokeLinecap="butt"
-                    strokeDasharray={`${greenLen} ${circumference}`}
-                    transform={`rotate(${-90 + 0.75 * 360} 74 74)`}
-                  />
-                  {/* Bright score arc overlay */}
+              <p className="text-white/40 text-[10px] font-bold uppercase tracking-widest mb-1">Health Score</p>
+              {/* Speedometer */}
+              <div style={{position:'relative', width:220, height:122}}>
+                <svg width="220" height="122" viewBox="0 0 220 122" style={{overflow:'visible'}}>
+                  {/* Zone tracks */}
+                  <path d={arcPath(0, 0.55)}    fill="none" stroke="#FF4444" strokeWidth="18" strokeOpacity="0.38" strokeLinecap="butt"/>
+                  <path d={arcPath(0.55, 0.75)} fill="none" stroke="#F5A623" strokeWidth="18" strokeOpacity="0.38" strokeLinecap="butt"/>
+                  <path d={arcPath(0.75, 1)}    fill="none" stroke="#00E0B0" strokeWidth="18" strokeOpacity="0.38" strokeLinecap="butt"/>
+                  {/* Score arc overlay */}
                   {score !== null && (
-                    <circle cx="74" cy="74" r="54" fill="none" stroke={color} strokeWidth="7"
+                    <path
+                      d={arcPath(0, scorePct)}
+                      fill="none"
+                      stroke={color}
+                      strokeWidth="20"
                       strokeLinecap="round"
-                      strokeDasharray={`${arcLength} ${circumference}`}
-                      transform="rotate(-90 74 74)"
-                      style={{filter:`drop-shadow(0 0 8px ${glow})`}}
+                      style={{filter:`drop-shadow(0 0 10px ${glow})`}}
                     />
                   )}
+                  {/* Zone labels */}
+                  <text x="10"  y="119" fill="rgba(255,99,99,0.6)"   fontSize="9" fontWeight="bold" textAnchor="middle">0</text>
+                  <text x="210" y="119" fill="rgba(0,224,176,0.6)"   fontSize="9" fontWeight="bold" textAnchor="middle">100</text>
                 </svg>
-                <p className="text-white font-bold leading-none relative z-10" style={{fontSize:72,fontFamily:"'Oswald',sans-serif",letterSpacing:'-2px'}}>
-                  {score ?? '—'}
-                </p>
+                {/* Score number — sits inside the arc opening */}
+                <div style={{position:'absolute', bottom:0, left:0, right:0, textAlign:'center', lineHeight:1}}>
+                  <p style={{fontSize:64, fontFamily:"'Oswald',sans-serif", fontWeight:'bold', color:'white', letterSpacing:'-2px', lineHeight:1}}>
+                    {score ?? '—'}
+                  </p>
+                </div>
               </div>
-              <div className="flex items-center gap-1.5 mt-3">
+              <div className="flex items-center gap-1.5 mt-1">
                 <div className="w-2 h-2 rounded-full" style={{background: color, boxShadow:`0 0 6px ${glow}`}} />
                 <span className="text-sm font-semibold" style={{color}}>
                   {score !== null ? scoreLabel(score) : 'Log your first test'}
@@ -417,7 +425,7 @@ export default function DashboardPage() {
               {welcome.urgency >= 2 && (
                 <button
                   onClick={() => router.push('/log')}
-                  className="mt-5 px-7 py-3 rounded-full font-bold text-sm flex items-center gap-2 hover:opacity-90 transition-opacity"
+                  className="mt-4 px-7 py-3 rounded-full font-bold text-sm flex items-center gap-2 hover:opacity-90 transition-opacity"
                   style={{background:'rgba(255,255,255,0.15)', color:'white', border:'1.5px solid rgba(255,255,255,0.3)', backdropFilter:'blur(4px)'}}
                 >
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
