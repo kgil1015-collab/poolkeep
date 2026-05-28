@@ -69,7 +69,7 @@ function getWelcome(firstName: string, lastTest: TestResult | null) {
 
   if (!lastTest) return {
     salutation: `Welcome, ${firstName}! 👋`,
-    headline: "Let's get your pool sorted",
+    headline: "Let's get your pool crystal clear",
     subline: 'Log your first test to get a health score and treatment plan',
     urgency: 0,
   }
