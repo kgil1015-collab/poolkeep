@@ -362,52 +362,70 @@ export default function DashboardPage() {
             : 0
           const testedCount = 5 - unknownCount
 
-          // Semicircle geometry: arc sweeps 180° from left (0%) to right (100%)
-          const CX = 110, CY = 116, R = 94
+          // Semicircle geometry: 180° arc, left=0%, right=100%
+          const CX = 110, CY = 94, R = 82, SW = 15
           const pt = (pct: number): [number, number] => {
             const a = Math.PI * (1 - pct)
             return [CX + R * Math.cos(a), CY - R * Math.sin(a)]
           }
-          const arcPath = (p0: number, p1: number) => {
+          const seg = (p0: number, p1: number) => {
             const [x0, y0] = pt(p0)
             const [x1, y1] = pt(p1)
             const large = (p1 - p0) > 0.5 ? 1 : 0
             return `M${x0.toFixed(1)},${y0.toFixed(1)} A${R},${R} 0 ${large},1 ${x1.toFixed(1)},${y1.toFixed(1)}`
           }
-          const scorePct = score !== null ? Math.max(0.015, score / 100) : 0
+
+          const scorePct = score !== null ? Math.max(0.01, score / 100) : 0
+          const [tipX, tipY] = score !== null ? pt(scorePct) : pt(0)
 
           return (
-            <div className="flex flex-col items-center pb-5">
+            <div className="flex flex-col items-center pb-4">
               <p className="text-white/40 text-[10px] font-bold uppercase tracking-widest mb-1">Health Score</p>
-              {/* Speedometer */}
-              <div style={{position:'relative', width:220, height:122}}>
-                <svg width="220" height="122" viewBox="0 0 220 122" style={{overflow:'visible'}}>
-                  {/* Zone tracks */}
-                  <path d={arcPath(0, 0.55)}    fill="none" stroke="#FF4444" strokeWidth="18" strokeOpacity="0.38" strokeLinecap="butt"/>
-                  <path d={arcPath(0.55, 0.75)} fill="none" stroke="#F5A623" strokeWidth="18" strokeOpacity="0.38" strokeLinecap="butt"/>
-                  <path d={arcPath(0.75, 1)}    fill="none" stroke="#00E0B0" strokeWidth="18" strokeOpacity="0.38" strokeLinecap="butt"/>
-                  {/* Score arc overlay */}
+              {/* Gauge */}
+              <div style={{position:'relative', width:220, height:104}}>
+                <svg width="220" height="104" viewBox="0 0 220 104">
+                  {/* Dim background track zones */}
+                  <path d={seg(0, 0.55)}    fill="none" stroke="#FF4444" strokeWidth={SW} strokeOpacity="0.22" strokeLinecap="butt"/>
+                  <path d={seg(0.55, 0.75)} fill="none" stroke="#F5A623" strokeWidth={SW} strokeOpacity="0.22" strokeLinecap="butt"/>
+                  <path d={seg(0.75, 1)}    fill="none" stroke="#1DB869" strokeWidth={SW} strokeOpacity="0.22" strokeLinecap="butt"/>
+
+                  {/* Bright zone fills up to score position */}
                   {score !== null && (
-                    <path
-                      d={arcPath(0, scorePct)}
-                      fill="none"
-                      stroke={color}
-                      strokeWidth="20"
-                      strokeLinecap="round"
-                      style={{filter:`drop-shadow(0 0 10px ${glow})`}}
-                    />
+                    <>
+                      {/* Red fill: 0 → min(score, 55%) */}
+                      <path d={seg(0, Math.min(scorePct, 0.55))}
+                        fill="none" stroke="#FF5555" strokeWidth={SW}
+                        strokeLinecap={scorePct <= 0.55 ? 'round' : 'butt'}/>
+                      {/* Amber fill: 55% → min(score, 75%) */}
+                      {scorePct > 0.55 && (
+                        <path d={seg(0.55, Math.min(scorePct, 0.75))}
+                          fill="none" stroke="#F5A623" strokeWidth={SW}
+                          strokeLinecap={scorePct <= 0.75 ? 'round' : 'butt'}/>
+                      )}
+                      {/* Green fill: 75% → score */}
+                      {scorePct > 0.75 && (
+                        <path d={seg(0.75, scorePct)}
+                          fill="none" stroke="#1DB869" strokeWidth={SW}
+                          strokeLinecap="round"/>
+                      )}
+                      {/* Glowing tip dot */}
+                      <circle cx={tipX.toFixed(1)} cy={tipY.toFixed(1)} r={SW / 2 + 2}
+                        fill={color} style={{filter:`drop-shadow(0 0 10px ${glow})`}}/>
+                    </>
                   )}
-                  {/* Zone labels */}
-                  <text x="10"  y="119" fill="rgba(255,99,99,0.6)"   fontSize="9" fontWeight="bold" textAnchor="middle">0</text>
-                  <text x="210" y="119" fill="rgba(0,224,176,0.6)"   fontSize="9" fontWeight="bold" textAnchor="middle">100</text>
+
+                  {/* End labels */}
+                  <text x="12"  y="101" fill="rgba(255,85,85,0.55)"  fontSize="9" fontWeight="bold" textAnchor="middle">0</text>
+                  <text x="208" y="101" fill="rgba(29,184,105,0.55)" fontSize="9" fontWeight="bold" textAnchor="middle">100</text>
                 </svg>
-                {/* Score number — sits inside the arc opening */}
-                <div style={{position:'absolute', bottom:0, left:0, right:0, textAlign:'center', lineHeight:1}}>
-                  <p style={{fontSize:64, fontFamily:"'Oswald',sans-serif", fontWeight:'bold', color:'white', letterSpacing:'-2px', lineHeight:1}}>
+                {/* Score number inside the arc opening */}
+                <div style={{position:'absolute', bottom:4, left:0, right:0, textAlign:'center'}}>
+                  <p style={{fontSize:62, fontFamily:"'Oswald',sans-serif", fontWeight:'bold', color:'white', letterSpacing:'-2px', lineHeight:1}}>
                     {score ?? '—'}
                   </p>
                 </div>
               </div>
+
               <div className="flex items-center gap-1.5 mt-1">
                 <div className="w-2 h-2 rounded-full" style={{background: color, boxShadow:`0 0 6px ${glow}`}} />
                 <span className="text-sm font-semibold" style={{color}}>
