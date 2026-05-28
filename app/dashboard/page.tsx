@@ -361,14 +361,33 @@ export default function DashboardPage() {
             ? lastTest.recommendations.unknown.filter(u => u.param !== 'salt').length
             : 0
           const testedCount = 5 - unknownCount
+          const circumference = 2 * Math.PI * 54
+          const arcLength = score !== null ? (score / 100) * circumference : 0
           return (
             <div className="flex flex-col items-center pb-5">
-              <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{color: color, opacity: 0.7}}>Health Score</p>
-              <p className="font-bold leading-none" style={{fontSize:80, fontFamily:"'Oswald',sans-serif", letterSpacing:'-3px', color, textShadow:`0 0 48px ${glow}, 0 0 80px ${glow}`}}>
-                {score ?? '—'}
-              </p>
-              <div className="flex items-center mt-3">
-                <span className="text-sm font-bold px-3 py-1 rounded-full" style={{background:`rgba(${color === '#00E0B0' ? '0,224,176' : color === '#3AB5E6' ? '58,181,230' : color === '#F5A623' ? '245,166,35' : '255,107,122'},0.18)`, color, border:`1px solid ${color}40`}}>
+              <p className="text-white/40 text-[10px] font-bold uppercase tracking-widest mb-3">Health Score</p>
+              {/* Score ring */}
+              <div className="relative flex items-center justify-center" style={{width:148, height:148}}>
+                <svg width="148" height="148" viewBox="0 0 148 148" style={{position:'absolute',top:0,left:0}}>
+                  {/* Track */}
+                  <circle cx="74" cy="74" r="54" fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="7"/>
+                  {/* Colored arc */}
+                  {score !== null && (
+                    <circle cx="74" cy="74" r="54" fill="none" stroke={color} strokeWidth="7"
+                      strokeLinecap="round"
+                      strokeDasharray={`${arcLength} ${circumference}`}
+                      transform="rotate(-90 74 74)"
+                      style={{filter:`drop-shadow(0 0 8px ${glow})`, transition:'stroke-dasharray 0.6s ease'}}
+                    />
+                  )}
+                </svg>
+                <p className="text-white font-bold leading-none relative z-10" style={{fontSize:72,fontFamily:"'Oswald',sans-serif",letterSpacing:'-2px'}}>
+                  {score ?? '—'}
+                </p>
+              </div>
+              <div className="flex items-center gap-1.5 mt-3">
+                <div className="w-2 h-2 rounded-full" style={{background: color, boxShadow:`0 0 6px ${glow}`}} />
+                <span className="text-sm font-semibold" style={{color}}>
                   {score !== null ? scoreLabel(score) : 'Log your first test'}
                 </span>
               </div>
