@@ -375,7 +375,7 @@ export default function LandingPage() {
           &nbsp;·&nbsp;
           <Link href="/terms" className="hover:text-text-primary transition-colors">Terms</Link>
           &nbsp;·&nbsp;
-          <a href="mailto:kgil1015@aol.com" className="hover:text-text-primary transition-colors">Contact</a>
+          <a href="mailto:support@poolkeep.app" className="hover:text-text-primary transition-colors">Contact</a>
         </p>
       </footer>
     </div>

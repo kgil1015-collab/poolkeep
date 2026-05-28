@@ -19,7 +19,7 @@ const PRO_FEATURES = [
   { text: 'Unlimited test history', highlight: false },
   { text: 'Full treatment plans with dosing', highlight: false },
   { text: 'Share reports with other PoolKeep users', highlight: false },
-  { text: 'Priority support', highlight: false },
+  { text: 'Priority support', highlight: false, link: 'mailto:support@poolkeep.app' },
   { text: 'Early access to new features', highlight: false },
 ]
 
@@ -268,7 +268,10 @@ export default function ProPage() {
                     <div className="w-4 h-4 rounded-full flex items-center justify-center shrink-0" style={{background:'rgba(0,120,184,0.1)'}}>
                       <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#0078B8" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
                     </div>
-                    <span className="text-sm text-text-primary">{f.text}</span>
+                    {f.link
+                      ? <a href={f.link} className="text-sm text-text-primary hover:text-pool-dark transition-colors underline underline-offset-2">{f.text}</a>
+                      : <span className="text-sm text-text-primary">{f.text}</span>
+                    }
                   </div>
                 ))}
               </div>
@@ -385,7 +388,10 @@ export default function ProPage() {
                     <div className="w-5 h-5 rounded-full flex items-center justify-center shrink-0" style={{background:'rgba(245,200,66,0.18)',border:'1px solid rgba(245,200,66,0.4)'}}>
                       <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#F5C842" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
                     </div>
-                    <span className="text-base font-semibold" style={{color:'rgba(255,255,255,0.92)'}}>{f.text}</span>
+                    {f.link
+                      ? <a href={f.link} className="text-base font-semibold hover:opacity-80 transition-opacity" style={{color:'rgba(255,255,255,0.92)'}}>{f.text}</a>
+                      : <span className="text-base font-semibold" style={{color:'rgba(255,255,255,0.92)'}}>{f.text}</span>
+                    }
                   </div>
                 ))}
               </div>
