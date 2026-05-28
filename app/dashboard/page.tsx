@@ -385,11 +385,6 @@ export default function DashboardPage() {
                   <p className="text-white font-bold leading-none" style={{fontSize:68, fontFamily:"'Oswald',sans-serif", letterSpacing:'-3px'}}>
                     {score ?? '—'}
                   </p>
-                  {score !== null && (
-                    <p style={{fontSize:10, color:'#00E0B0', fontWeight:700, letterSpacing:'0.12em', marginTop:3}}>
-                      OUT OF 100
-                    </p>
-                  )}
                 </div>
               </div>
 
