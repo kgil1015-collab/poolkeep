@@ -369,30 +369,14 @@ export default function DashboardPage() {
               <p className="text-white/40 text-[10px] font-bold uppercase tracking-widest mb-3">Health Score</p>
               <div className="relative flex items-center justify-center" style={{width:152, height:152}}>
                 <svg width="152" height="152" viewBox="0 0 152 152" style={{position:'absolute',top:0,left:0}}>
-                  <defs>
-                    {/* Arc gradient: deep pool blue at start → bright teal at tip */}
-                    <linearGradient id="arcGrad" x1="76" y1="132" x2="76" y2="20" gradientUnits="userSpaceOnUse">
-                      <stop offset="0%" stopColor="#0066AA"/>
-                      <stop offset="100%" stopColor="#00E0B0"/>
-                    </linearGradient>
-                    {/* Inner pool-water glow */}
-                    <radialGradient id="poolGlow" cx="50%" cy="50%" r="50%">
-                      <stop offset="0%" stopColor="#00A8D4" stopOpacity="0.22"/>
-                      <stop offset="75%" stopColor="#0078B8" stopOpacity="0.08"/>
-                      <stop offset="100%" stopColor="#0078B8" stopOpacity="0"/>
-                    </radialGradient>
-                  </defs>
-                  {/* Inner pool glow disc */}
-                  <circle cx="76" cy="76" r="64" fill="url(#poolGlow)"/>
-                  {/* Ghost track */}
-                  <circle cx="76" cy="76" r="56" fill="none" stroke="rgba(41,184,232,0.14)" strokeWidth="9"/>
-                  {/* Gradient score arc */}
+                  {/* Muted track — visible pool blue so unfilled portion reads clearly */}
+                  <circle cx="76" cy="76" r="56" fill="none" stroke="rgba(0,120,184,0.28)" strokeWidth="10"/>
+                  {/* Bright teal score arc */}
                   {score !== null && (
                     <circle cx="76" cy="76" r="56" fill="none"
-                      stroke="url(#arcGrad)" strokeWidth="9" strokeLinecap="round"
+                      stroke="#00E0B0" strokeWidth="10" strokeLinecap="round"
                       strokeDasharray={`${arcLength} ${circumference}`}
                       transform="rotate(-90 76 76)"
-                      style={{filter:'drop-shadow(0 0 12px rgba(0,224,176,0.55))'}}
                     />
                   )}
                 </svg>
@@ -402,7 +386,7 @@ export default function DashboardPage() {
                     {score ?? '—'}
                   </p>
                   {score !== null && (
-                    <p style={{fontSize:10, color:'rgba(0,224,176,0.70)', fontWeight:700, letterSpacing:'0.12em', marginTop:3}}>
+                    <p style={{fontSize:10, color:'#00E0B0', fontWeight:700, letterSpacing:'0.12em', marginTop:3}}>
                       OUT OF 100
                     </p>
                   )}
