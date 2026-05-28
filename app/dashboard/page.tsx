@@ -371,8 +371,8 @@ export default function DashboardPage() {
           const seg = (p0: number, p1: number) => {
             const [x0, y0] = pt(p0)
             const [x1, y1] = pt(p1)
-            const large = (p1 - p0) > 0.5 ? 1 : 0
-            return `M${x0.toFixed(1)},${y0.toFixed(1)} A${R},${R} 0 ${large},1 ${x1.toFixed(1)},${y1.toFixed(1)}`
+            // large-arc is always 0: max span is 180° so no segment ever exceeds a half-circle
+            return `M${x0.toFixed(1)},${y0.toFixed(1)} A${R},${R} 0 0,1 ${x1.toFixed(1)},${y1.toFixed(1)}`
           }
 
           const scorePct = score !== null ? Math.max(0.01, score / 100) : 0
