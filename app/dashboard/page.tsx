@@ -63,6 +63,58 @@ function statusAccent(score: number | null) {
   return { color: '#FF6B7A', overlay: 'radial-gradient(ellipse at 60% 10%, rgba(229,48,74,0.32) 0%, transparent 60%)' }
 }
 
+function getWelcome(firstName: string, lastTest: TestResult | null) {
+  const hour = new Date().getHours()
+  const timeGreeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening'
+
+  if (!lastTest) return {
+    salutation: `Welcome, ${firstName}! 👋`,
+    headline: "Let's get your pool sorted",
+    subline: 'Log your first test to get a health score and treatment plan',
+    urgency: 0,
+  }
+
+  const hoursSince = Math.floor((Date.now() - new Date(lastTest.created_at).getTime()) / 3600000)
+  const daysSince  = Math.floor(hoursSince / 24)
+
+  if (hoursSince < 6) return {
+    salutation: `${timeGreeting}, ${firstName}!`,
+    headline: 'Fresh test logged ✓',
+    subline: 'Your pool is all set — check back in a day or two',
+    urgency: 0,
+  }
+  if (daysSince === 0) return {
+    salutation: `${timeGreeting}, ${firstName}!`,
+    headline: 'Pool looking good',
+    subline: 'Tested today — keep up the great work',
+    urgency: 0,
+  }
+  if (daysSince === 1) return {
+    salutation: `Hey ${firstName}, welcome back!`,
+    headline: 'Ready to log another test?',
+    subline: 'Tested yesterday — a quick check today keeps things balanced',
+    urgency: 1,
+  }
+  if (daysSince <= 3) return {
+    salutation: `Hey ${firstName}, welcome back!`,
+    headline: 'Ready to log another test?',
+    subline: `Last tested ${daysSince} days ago — your pool is on track`,
+    urgency: 1,
+  }
+  if (daysSince <= 7) return {
+    salutation: `Hey ${firstName}!`,
+    headline: 'Time for a quick check',
+    subline: `It's been ${daysSince} days — a fast test keeps your chemistry balanced`,
+    urgency: 2,
+  }
+  return {
+    salutation: `Hey ${firstName}!`,
+    headline: 'Your pool needs a test',
+    subline: `${daysSince} days since your last reading — chemistry can shift fast`,
+    urgency: 3,
+  }
+}
+
 const PARAM_RANGES = [
   { key: 'ph',               label: 'pH',        fmt: (v:number) => v.toFixed(1),        unit: '',    idealMin: 7.2,  idealMax: 7.6,  viewMin: 6.5,  viewMax: 8.5  },
   { key: 'free_chlorine',    label: 'Chlorine',  fmt: (v:number) => v.toFixed(1),        unit: 'ppm', idealMin: 1,    idealMax: 3,    viewMin: 0,    viewMax: 6    },
@@ -201,8 +253,7 @@ export default function DashboardPage() {
   }
 
   const firstName = user?.user_metadata?.full_name?.split(' ')[0] || 'there'
-  const hour = new Date().getHours()
-  const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening'
+  const welcome = getWelcome(firstName, lastTest)
 
   return (
     <div className="min-h-screen bg-surface flex flex-col" style={{maxWidth:480,margin:'0 auto'}}>
@@ -239,8 +290,9 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        <p className="text-white/55 text-sm mb-0.5">{greeting}, {firstName}</p>
-        <h1 className="text-white text-2xl font-bold mb-4" style={{fontFamily:"'Oswald',sans-serif",letterSpacing:'-.01em'}}>Pool Status</h1>
+        <p className="text-white/65 text-sm mb-0.5">{welcome.salutation}</p>
+        <h1 className="text-white text-2xl font-bold mb-1" style={{fontFamily:"'Oswald',sans-serif",letterSpacing:'-.01em'}}>{welcome.headline}</h1>
+        <p className="text-white/50 text-sm mb-4 leading-snug">{welcome.subline}</p>
 
         {/* Pool switcher */}
         <div className="mb-6">
@@ -327,6 +379,16 @@ export default function DashboardPage() {
                     Based on {testedCount} of 5 parameters —{' '}
                     <span style={{color:'rgba(255,255,255,0.92)', textDecoration:'underline', textUnderlineOffset:3}}>tap to log more →</span>
                   </span>
+                </button>
+              )}
+              {welcome.urgency >= 2 && (
+                <button
+                  onClick={() => router.push('/log')}
+                  className="mt-5 px-7 py-3 rounded-full font-bold text-sm flex items-center gap-2 hover:opacity-90 transition-opacity"
+                  style={{background:'rgba(255,255,255,0.15)', color:'white', border:'1.5px solid rgba(255,255,255,0.3)', backdropFilter:'blur(4px)'}}
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                  Log a Test Now
                 </button>
               )}
             </div>
