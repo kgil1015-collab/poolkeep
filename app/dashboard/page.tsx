@@ -275,8 +275,17 @@ export default function DashboardPage() {
                 </button>
               ))}
               <button
+                onClick={() => { setShowPicker(false); router.push('/pool/edit') }}
+                className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-surface transition-colors border-t border-gray-50"
+              >
+                <div className="w-5 h-5 rounded-full flex items-center justify-center shrink-0" style={{background:'rgba(0,120,184,0.1)'}}>
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#0078B8" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                </div>
+                <span className="text-sm font-medium" style={{color:'#0078B8'}}>Edit Pool</span>
+              </button>
+              <button
                 onClick={() => { setShowPicker(false); router.push(isPro || allPools.length === 0 ? '/setup/pool' : '/pro') }}
-                className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-surface transition-colors"
+                className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-surface transition-colors border-t border-gray-50"
               >
                 <div className="w-5 h-5 rounded-full flex items-center justify-center shrink-0" style={{background:'rgba(0,120,184,0.1)'}}>
                   <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#0078B8" strokeWidth="3" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>

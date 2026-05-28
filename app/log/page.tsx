@@ -335,6 +335,12 @@ export default function LogTestPage() {
         >
           {loading ? 'Calculating…' : 'Get My Recommendations →'}
         </button>
+        <button
+          onClick={() => router.push('/dashboard')}
+          className="w-full text-sm font-medium py-3 text-text-muted hover:text-text-primary transition-colors"
+        >
+          Cancel
+        </button>
       </div>
     </div>
   )
