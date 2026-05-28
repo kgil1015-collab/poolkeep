@@ -363,21 +363,36 @@ export default function DashboardPage() {
           const testedCount = 5 - unknownCount
           const circumference = 2 * Math.PI * 54
           const arcLength = score !== null ? (score / 100) * circumference : 0
+          // Spectrum track zones matching scoreLabel thresholds
+          const redLen   = 0.55 * circumference  // 0–55: action/attention
+          const amberLen = 0.20 * circumference  // 55–75: needs attention
+          const greenLen = 0.25 * circumference  // 75–100: good/excellent
           return (
             <div className="flex flex-col items-center pb-5">
               <p className="text-white/40 text-[10px] font-bold uppercase tracking-widest mb-3">Health Score</p>
               {/* Score ring */}
               <div className="relative flex items-center justify-center" style={{width:148, height:148}}>
                 <svg width="148" height="148" viewBox="0 0 148 148" style={{position:'absolute',top:0,left:0}}>
-                  {/* Track */}
-                  <circle cx="74" cy="74" r="54" fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="7"/>
-                  {/* Colored arc */}
+                  {/* Spectrum track — always shows full red→amber→green range */}
+                  <circle cx="74" cy="74" r="54" fill="none" stroke="#FF4444" strokeWidth="6" strokeOpacity="0.22" strokeLinecap="butt"
+                    strokeDasharray={`${redLen} ${circumference}`}
+                    transform="rotate(-90 74 74)"
+                  />
+                  <circle cx="74" cy="74" r="54" fill="none" stroke="#F5A623" strokeWidth="6" strokeOpacity="0.22" strokeLinecap="butt"
+                    strokeDasharray={`${amberLen} ${circumference}`}
+                    transform={`rotate(${-90 + 0.55 * 360} 74 74)`}
+                  />
+                  <circle cx="74" cy="74" r="54" fill="none" stroke="#00E0B0" strokeWidth="6" strokeOpacity="0.22" strokeLinecap="butt"
+                    strokeDasharray={`${greenLen} ${circumference}`}
+                    transform={`rotate(${-90 + 0.75 * 360} 74 74)`}
+                  />
+                  {/* Bright score arc overlay */}
                   {score !== null && (
                     <circle cx="74" cy="74" r="54" fill="none" stroke={color} strokeWidth="7"
                       strokeLinecap="round"
                       strokeDasharray={`${arcLength} ${circumference}`}
                       transform="rotate(-90 74 74)"
-                      style={{filter:`drop-shadow(0 0 8px ${glow})`, transition:'stroke-dasharray 0.6s ease'}}
+                      style={{filter:`drop-shadow(0 0 8px ${glow})`}}
                     />
                   )}
                 </svg>
