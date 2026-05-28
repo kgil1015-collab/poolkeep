@@ -56,11 +56,11 @@ function computeScore(recs: TestResult['recommendations']): number {
 }
 
 function statusAccent(score: number | null) {
-  if (score === null) return { color: '#00CCA3', overlay: 'none', glow: 'rgba(0,204,163,0.25)' }
-  if (score >= 90) return { color: '#00E0B0', overlay: 'radial-gradient(ellipse at 50% 80%, rgba(0,224,176,0.22) 0%, transparent 65%)', glow: 'rgba(0,224,176,0.35)' }
-  if (score >= 75) return { color: '#3AB5E6', overlay: 'radial-gradient(ellipse at 50% 80%, rgba(58,181,230,0.18) 0%, transparent 65%)', glow: 'rgba(58,181,230,0.35)' }
-  if (score >= 55) return { color: '#F5A623', overlay: 'radial-gradient(ellipse at 60% 10%, rgba(245,166,35,0.28) 0%, transparent 60%)', glow: 'rgba(245,166,35,0.35)' }
-  return { color: '#FF6B7A', overlay: 'radial-gradient(ellipse at 60% 10%, rgba(229,48,74,0.32) 0%, transparent 60%)', glow: 'rgba(255,107,122,0.35)' }
+  if (score === null) return { color: '#3AB5E6', overlay: 'none', glow: 'rgba(58,181,230,0.25)' }
+  if (score >= 90) return { color: '#00E0B0', overlay: 'radial-gradient(ellipse at 50% 80%, rgba(0,224,176,0.18) 0%, transparent 65%)', glow: 'rgba(0,224,176,0.40)' }
+  if (score >= 75) return { color: '#29B8E8', overlay: 'radial-gradient(ellipse at 50% 80%, rgba(41,184,232,0.15) 0%, transparent 65%)', glow: 'rgba(41,184,232,0.40)' }
+  if (score >= 55) return { color: '#5BC8F5', overlay: 'radial-gradient(ellipse at 50% 80%, rgba(91,200,245,0.15) 0%, transparent 65%)', glow: 'rgba(91,200,245,0.35)' }
+  return { color: '#A8D8EA', overlay: 'radial-gradient(ellipse at 50% 80%, rgba(168,216,234,0.15) 0%, transparent 65%)', glow: 'rgba(168,216,234,0.30)' }
 }
 
 function getWelcome(firstName: string, lastTest: TestResult | null) {
@@ -353,7 +353,7 @@ export default function DashboardPage() {
           )}
         </div>
 
-        {/* Health score — half-circle speedometer */}
+        {/* Health score — clean water-toned ring */}
         {(() => {
           const score = lastTest ? computeScore(lastTest.recommendations) : null
           const { color, glow } = statusAccent(score)
@@ -361,77 +361,35 @@ export default function DashboardPage() {
             ? lastTest.recommendations.unknown.filter(u => u.param !== 'salt').length
             : 0
           const testedCount = 5 - unknownCount
-
-          // Semicircle geometry: 180° arc, left=0%, right=100%
-          const CX = 110, CY = 90, R = 76, SW = 10
-          const pt = (pct: number): [number, number] => {
-            const a = Math.PI * (1 - pct)
-            return [CX + R * Math.cos(a), CY - R * Math.sin(a)]
-          }
-          const seg = (p0: number, p1: number) => {
-            const [x0, y0] = pt(p0)
-            const [x1, y1] = pt(p1)
-            return `M${x0.toFixed(1)},${y0.toFixed(1)} A${R},${R} 0 0,1 ${x1.toFixed(1)},${y1.toFixed(1)}`
-          }
-
-          const scorePct = score !== null ? Math.max(0.01, score / 100) : 0
-          const [tipX, tipY] = score !== null ? pt(scorePct) : pt(0)
-          // Needle angle for drawing the pointer line
-          const needleAngle = Math.PI * (1 - scorePct)
-          const needleLen = R - SW / 2 - 2  // stops just inside the arc
-          const [needleX, needleY] = [CX + needleLen * Math.cos(needleAngle), CY - needleLen * Math.sin(needleAngle)]
+          const circumference = 2 * Math.PI * 56
+          const arcLength = score !== null ? (score / 100) * circumference : 0
 
           return (
-            <div className="flex flex-col items-center pb-4">
-              <p className="text-white/40 text-[10px] font-bold uppercase tracking-widest mb-1">Health Score</p>
-              {/* Gauge */}
-              <div style={{width:220, height:96}}>
-                <svg width="220" height="96" viewBox="0 0 220 96">
-                  {/* Dim background track — shows full red→amber→green spectrum */}
-                  <path d={seg(0, 0.55)}    fill="none" stroke="#FF4444" strokeWidth={SW} strokeOpacity="0.28" strokeLinecap="butt"/>
-                  <path d={seg(0.55, 0.75)} fill="none" stroke="#F07020" strokeWidth={SW} strokeOpacity="0.28" strokeLinecap="butt"/>
-                  <path d={seg(0.75, 1)}    fill="none" stroke="#1DB869" strokeWidth={SW} strokeOpacity="0.40" strokeLinecap="butt"/>
-
-                  {/* Bright zone fills up to score */}
+            <div className="flex flex-col items-center pb-5">
+              <p className="text-white/40 text-[10px] font-bold uppercase tracking-widest mb-3">Health Score</p>
+              <div className="relative flex items-center justify-center" style={{width:152, height:152}}>
+                <svg width="152" height="152" viewBox="0 0 152 152" style={{position:'absolute',top:0,left:0}}>
+                  {/* Ghost track */}
+                  <circle cx="76" cy="76" r="56" fill="none" stroke="rgba(255,255,255,0.10)" strokeWidth="9"/>
+                  {/* Score arc */}
                   {score !== null && (
-                    <>
-                      <path d={seg(0, Math.min(scorePct, 0.55))}
-                        fill="none" stroke="#FF4444" strokeWidth={SW}
-                        strokeLinecap={scorePct <= 0.55 ? 'butt' : 'butt'}/>
-                      {scorePct > 0.55 && (
-                        <path d={seg(0.55, Math.min(scorePct, 0.75))}
-                          fill="none" stroke="#F07020" strokeWidth={SW} strokeLinecap="butt"/>
-                      )}
-                      {scorePct > 0.75 && (
-                        <path d={seg(0.75, scorePct)}
-                          fill="none" stroke="#1DB869" strokeWidth={SW} strokeLinecap="butt"/>
-                      )}
-                    </>
+                    <circle cx="76" cy="76" r="56" fill="none"
+                      stroke={color} strokeWidth="9" strokeLinecap="round"
+                      strokeDasharray={`${arcLength} ${circumference}`}
+                      transform="rotate(-90 76 76)"
+                      style={{filter:`drop-shadow(0 0 10px ${glow})`}}
+                    />
                   )}
-
-                  {/* Needle + pivot */}
-                  {score !== null && (
-                    <>
-                      <line x1={CX} y1={CY} x2={needleX.toFixed(1)} y2={needleY.toFixed(1)}
-                        stroke="white" strokeWidth="2.5" strokeLinecap="round"
-                        style={{filter:'drop-shadow(0 0 4px rgba(255,255,255,0.6))'}}/>
-                      <circle cx={CX} cy={CY} r="5" fill="white"
-                        style={{filter:'drop-shadow(0 0 6px rgba(255,255,255,0.5))'}}/>
-                    </>
-                  )}
-
-                  {/* End labels */}
-                  <text x="14"  y="93" fill="rgba(255,68,68,0.5)"   fontSize="9" fontWeight="bold" textAnchor="middle">0</text>
-                  <text x="206" y="93" fill="rgba(29,184,105,0.5)"  fontSize="9" fontWeight="bold" textAnchor="middle">100</text>
                 </svg>
+                {/* Score number centered */}
+                <div className="relative z-10 flex flex-col items-center">
+                  <p className="text-white font-bold leading-none" style={{fontSize:68, fontFamily:"'Oswald',sans-serif", letterSpacing:'-3px'}}>
+                    {score ?? '—'}
+                  </p>
+                </div>
               </div>
 
-              {/* Score number below the gauge */}
-              <p style={{fontSize:56, fontFamily:"'Oswald',sans-serif", fontWeight:'bold', color:'white', letterSpacing:'-2px', lineHeight:1, marginTop:-4}}>
-                {score ?? '—'}
-              </p>
-
-              <div className="flex items-center gap-1.5 mt-2">
+              <div className="flex items-center gap-1.5 mt-3">
                 <div className="w-2 h-2 rounded-full" style={{background: color, boxShadow:`0 0 6px ${glow}`}} />
                 <span className="text-sm font-semibold" style={{color}}>
                   {score !== null ? scoreLabel(score) : 'Log your first test'}
