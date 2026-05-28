@@ -56,11 +56,11 @@ function computeScore(recs: TestResult['recommendations']): number {
 }
 
 function statusAccent(score: number | null) {
-  if (score === null) return { color: '#00CCA3', overlay: 'none' }
-  if (score >= 90) return { color: '#00E0B0', overlay: 'none' }
-  if (score >= 75) return { color: '#3AB5E6', overlay: 'none' }
-  if (score >= 55) return { color: '#F5A623', overlay: 'radial-gradient(ellipse at 60% 10%, rgba(245,166,35,0.28) 0%, transparent 60%)' }
-  return { color: '#FF6B7A', overlay: 'radial-gradient(ellipse at 60% 10%, rgba(229,48,74,0.32) 0%, transparent 60%)' }
+  if (score === null) return { color: '#00CCA3', overlay: 'none', glow: 'rgba(0,204,163,0.25)' }
+  if (score >= 90) return { color: '#00E0B0', overlay: 'radial-gradient(ellipse at 50% 80%, rgba(0,224,176,0.22) 0%, transparent 65%)', glow: 'rgba(0,224,176,0.35)' }
+  if (score >= 75) return { color: '#3AB5E6', overlay: 'radial-gradient(ellipse at 50% 80%, rgba(58,181,230,0.18) 0%, transparent 65%)', glow: 'rgba(58,181,230,0.35)' }
+  if (score >= 55) return { color: '#F5A623', overlay: 'radial-gradient(ellipse at 60% 10%, rgba(245,166,35,0.28) 0%, transparent 60%)', glow: 'rgba(245,166,35,0.35)' }
+  return { color: '#FF6B7A', overlay: 'radial-gradient(ellipse at 60% 10%, rgba(229,48,74,0.32) 0%, transparent 60%)', glow: 'rgba(255,107,122,0.35)' }
 }
 
 function getWelcome(firstName: string, lastTest: TestResult | null) {
@@ -356,20 +356,19 @@ export default function DashboardPage() {
         {/* Health score — simple large number */}
         {(() => {
           const score = lastTest ? computeScore(lastTest.recommendations) : null
-          const { color } = statusAccent(score)
+          const { color, glow } = statusAccent(score)
           const unknownCount = lastTest
             ? lastTest.recommendations.unknown.filter(u => u.param !== 'salt').length
             : 0
           const testedCount = 5 - unknownCount
           return (
             <div className="flex flex-col items-center pb-5">
-              <p className="text-white/40 text-[10px] font-bold uppercase tracking-widest mb-1">Health Score</p>
-              <p className="text-white font-bold leading-none" style={{fontSize:72,fontFamily:"'Oswald',sans-serif",letterSpacing:'-2px'}}>
+              <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{color: color, opacity: 0.7}}>Health Score</p>
+              <p className="font-bold leading-none" style={{fontSize:80, fontFamily:"'Oswald',sans-serif", letterSpacing:'-3px', color, textShadow:`0 0 48px ${glow}, 0 0 80px ${glow}`}}>
                 {score ?? '—'}
               </p>
-              <div className="flex items-center gap-1.5 mt-2">
-                <div className="w-1.5 h-1.5 rounded-full" style={{background: color}} />
-                <span className="text-sm font-semibold" style={{color}}>
+              <div className="flex items-center mt-3">
+                <span className="text-sm font-bold px-3 py-1 rounded-full" style={{background:`rgba(${color === '#00E0B0' ? '0,224,176' : color === '#3AB5E6' ? '58,181,230' : color === '#F5A623' ? '245,166,35' : '255,107,122'},0.18)`, color, border:`1px solid ${color}40`}}>
                   {score !== null ? scoreLabel(score) : 'Log your first test'}
                 </span>
               </div>
