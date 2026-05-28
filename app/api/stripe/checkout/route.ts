@@ -59,14 +59,6 @@ export async function POST(req: NextRequest) {
       payment_method_types: ['card'],
       line_items: [
         { price: priceId, quantity: 1 },
-        ...(founding ? [{
-          price_data: {
-            currency: 'usd' as const,
-            product_data: { name: 'Founding Member — One-Time Setup' },
-            unit_amount: 6000,
-          },
-          quantity: 1,
-        }] : []),
       ],
       success_url: `${appUrl}/dashboard?upgraded=1`,
       cancel_url: `${appUrl}/pro`,
