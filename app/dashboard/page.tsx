@@ -101,6 +101,7 @@ export default function DashboardPage() {
   const [remindDays, setRemindDays] = useState<number | null>(null)
   const [savingReminder, setSavingReminder] = useState(false)
   const [showToast, setShowToast] = useState(false)
+  const [showUpgradeToast, setShowUpgradeToast] = useState(false)
   const [expandedSteps, setExpandedSteps] = useState<Set<number>>(new Set())
 
   useEffect(() => {
@@ -108,6 +109,11 @@ export default function DashboardPage() {
       sessionStorage.removeItem('poolkeep_just_logged')
       setShowToast(true)
       setTimeout(() => setShowToast(false), 3000)
+    }
+    if (typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('upgraded') === '1') {
+      setShowUpgradeToast(true)
+      setTimeout(() => setShowUpgradeToast(false), 5000)
+      window.history.replaceState({}, '', '/dashboard')
     }
   }, [])
 
@@ -826,12 +832,27 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Success toast */}
+      {/* Test logged toast */}
       {showToast && (
         <div className="fixed top-4 left-1/2 z-50 -translate-x-1/2 px-4 py-3 rounded-2xl shadow-lg flex items-center gap-2.5 text-sm font-semibold text-white transition-all"
           style={{background:'#1DB869', maxWidth: 320, width:'calc(100% - 32px)'}}>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
           Test logged — your score is updated
+        </div>
+      )}
+
+      {/* Upgrade success toast */}
+      {showUpgradeToast && (
+        <div className="fixed top-4 left-1/2 z-50 -translate-x-1/2 px-5 py-4 rounded-2xl shadow-xl flex items-center gap-3 transition-all"
+          style={{background:'linear-gradient(135deg,#002D44,#005A52)', border:'1px solid rgba(0,224,176,0.3)', maxWidth:340, width:'calc(100% - 32px)'}}>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="rgba(0,224,176,0.2)" stroke="#00E0B0" strokeWidth="1.6" strokeLinejoin="round" className="shrink-0">
+            <path d="M2 9l10 13L22 9 16 3H8L2 9z"/>
+            <path d="M2 9h20M8 3l4 6 4-6" strokeLinecap="round"/>
+          </svg>
+          <div>
+            <p className="text-sm font-bold text-white leading-tight">Welcome to PoolKeep Pro!</p>
+            <p className="text-xs mt-0.5" style={{color:'rgba(255,255,255,0.6)'}}>Your account has been upgraded.</p>
+          </div>
         </div>
       )}
 
