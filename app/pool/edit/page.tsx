@@ -6,11 +6,15 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 
-const POOL_TYPES = [
-  { id: 'inground',     label: 'In-Ground',      sub: 'Standard chlorine in-ground pool' },
-  { id: 'saltwater',   label: 'Salt Water',      sub: 'Salt chlorine generator (SWG) pool' },
-  { id: 'above_ground',label: 'Above-Ground',    sub: 'Above-ground or semi-inground' },
-  { id: 'spa',         label: 'Spa / Hot Tub',   sub: 'Spa, hot tub, or plunge pool' },
+const SANITIZERS = [
+  { id: 'chlorine', label: 'Chlorine',    sub: 'You add chlorine manually — tablets, liquid, or shock' },
+  { id: 'salt',     label: 'Salt Water',  sub: 'You have a salt chlorine generator (SWG)' },
+]
+
+const STRUCTURES = [
+  { id: 'inground',     label: 'In-Ground',     sub: 'Standard in-ground pool' },
+  { id: 'above_ground', label: 'Above-Ground',  sub: 'Above-ground or semi-inground' },
+  { id: 'spa',          label: 'Spa / Hot Tub', sub: 'Spa, hot tub, or plunge pool' },
 ]
 
 const SIZES = [
@@ -22,14 +26,15 @@ const SIZES = [
 
 export default function EditPoolPage() {
   const router = useRouter()
-  const [poolId, setPoolId] = useState<string | null>(null)
-  const [poolName, setPoolName] = useState('')
-  const [poolType, setPoolType] = useState('')
+  const [poolId, setPoolId]             = useState<string | null>(null)
+  const [poolName, setPoolName]         = useState('')
+  const [sanitizer, setSanitizer]       = useState('chlorine')  // 'salt' | 'chlorine'
+  const [structure, setStructure]       = useState('inground')  // 'inground' | 'above_ground' | 'spa'
   const [volumeGallons, setVolumeGallons] = useState<number | null>(null)
   const [customVolume, setCustomVolume] = useState('')
-  const [loading, setLoading] = useState(true)
-  const [saving, setSaving] = useState(false)
-  const [error, setError] = useState('')
+  const [loading, setLoading]           = useState(true)
+  const [saving, setSaving]             = useState(false)
+  const [error, setError]               = useState('')
 
   useEffect(() => {
     const supabase = createClient()
@@ -47,7 +52,16 @@ export default function EditPoolPage() {
       if (!pool) { router.push('/dashboard'); return }
       setPoolId(pool.id)
       setPoolName(pool.name ?? '')
-      setPoolType(pool.type ?? 'inground')
+
+      // Decode stored type back into sanitizer + structure
+      const storedType: string = pool.type ?? 'inground'
+      if (storedType === 'saltwater' || storedType === 'salt') {
+        setSanitizer('salt')
+        setStructure('inground')   // default shape for salt pools
+      } else {
+        setSanitizer('chlorine')
+        setStructure(storedType)
+      }
 
       const matchedSize = SIZES.find(s => s.value === pool.volume_gallons)
       if (matchedSize) {
@@ -65,6 +79,9 @@ export default function EditPoolPage() {
     if (!poolName.trim()) { setError('Please enter a pool name.'); return }
     if (!volume || volume < 500) { setError('Please select or enter a valid pool size.'); return }
 
+    // Re-encode to stored type
+    const poolType = sanitizer === 'salt' ? 'saltwater' : structure
+
     setSaving(true)
     const supabase = createClient()
     const { error: dbError } = await supabase
@@ -77,6 +94,7 @@ export default function EditPoolPage() {
     router.push('/dashboard')
   }
 
+  /* ── Loading skeleton ── */
   if (loading) {
     return (
       <div className="min-h-screen bg-surface flex flex-col" style={{maxWidth:480,margin:'0 auto'}}>
@@ -84,8 +102,11 @@ export default function EditPoolPage() {
           <div className="h-5 w-24 rounded-full bg-white/15 mb-6" />
           <div className="h-7 w-36 rounded-full bg-white/20" />
         </div>
-        <div className="bg-pool-deep"><svg viewBox="0 0 480 32" className="w-full block"><path d="M0,28 C160,30 300,6 480,12 L480,32 L0,32 Z" fill="#F0F6FA"/></svg></div>
+        <div className="bg-pool-deep">
+          <svg viewBox="0 0 480 32" className="w-full block"><path d="M0,28 C160,30 300,6 480,12 L480,32 L0,32 Z" fill="#F0F6FA"/></svg>
+        </div>
         <div className="flex-1 px-4 pt-4 animate-pulse space-y-3">
+          <div className="h-16 rounded-2xl bg-white shadow-sm" />
           <div className="h-16 rounded-2xl bg-white shadow-sm" />
           <div className="grid grid-cols-2 gap-3">
             {[1,2,3,4].map(i => <div key={i} className="h-16 rounded-2xl bg-white shadow-sm" />)}
@@ -95,6 +116,7 @@ export default function EditPoolPage() {
     )
   }
 
+  /* ── Edit form ── */
   return (
     <div className="min-h-screen bg-surface flex flex-col" style={{maxWidth:480,margin:'0 auto'}}>
 
@@ -110,7 +132,7 @@ export default function EditPoolPage() {
         </div>
         <p className="text-white/50 text-xs font-semibold uppercase tracking-widest mb-1">Settings</p>
         <h1 className="text-white text-2xl font-bold" style={{fontFamily:"'Oswald',sans-serif",letterSpacing:'-.01em'}}>Edit Pool</h1>
-        <p className="text-white/55 text-sm mt-1">Update your pool name or size</p>
+        <p className="text-white/55 text-sm mt-1">Update your pool details</p>
       </div>
 
       {/* Wave */}
@@ -121,7 +143,7 @@ export default function EditPoolPage() {
       </div>
 
       {/* Form */}
-      <div className="flex-1 px-4 pt-4 pb-10 bg-surface space-y-4">
+      <div className="flex-1 px-4 pt-4 pb-10 bg-surface space-y-5">
         {error && <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl px-4 py-3">{error}</div>}
 
         {/* Name */}
@@ -136,16 +158,43 @@ export default function EditPoolPage() {
           />
         </div>
 
-        {/* Pool Type */}
+        {/* Sanitizer */}
         <div>
-          <p className="text-xs font-bold uppercase tracking-widest mb-2 px-1" style={{color:'#1A3A4A'}}>Pool Type</p>
+          <p className="text-xs font-bold uppercase tracking-widest mb-2 px-1" style={{color:'#1A3A4A'}}>Sanitizer Type</p>
           <div className="space-y-2">
-            {POOL_TYPES.map(t => {
-              const active = poolType === t.id
+            {SANITIZERS.map(s => {
+              const active = sanitizer === s.id
+              return (
+                <button
+                  key={s.id}
+                  onClick={() => setSanitizer(s.id)}
+                  className="w-full bg-white rounded-2xl p-3.5 flex items-center justify-between text-left border-2 transition-all shadow-sm"
+                  style={{borderColor: active ? '#0078B8' : '#E8F0F6'}}
+                >
+                  <div>
+                    <p className="font-semibold text-text-primary text-sm">{s.label}</p>
+                    <p className="text-text-muted text-xs mt-0.5">{s.sub}</p>
+                  </div>
+                  <div className="w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 ml-3 transition-all"
+                    style={{borderColor: active ? '#0078B8' : '#D1D9DD', background: active ? '#0078B8' : 'transparent'}}>
+                    {active && <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>}
+                  </div>
+                </button>
+              )
+            })}
+          </div>
+        </div>
+
+        {/* Structure */}
+        <div>
+          <p className="text-xs font-bold uppercase tracking-widest mb-2 px-1" style={{color:'#1A3A4A'}}>Pool Shape</p>
+          <div className="space-y-2">
+            {STRUCTURES.map(t => {
+              const active = structure === t.id
               return (
                 <button
                   key={t.id}
-                  onClick={() => setPoolType(t.id)}
+                  onClick={() => setStructure(t.id)}
                   className="w-full bg-white rounded-2xl p-3.5 flex items-center justify-between text-left border-2 transition-all shadow-sm"
                   style={{borderColor: active ? '#0078B8' : '#E8F0F6'}}
                 >
@@ -182,7 +231,8 @@ export default function EditPoolPage() {
               )
             })}
           </div>
-          <div className="bg-white rounded-2xl px-4 py-4 shadow-sm border-2 transition-all" style={{borderColor: customVolume ? '#0078B8' : '#E8F0F6'}}>
+          <div className="bg-white rounded-2xl px-4 py-4 shadow-sm border-2 transition-all"
+            style={{borderColor: customVolume ? '#0078B8' : '#E8F0F6'}}>
             <label className="text-xs font-bold uppercase tracking-widest mb-2 block" style={{color:'#1A3A4A'}}>Custom Gallons</label>
             <input
               type="number"

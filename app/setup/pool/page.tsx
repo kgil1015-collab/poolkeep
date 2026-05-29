@@ -6,31 +6,53 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 
-const POOL_TYPES = [
-  { id: 'inground', label: 'In-Ground', sub: 'Standard chlorine in-ground pool' },
-  { id: 'saltwater', label: 'Salt Water', sub: 'Salt chlorine generator (SWG) pool' },
-  { id: 'above_ground', label: 'Above-Ground', sub: 'Above-ground or semi-inground' },
-  { id: 'spa', label: 'Spa / Hot Tub', sub: 'Spa, hot tub, or plunge pool' },
+const SANITIZERS = [
+  {
+    id: 'chlorine',
+    label: 'Chlorine',
+    sub: 'You add chlorine manually — tablets, liquid, or shock',
+  },
+  {
+    id: 'salt',
+    label: 'Salt Water',
+    sub: 'You have a salt chlorine generator (SWG) that makes chlorine automatically',
+  },
+]
+
+const STRUCTURES = [
+  { id: 'inground',      label: 'In-Ground',     sub: 'Standard in-ground pool' },
+  { id: 'above_ground',  label: 'Above-Ground',  sub: 'Above-ground or semi-inground' },
+  { id: 'spa',           label: 'Spa / Hot Tub', sub: 'Spa, hot tub, or plunge pool' },
 ]
 
 const SIZES = [
-  { label: 'Small', sub: '~10,000 gal', value: 10000 },
-  { label: 'Medium', sub: '~15,000 gal', value: 15000 },
-  { label: 'Large', sub: '~20,000 gal', value: 20000 },
+  { label: 'Small',       sub: '~10,000 gal', value: 10000 },
+  { label: 'Medium',      sub: '~15,000 gal', value: 15000 },
+  { label: 'Large',       sub: '~20,000 gal', value: 20000 },
   { label: 'Extra Large', sub: '~30,000 gal', value: 30000 },
+]
+
+const TOTAL_STEPS = 4
+const titles    = ['Sanitizer Type', 'Pool Shape', 'Pool Size', 'Final Details']
+const subtitles = [
+  'How does your pool sanitize the water?',
+  'What best describes your pool?',
+  'Roughly how many gallons?',
+  'Give your pool a name',
 ]
 
 export default function PoolSetupPage() {
   const router = useRouter()
   const [gateBlocked, setGateBlocked] = useState<boolean | null>(null)
   const [step, setStep] = useState(1)
-  const [poolName, setPoolName] = useState('')
-  const [poolType, setPoolType] = useState('')
+  const [sanitizer, setSanitizer]       = useState('')   // 'salt' | 'chlorine'
+  const [structure, setStructure]       = useState('')   // 'inground' | 'above_ground' | 'spa'
   const [volumeGallons, setVolumeGallons] = useState<number | null>(null)
   const [customVolume, setCustomVolume] = useState('')
-  const [zipCode, setZipCode] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
+  const [poolName, setPoolName]         = useState('')
+  const [zipCode, setZipCode]           = useState('')
+  const [loading, setLoading]           = useState(false)
+  const [error, setError]               = useState('')
 
   useEffect(() => {
     const supabase = createClient()
@@ -48,8 +70,16 @@ export default function PoolSetupPage() {
   async function handleSave() {
     setError('')
     const volume = volumeGallons ?? parseInt(customVolume)
-    if (!poolType || !volume || volume < 500) { setError('Please complete all fields.'); return }
+    if (!sanitizer || !structure || !volume || volume < 500) {
+      setError('Please complete all fields.')
+      return
+    }
     setLoading(true)
+
+    // Derive the stored pool type:
+    // salt pools → 'saltwater'  (triggers salt-specific ranges in recommendations)
+    // chlorine pools → the structural shape
+    const poolType = sanitizer === 'salt' ? 'saltwater' : structure
 
     const supabase = createClient()
     const { data: { user } } = await supabase.auth.getUser()
@@ -68,6 +98,7 @@ export default function PoolSetupPage() {
     router.push('/dashboard')
   }
 
+  /* ── Loading skeleton ───────────────────────────────────────── */
   if (gateBlocked === null) {
     return (
       <div className="min-h-screen bg-surface flex flex-col" style={{maxWidth:480,margin:'0 auto'}}>
@@ -76,20 +107,19 @@ export default function PoolSetupPage() {
           <div className="h-3 w-24 rounded-full bg-white/15 mb-2" />
           <div className="h-7 w-40 rounded-full bg-white/20" />
         </div>
-        <div className="bg-pool-deep"><svg viewBox="0 0 480 32" className="w-full block"><path d="M0,28 C160,30 300,6 480,12 L480,32 L0,32 Z" fill="#F0F6FA"/></svg></div>
+        <div className="bg-pool-deep">
+          <svg viewBox="0 0 480 32" className="w-full block"><path d="M0,28 C160,30 300,6 480,12 L480,32 L0,32 Z" fill="#F0F6FA"/></svg>
+        </div>
         <div className="flex-1 px-4 pt-6 animate-pulse space-y-4">
-          <div className="h-14 rounded-2xl bg-white shadow-sm" />
-          <div className="grid grid-cols-3 gap-2">
-            {[1,2,3].map(i => <div key={i} className="h-16 rounded-2xl bg-white shadow-sm" />)}
-          </div>
-          <div className="h-14 rounded-2xl bg-white shadow-sm" />
-          <div className="h-12 rounded-2xl bg-white shadow-sm" />
+          <div className="h-16 rounded-2xl bg-white shadow-sm" />
+          <div className="h-16 rounded-2xl bg-white shadow-sm" />
           <div className="h-12 rounded-xl bg-white shadow-sm mt-4" />
         </div>
       </div>
     )
   }
 
+  /* ── Pro gate ───────────────────────────────────────────────── */
   if (gateBlocked) {
     return (
       <div className="min-h-screen bg-surface flex flex-col items-center justify-center px-6" style={{maxWidth:480,margin:'0 auto'}}>
@@ -100,26 +130,17 @@ export default function PoolSetupPage() {
         <p className="text-text-muted text-sm text-center mb-6 leading-relaxed">
           Free accounts are limited to 1 pool. Upgrade to Pro to manage up to 5 pools.
         </p>
-        <button
-          onClick={() => router.push('/pro')}
-          className="w-full font-bold py-4 rounded-xl text-sm mb-3"
-          style={{background:'#0078B8',color:'white'}}
-        >
+        <button onClick={() => router.push('/pro')} className="w-full font-bold py-4 rounded-xl text-sm mb-3" style={{background:'#0078B8',color:'white'}}>
           Upgrade to Pro →
         </button>
-        <button
-          onClick={() => router.back()}
-          className="text-sm text-text-muted hover:text-text-primary transition-colors"
-        >
+        <button onClick={() => router.back()} className="text-sm text-text-muted hover:text-text-primary transition-colors">
           Go back
         </button>
       </div>
     )
   }
 
-  const titles = ['Pool Type', 'Pool Size', 'Final Details']
-  const subtitles = ['What kind of pool do you have?', 'Roughly how many gallons?', 'Give your pool a name']
-
+  /* ── Main flow ──────────────────────────────────────────────── */
   return (
     <div className="min-h-screen bg-surface flex flex-col" style={{maxWidth:480,margin:'0 auto'}}>
 
@@ -150,16 +171,21 @@ export default function PoolSetupPage() {
           )}
         </div>
 
-        {/* Progress dots */}
+        {/* Progress bar */}
         <div className="flex gap-1.5 mb-5">
-          {[1,2,3].map(n => (
-            <div key={n} className="h-1 flex-1 rounded-full transition-all duration-300" style={{background: n <= step ? '#00E0B0' : 'rgba(255,255,255,0.2)'}} />
+          {Array.from({length: TOTAL_STEPS}, (_, i) => i + 1).map(n => (
+            <div key={n} className="h-1 flex-1 rounded-full transition-all duration-300"
+              style={{background: n <= step ? '#00E0B0' : 'rgba(255,255,255,0.2)'}} />
           ))}
         </div>
 
-        <p className="text-white/50 text-xs font-semibold uppercase tracking-widest mb-1">Step {step} of 3</p>
-        <h1 className="text-white text-2xl font-bold" style={{fontFamily:"'Oswald',sans-serif",letterSpacing:'-.01em'}}>{titles[step-1]}</h1>
-        <p className="text-white/55 text-sm mt-1">{subtitles[step-1]}</p>
+        <p className="text-white/50 text-xs font-semibold uppercase tracking-widest mb-1">
+          Step {step} of {TOTAL_STEPS}
+        </p>
+        <h1 className="text-white text-2xl font-bold" style={{fontFamily:"'Oswald',sans-serif",letterSpacing:'-.01em'}}>
+          {titles[step - 1]}
+        </h1>
+        <p className="text-white/55 text-sm mt-1">{subtitles[step - 1]}</p>
       </div>
 
       {/* Wave */}
@@ -173,15 +199,51 @@ export default function PoolSetupPage() {
       <div className="flex-1 px-4 pt-4 pb-10 bg-surface">
         {error && <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl px-4 py-3 mb-4">{error}</div>}
 
-        {/* Step 1: Pool type */}
+        {/* ── Step 1: Sanitizer ── */}
         {step === 1 && (
           <div className="space-y-3">
-            {POOL_TYPES.map(t => {
-              const active = poolType === t.id
+            {SANITIZERS.map(s => {
+              const active = sanitizer === s.id
+              return (
+                <button
+                  key={s.id}
+                  onClick={() => setSanitizer(s.id)}
+                  className="w-full bg-white rounded-2xl p-4 flex items-center justify-between text-left transition-all border-2 shadow-sm"
+                  style={{borderColor: active ? '#0078B8' : 'transparent'}}
+                >
+                  <div>
+                    <p className="font-semibold text-text-primary text-sm">{s.label}</p>
+                    <p className="text-text-muted text-xs mt-0.5 leading-relaxed">{s.sub}</p>
+                  </div>
+                  <div className="w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 ml-4 transition-all"
+                    style={{borderColor: active ? '#0078B8' : '#D1D9DD', background: active ? '#0078B8' : 'transparent'}}>
+                    {active && <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>}
+                  </div>
+                </button>
+              )
+            })}
+            <p className="text-[11px] text-text-faint px-1 pt-1 leading-relaxed">
+              Not sure? If you pour chlorine tablets or liquid into your pool, choose Chlorine. If you have a box on your equipment pad labeled &quot;salt generator&quot; or &quot;SWG,&quot; choose Salt Water.
+            </p>
+            <button
+              disabled={!sanitizer}
+              onClick={() => setStep(2)}
+              className="w-full bg-pool-dark text-white font-bold py-3.5 rounded-xl mt-1 hover:opacity-90 transition-opacity disabled:opacity-40 text-sm"
+            >
+              Continue →
+            </button>
+          </div>
+        )}
+
+        {/* ── Step 2: Structure ── */}
+        {step === 2 && (
+          <div className="space-y-3">
+            {STRUCTURES.map(t => {
+              const active = structure === t.id
               return (
                 <button
                   key={t.id}
-                  onClick={() => setPoolType(t.id)}
+                  onClick={() => setStructure(t.id)}
                   className="w-full bg-white rounded-2xl p-4 flex items-center justify-between text-left transition-all border-2 shadow-sm"
                   style={{borderColor: active ? '#0078B8' : 'transparent'}}
                 >
@@ -189,7 +251,7 @@ export default function PoolSetupPage() {
                     <p className="font-semibold text-text-primary text-sm">{t.label}</p>
                     <p className="text-text-muted text-xs mt-0.5">{t.sub}</p>
                   </div>
-                  <div className="w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 ml-3 transition-all"
+                  <div className="w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 ml-4 transition-all"
                     style={{borderColor: active ? '#0078B8' : '#D1D9DD', background: active ? '#0078B8' : 'transparent'}}>
                     {active && <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>}
                   </div>
@@ -197,8 +259,8 @@ export default function PoolSetupPage() {
               )
             })}
             <button
-              disabled={!poolType}
-              onClick={() => setStep(2)}
+              disabled={!structure}
+              onClick={() => setStep(3)}
               className="w-full bg-pool-dark text-white font-bold py-3.5 rounded-xl mt-2 hover:opacity-90 transition-opacity disabled:opacity-40 text-sm"
             >
               Continue →
@@ -206,10 +268,12 @@ export default function PoolSetupPage() {
           </div>
         )}
 
-        {/* Step 2: Pool size */}
-        {step === 2 && (
+        {/* ── Step 3: Size ── */}
+        {step === 3 && (
           <div>
-            <p className="text-xs text-text-muted mb-3 px-1">Not sure? Most standard backyard pools are <strong className="text-text-primary">Medium (~15,000 gal)</strong>. Above-ground pools are usually Small.</p>
+            <p className="text-xs text-text-muted mb-3 px-1">
+              Not sure? Most standard backyard pools are <strong className="text-text-primary">Medium (~15,000 gal)</strong>. Above-ground pools are usually Small.
+            </p>
             <div className="grid grid-cols-2 gap-3 mb-4">
               {SIZES.map(s => {
                 const active = volumeGallons === s.value
@@ -226,7 +290,8 @@ export default function PoolSetupPage() {
                 )
               })}
             </div>
-            <div className="bg-white rounded-2xl p-4 shadow-sm mb-5 border-2 transition-all" style={{borderColor: customVolume ? '#0078B8' : 'transparent'}}>
+            <div className="bg-white rounded-2xl p-4 shadow-sm mb-5 border-2 transition-all"
+              style={{borderColor: customVolume ? '#0078B8' : 'transparent'}}>
               <label className="text-xs font-semibold uppercase tracking-widest text-text-muted block mb-2">Custom Gallons</label>
               <input
                 type="number"
@@ -238,7 +303,7 @@ export default function PoolSetupPage() {
             </div>
             <button
               disabled={!volumeGallons && !customVolume}
-              onClick={() => setStep(3)}
+              onClick={() => setStep(4)}
               className="w-full bg-pool-dark text-white font-bold py-3.5 rounded-xl hover:opacity-90 transition-opacity disabled:opacity-40 text-sm"
             >
               Continue →
@@ -246,8 +311,8 @@ export default function PoolSetupPage() {
           </div>
         )}
 
-        {/* Step 3: Name + zip */}
-        {step === 3 && (
+        {/* ── Step 4: Name + zip ── */}
+        {step === 4 && (
           <div className="space-y-3">
             <div className="bg-white rounded-2xl p-4 shadow-sm">
               <label className="text-xs font-semibold uppercase tracking-widest text-text-muted block mb-2">Pool Nickname</label>
