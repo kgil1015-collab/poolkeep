@@ -115,15 +115,6 @@ function getWelcome(firstName: string, lastTest: TestResult | null) {
   }
 }
 
-const PARAM_RANGES = [
-  { key: 'ph',               label: 'pH',        fmt: (v:number) => v.toFixed(1),        unit: '',    idealMin: 7.2,  idealMax: 7.6,  viewMin: 6.5,  viewMax: 8.5  },
-  { key: 'free_chlorine',    label: 'Chlorine',  fmt: (v:number) => v.toFixed(1),        unit: 'ppm', idealMin: 1,    idealMax: 3,    viewMin: 0,    viewMax: 6    },
-  { key: 'total_alkalinity', label: 'Alkalinity',fmt: (v:number) => String(Math.round(v)),unit: 'ppm', idealMin: 80,   idealMax: 120,  viewMin: 40,   viewMax: 180  },
-  { key: 'cya',              label: 'CYA',       fmt: (v:number) => String(Math.round(v)),unit: 'ppm', idealMin: 30,   idealMax: 50,   viewMin: 0,    viewMax: 120  },
-  { key: 'calcium_hardness', label: 'Calcium',   fmt: (v:number) => String(Math.round(v)),unit: 'ppm', idealMin: 200,  idealMax: 400,  viewMin: 100,  viewMax: 600  },
-  { key: 'salt',             label: 'Salt',      fmt: (v:number) => String(Math.round(v)),unit: 'ppm', idealMin: 2700, idealMax: 3400, viewMin: 2000, viewMax: 5000 },
-]
-
 
 const IconCheck = ({ size = 18, style }: { size?: number; style?: React.CSSProperties }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" style={style}><polyline points="20 6 9 17 4 12"/></svg>
@@ -545,7 +536,7 @@ export default function DashboardPage() {
 
               return (
                 <div className="mb-5">
-                  <p className="text-xs font-bold uppercase tracking-widest mb-2.5" style={{color:'#1A3A4A'}}>Action Needed</p>
+                  <p className="text-xs font-bold uppercase tracking-widest mb-2.5" style={{color:'#1A3A4A'}}>What Needs Attention</p>
                   <div className="space-y-2.5">
                     {actionItems.map((rec, i) => {
                       const meta = paramMeta[rec.param as keyof typeof paramMeta] ?? defaultMeta
@@ -562,7 +553,7 @@ export default function DashboardPage() {
                         .trim()
                       if (rec.param === 'chlorine' && displayDesc.includes('Lower pH to 7.2 first, then add chlorine')) {
                         const ph = lastTest.ph ?? 7.4
-                        displayDesc = `Free chlorine at ${lastTest.free_chlorine} ppm — unsafe for swimming. Step 1: add pH reducer to bring pH to 7.2. Step 2: shock the pool. At pH ${ph}, most of the shock is ineffective — lower it first and the same dose works 2–3× better.`
+                        displayDesc = `Free chlorine at ${lastTest.free_chlorine} ppm — unsafe for swimming. Step 1: add muriatic acid to bring pH to 7.2. Step 2: shock the pool. At pH ${ph}, most of the shock is ineffective — lower it first and the same dose works 2–3× better.`
                       }
 
                       // Split into alert sentence + detail for visual hierarchy
@@ -606,7 +597,10 @@ export default function DashboardPage() {
             {/* Treatment plan — timeline grouped */}
             {lastTest.recommendations.treatment_plan && lastTest.recommendations.treatment_plan.length > 0 ? (
               <>
-                <p className="text-xs font-bold uppercase tracking-widest mb-3" style={{color:'#1A3A4A'}}>Treatment Plan</p>
+                <div className="flex items-center gap-2 mb-3">
+                  <p className="text-xs font-bold uppercase tracking-widest" style={{color:'#1A3A4A'}}>Treatment Plan</p>
+                  <span className="text-[10px] text-text-muted">— exact doses, in order</span>
+                </div>
                 {(() => {
                   const steps = lastTest.recommendations.treatment_plan
                   const WHEN_ORDER = ['today', 'in-1-2-days', 'this-week', 'plan-ahead'] as const
