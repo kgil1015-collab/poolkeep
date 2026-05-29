@@ -61,6 +61,11 @@ export default function LoginPage() {
           Don&apos;t have an account?{' '}
           <Link href="/signup" className="text-pool-dark font-semibold hover:underline">Sign up free</Link>
         </p>
+        <p className="text-center text-[11px] text-text-faint mt-6">
+          <Link href="/privacy" className="hover:text-text-muted underline">Privacy Policy</Link>
+          {' · '}
+          <Link href="/terms" className="hover:text-text-muted underline">Terms of Service</Link>
+        </p>
       </div>
     </div>
   )
