@@ -45,7 +45,7 @@ export type RecommendationResult = {
   good: Rec[]
 }
 
-// For dry chemicals (shock, alkalinity increaser (baking soda), calcium chloride, CYA, soda ash)
+// For dry chemicals (shock, alkalinity increaser, calcium chloride, CYA, soda ash)
 function oz(amount: number, unit: string) {
   if (unit === 'oz' && amount >= 128) return `${(amount / 128).toFixed(1)} gal`
   if (unit === 'oz' && amount >= 16) return `${(amount / 16).toFixed(1)} lbs`
@@ -60,16 +60,13 @@ function liq(floz: number): string {
 }
 
 // Shows both liquid chlorine and granular cal-hypo shock amounts for maintenance doses
-// Conversion: 13 fl oz liquid (10%) ≈ 2 dry oz granular cal-hypo (65%) per 10k gal per 1 ppm
 function chlorineBothAmounts(floz: number): string {
   const dryOz = Math.max(1, Math.round(floz / 6.5))
   const dryStr = dryOz < 16 ? `${dryOz} oz` : `${(dryOz / 16).toFixed(1)} lbs`
   return `${liq(floz)} liquid chlorine · or ${dryStr} granular shock`
 }
 
-// Shows both liquid muriatic acid and dry acid (sodium bisulfate) amounts
-// Conversion: 26 fl oz muriatic (31.45%) ≈ 1.3 lbs dry acid (sodium bisulfate 93%)
-// Source: TFP PoolMath standard — 1 lb dry acid ≈ 20 fl oz muriatic
+// Shows both liquid muriatic acid and dry acid amounts
 function acidAmount(floz: number): string {
   const liquidStr = liq(floz)
   const dryLbs = Math.round((floz / 20) * 4) / 4
@@ -79,14 +76,34 @@ function acidAmount(floz: number): string {
   return `${liquidStr} muriatic acid · or ${dryStr} dry acid (93% sodium bisulfate)`
 }
 
+// ─── Salt pool ranges ────────────────────────────────────────────────────────
+// Salt pools use a salt chlorine generator (SWG). Key differences from chlorine pools:
+//   CYA target is 70–80 ppm (SWG needs more stabilizer to prevent UV burnoff)
+//   TA target is 80–100 ppm (tighter to help buffer the pH rise SWGs cause)
+//   Calcium target is 200–350 ppm (tighter — scale on the cell reduces efficiency)
+//   Chlorine treatment = adjust SWG output, not add chemicals
+//   pH rises naturally over time due to electrolysis — acid additions are normal
+
+const SALT_RANGES = {
+  cya:  { actionLow: 50, monLow: 70, monHigh: 90,  actionHigh: 100 },
+  ta:   { actionLow: 60, monLow: 80, monHigh: 100, actionHigh: 120 },
+  ca:   { actionLow: 150, monLow: 200, monHigh: 350, actionHigh: 500 },
+}
+
+const CHLORINE_RANGES = {
+  cya:  { actionLow: 20, monLow: 30, monHigh: 60,  actionHigh: 80 },
+  ta:   { actionLow: 60, monLow: 80, monHigh: 120, actionHigh: 140 },
+  ca:   { actionLow: 150, monLow: 200, monHigh: 400, actionHigh: 600 },
+}
+
 // Correct chemical order for balancing pool water:
-//   0 — shock (critically unsafe chlorine — safety first, overrides sequence)
-//   1 — total alkalinity (foundation; pH adjustments won't hold until TA is stable)
-//   2 — pH (once TA is stable, pH adjustments hold)
-//   3 — chlorine maintenance (low but not critical; most effective at correct pH)
-//   4 — CYA / stabilizer (protect the chlorine you just established)
-//   5 — calcium hardness (slow-moving; adjust last)
-function buildTreatmentPlan(test: TestInput, v: number): TreatmentStep[] {
+//   0 — shock / chlorine emergency
+//   1 — total alkalinity (foundation)
+//   2 — pH (holds once TA is stable)
+//   3 — chlorine maintenance
+//   4 — CYA / stabilizer
+//   5 — calcium hardness (slow-moving)
+function buildTreatmentPlan(test: TestInput, v: number, isSalt: boolean): TreatmentStep[] {
   const raw: Array<{ order: number } & Omit<TreatmentStep, 'step' | 'when'>> = []
 
   const ph = test.ph
@@ -95,87 +112,107 @@ function buildTreatmentPlan(test: TestInput, v: number): TreatmentStep[] {
   const cya = test.cya
   const ca = test.calcium_hardness
 
-  // Track what earlier steps already handle so we never tell the user to add
-  // muriatic acid in more than one step.
   let shockHandledPH = false
   let shockHandledTA = false
   let taHandledPH = false
 
-  // ── SHOCK (critically low chlorine — acid first, then shock) ────────────────
-  if (fc !== null && fc < 0.5) {
-    // Cal-hypo (65%): ~1 lb raises FC by 7 ppm per 10k gallons.
-    // CYA-adjusted dose:
-    //   CYA unknown or < 20: target 14 ppm (2 lbs/10k) — UV destroys unstabilized chlorine fast
-    //   CYA 20–49:           target 10 ppm (1.5 lbs/10k) — standard
-    //   CYA 50+:             target 15 ppm (2 lbs/10k)   — high CYA binds some chlorine, need higher peak
-    const cyaLow  = cya === null || cya < 20
-    const cyaHigh = cya !== null && cya >= 50
-    const dosePerTenK = cyaLow || cyaHigh ? 2 : 1.5
-    const dose = Math.round(v * dosePerTenK * 2) / 2
-    // Liquid chlorine (10–12.5%): 1 lb cal-hypo 65% ≈ 0.86 gal liquid chlorine, rounded to nearest 0.5 gal.
-    const liquidDose = Math.round(dose * 0.86 * 2) / 2
-    const phHigh = ph !== null && ph > 7.2
-    const phUnknown = ph === null
-    const taHigh = ta !== null && ta > 140
+  const R = isSalt ? SALT_RANGES : CHLORINE_RANGES
 
-    // When TA is also high, one acid dose handles both TA and pH — use the
-    // larger TA dose. When only pH is off, use the pH-specific dose.
-    const taDose = taHigh ? Math.round(v * 26 * ((ta! - 120) / 10)) : 0
-    const phOnlyDose = ph !== null && ph > 7.2
-      ? Math.round(v * 13 * ((ph - 7.2) / 0.6))
-      : Math.round(v * 8)
-    const acidDose = taHigh ? taDose : phOnlyDose
+  // ── CRITICALLY LOW CHLORINE (order 0) ───────────────────────────────────────
+  if (fc !== null && fc < 0.5) {
+    const phHigh    = ph !== null && ph > 7.2
+    const phUnknown = ph === null
+    const taHigh    = ta !== null && ta > R.ta.actionHigh
     const needsAcid = phHigh || phUnknown || taHigh
 
     if (needsAcid) shockHandledPH = true
-    if (taHigh) shockHandledTA = true
+    if (taHigh)    shockHandledTA = true
+
+    const taDose    = taHigh ? Math.round(v * 26 * ((ta! - 120) / 10)) : 0
+    const phOnlyDose = ph !== null && ph > 7.2
+      ? Math.round(v * 13 * ((ph - 7.2) / 0.6))
+      : Math.round(v * 8)
+    const acidDose  = taHigh ? taDose : phOnlyDose
 
     const phEfficiency = ph !== null
       ? ph <= 7.0 ? '73%' : ph <= 7.2 ? '66%' : ph <= 7.5 ? '49%' : ph <= 7.8 ? '33%' : '21%'
       : null
 
-    const stepTitle = !needsAcid
-      ? 'Add chlorine — do not swim yet'
-      : taHigh && phHigh
-      ? 'Lower alkalinity and pH first, then add chlorine'
-      : taHigh
-      ? 'Lower alkalinity first, then add chlorine'
-      : 'Lower pH first, then add chlorine'
+    if (isSalt) {
+      // ── Salt pool: SWG boost first, liquid chlorine as emergency backup ──────
+      const acidStep = needsAcid
+        ? `Step 1 — Add pH reducer (${acidAmount(acidDose)}) to the deep end with the pump running. Wear gloves and eye protection. Wait 30–60 minutes to circulate.\n\n`
+        : ''
 
-    const stepChemical = !needsAcid
-      ? 'Chlorine'
-      : taHigh
-      ? 'pH Reducer (Muriatic Acid or Dry Acid)\nChlorine\nAim pool jets at surface'
-      : 'pH Reducer (Muriatic Acid or Dry Acid)\nChlorine'
+      raw.push({
+        order: 0,
+        urgency: 'urgent',
+        param: 'chlorine',
+        title: needsAcid
+          ? 'Lower pH first, then boost your salt generator'
+          : 'Boost your salt generator — do not swim yet',
+        chemical: needsAcid
+          ? 'pH Reducer (Muriatic Acid or Dry Acid)\nSalt Generator — set to 100% / boost mode'
+          : 'Salt Generator — set to 100% / boost mode',
+        amount: needsAcid
+          ? `${acidAmount(acidDose)}\nSet SWG to 100% output for 24–48 hours`
+          : 'Set SWG to 100% output for 24–48 hours',
+        why: `Free chlorine at ${fc} ppm — water is unsafe to swim in. Your salt generator produces chlorine continuously — running it at maximum output is the right first response. ${needsAcid && phEfficiency ? `Your pH at ${ph} means only about ${phEfficiency} of any chlorine being produced is in its active sanitizing form. Lowering pH first lets your generator work 2–3× more efficiently.` : ''} For a salt pool, avoid cal-hypo shock unless absolutely necessary — it raises calcium hardness, which scales your salt cell and reduces its output over time.`,
+        how: `${acidStep}Step ${needsAcid ? '2' : '1'} — Set your salt generator to maximum output (100%) and activate boost or superchlorinate mode if available. Run the pump continuously.\n\nStep ${needsAcid ? '3' : '2'} — Brush all pool surfaces — walls, floor, steps, and corners — before expecting chlorine to recover. Algae clings to surfaces and the generator cannot sanitize what circulation cannot reach.\n\nIf FC does not recover above 1 ppm within 48 hours at 100% output: add liquid chlorine (sodium hypochlorite) as a one-time boost — ${Math.round(v * 0.86 * 1.5)} gal. Do NOT use cal-hypo shock in a salt pool.`,
+        lookFor: `Do not swim until FC tests below 5 ppm — always test before getting in. Retest after 24 hours at max SWG output. If chlorine recovers and then drops back quickly, check your salt level and consider inspecting the cell for scale buildup.`,
+        note: `SALT POOL SHOCK GUIDE\n\nFirst response — always try increasing SWG output before adding chemicals. The generator is designed to handle normal chlorine demand; a 24–48 hour boost cycle at 100% resolves most low-chlorine situations without manual additions.\n\nIf SWG boost alone isn't working after 48 hours:\nLiquid chlorine (sodium hypochlorite, 10–12.5%) — best emergency option for salt pools. Adds no calcium or CYA, works fast, compatible with your system.\n\nDO NOT use cal-hypo (calcium hypochlorite) shock — it raises calcium hardness significantly, and at high calcium levels your salt cell builds scale that reduces output and shortens cell life. If you have no liquid chlorine available, use it once in an emergency, but liquid is strongly preferred.\n\nDichlor shock — adds CYA with every dose. Since your salt pool targets 70–80 ppm CYA (already higher than a chlorine pool), dichlor will push CYA toward chlorine lock. Avoid repeated use.\n\nNon-chlorine shock (MPS) — an oxidizer, not a sanitizer. Useful for clearing cloudy water or reducing chlorine demand, but will not raise FC to safe levels.\n\nIf chlorine keeps dropping despite good SWG output: check salt level (2700–3400 ppm), inspect cell for scale, and confirm cell is not past its lifespan (typically 3–5 years).`,
+      })
+    } else {
+      // ── Standard chlorine pool shock ─────────────────────────────────────────
+      const cyaLow  = cya === null || cya < 20
+      const cyaHigh = cya !== null && cya >= 50
+      const dosePerTenK = cyaLow || cyaHigh ? 2 : 1.5
+      const dose = Math.round(v * dosePerTenK * 2) / 2
+      const liquidDose = Math.round(dose * 0.86 * 2) / 2
 
-    const acidHow = taHigh
-      ? `Step 1 — Add pH reducer (${acidAmount(acidDose)}) to the deep end all at once with the pump running — pouring it concentrated in one spot is what pulls alkalinity down. Wear gloves and eye protection. This dose will also lower your pH. Wait 30–60 minutes for it to circulate.\n\nStep 2 — Brush all pool surfaces — walls, floor, steps, and any corners — before adding shock. Algae and bacteria cling to surfaces and the shock cannot reach what it cannot contact. Brushing knocks it into the water where the chlorine can do its job.\n\nStep 3 — `
-      : `Step 1 — Add pH reducer (${acidAmount(acidDose)}) to the deep end with the pump running. Wear gloves and eye protection. Wait 30–60 minutes for it to fully circulate through the pool.\n\nStep 2 — Brush all pool surfaces — walls, floor, steps, and any corners — before adding shock. Algae and bacteria cling to surfaces and the shock cannot reach what it cannot contact. Brushing knocks it into the water where the chlorine can do its job.\n\nStep 3 — `
+      const stepTitle = !needsAcid
+        ? 'Add chlorine — do not swim yet'
+        : taHigh && ph !== null && ph > 7.2
+        ? 'Lower alkalinity and pH first, then add chlorine'
+        : taHigh
+        ? 'Lower alkalinity first, then add chlorine'
+        : 'Lower pH first, then add chlorine'
 
-    raw.push({
-      order: 0,
-      urgency: 'urgent',
-      param: 'chlorine',
-      title: stepTitle,
-      chemical: stepChemical,
-      amount: needsAcid
-        ? taHigh
-          ? `${acidAmount(acidDose)}\n${liquidDose} gal liquid chlorine · or ${oz(dose, 'lbs')} granular shock (${Math.ceil(dose)} × 1-lb bag${Math.ceil(dose) !== 1 ? 's' : ''})\nPoint a return jet toward the water surface — run 2–4 hrs to off-gas CO₂ and raise pH back naturally`
-          : `${acidAmount(acidDose)}\n${liquidDose} gal liquid chlorine · or ${oz(dose, 'lbs')} granular shock (${Math.ceil(dose)} × 1-lb bag${Math.ceil(dose) !== 1 ? 's' : ''})`
-        : `${liquidDose} gal liquid chlorine · or ${oz(dose, 'lbs')} granular shock (${Math.ceil(dose)} × 1-lb bag${Math.ceil(dose) !== 1 ? 's' : ''})`,
-      why: `Free chlorine is at ${fc} ppm — water is unsafe to swim in. Here is something most pool owners never learn: the effectiveness of chlorine is almost entirely controlled by pH. Chlorine exists in two forms in water — active (hypochlorous acid, HOCl) and inactive (hypochlorite ion, OCl⁻). Only the active form kills bacteria and algae. At pH 7.0, about 73% of your chlorine is in that active form. At pH 7.5, it drops to 49%. At pH 7.8, only 33%. At pH 8.0, just 21%. ${phHigh && phEfficiency ? `Your current pH of ${ph} means only about ${phEfficiency} of the shock you add will actually be working. Lowering pH first before shocking means 2–3× more active sanitizer from the same amount of product.` : phUnknown ? `Since pH is untested, add a small acid dose first as a precaution — if your pH is elevated you could waste the majority of the shock you add.` : `With pH already in range, a high percentage of the shock you add will be in its active, sanitizing form.`}${cyaLow ? ` CYA (stabilizer) is ${cya === null ? 'untested' : `at ${cya} ppm — below the effective range`}. Without stabilizer protecting it, UV sunlight destroys chlorine within hours. The dose shown is higher than usual to account for this — but the real fix is getting CYA into the 30–50 ppm range so future chlorine actually holds.` : cyaHigh ? ` CYA at ${cya} ppm is elevated — stabilizer at high levels partially binds chlorine and reduces how much stays "free" and active. A higher shock dose is needed to push past this and reach effective sanitizing levels.` : ''}`,
-      how: `${needsAcid
-        ? acidHow
-        : `Step 1 — Brush all pool surfaces — walls, floor, steps, and any corners. Algae clings to surfaces and chlorine cannot sanitize what it cannot contact. Brushing first makes the shock dramatically more effective.\n\nStep 2 — `}Add shock in the evening — UV sunlight destroys chlorine rapidly, and shocking during the day means much of it is gone before it can do its job. Use ${oz(dose, 'lbs')} of granular cal-hypo (65%) — or ${liquidDose} gal of liquid chlorine (10–12.5%). See product notes below for other shock types. Pour around the perimeter with the pump running.`,
-      lookFor: `Do not swim until FC tests below 5 ppm — always test before getting in, do not guess by time. Liquid chlorine loses potency quickly in heat and direct sun, so in hot weather you may be able to retest in 1–4 hours. Granular shock takes longer to work through — retest the next morning. Chlorine will spike well above normal levels right after adding; that is expected and not a problem.${cyaLow ? ` Your CYA is ${cya === null ? 'untested' : `only ${cya} ppm`} — UV sunlight can wipe out unstabilized chlorine in just a few hours on a sunny day. If levels drop back near zero by morning, that is why: the shock worked but could not hold. Add CYA stabilizer (see next steps) and re-shock once it is in range.` : cyaHigh ? ` With CYA at ${cya} ppm, some of your chlorine is bound by the stabilizer — that is why a higher dose was recommended. If levels drop back near zero, re-shock with the same amount rather than adding more CYA.` : ` If levels drop back near zero within a day or two, check your CYA. Without adequate stabilizer (30–50 ppm), UV sunlight can destroy most of your chlorine within a few hours on a sunny day.`}`,
-      note: `WHICH SHOCK SHOULD YOU BUY?\n\nCal-hypo 65% (granular) — Best overall value. This is the standard pool shock sold everywhere — "Shock & Swim," "Super Shock," "Pool Shock" at Walmart, Home Depot, or any pool store. Expect $5–9 for a 1 lb bag or around $25–35 for a 5 lb bucket. Use the dose shown above. Pre-dissolve in a bucket of water first — never pour dry cal-hypo directly on a vinyl liner or tile (it generates heat and can bleach or pit surfaces). Add in the evening with the pump running.\n\nCal-hypo "Extra Strength" 73–78% (granular) — Higher concentration means more chlorine per pound. If the bag says 73%, 75%, or 78% available chlorine, reduce your dose by about 12–15%. Example: if the standard dose is 1.5 lbs, use about 1.3 lbs instead. These bags typically cost slightly more per pound but can be a better value per unit of chlorine if priced right. Same pre-dissolve and liner precautions apply.\n\nLiquid chlorine (sodium hypochlorite, 10–12.5%) — Fastest acting: starts working within minutes. Best choice if you need the pool ready by tonight or the next morning. Adds no CYA or calcium, so it will not affect your stabilizer level. The downside: it degrades quickly in storage — buy fresh and use within a few months. Sold in gallon jugs for about $5–8 each; you will need several gallons per treatment since it is much less concentrated than granular shock.\n\nDichlor shock (56–62%) — Convenient and dissolves easily, but adds stabilizer (CYA) with every dose. If your CYA is already above 40 ppm, avoid dichlor entirely — repeated use will push you toward chlorine lock, where the stabilizer traps the chlorine and makes it ineffective regardless of how much you add. Fine for occasional use early in the season when CYA is fresh.\n\nNon-chlorine shock / MPS (potassium monopersulfate) — DO NOT USE for a pool with FC at zero. MPS is an oxidizer, not a sanitizer — it clears up cloudy water and burns off organic waste, but it cannot kill bacteria or algae. It is best used as a weekly oxidizer boost in a healthy pool between regular chlorine treatments, not as an emergency fix.\n\nBOTTOM LINE: For most situations, granular cal-hypo 65% is the right call — it is effective, affordable, and widely available. If you want the pool open the same day, grab liquid chlorine instead.${phUnknown ? '\n\nIf pH is already at or below 7.2, skip the acid pre-treatment and go straight to shocking.' : ''}`,
-    })
+      const stepChemical = !needsAcid
+        ? 'Chlorine'
+        : taHigh
+        ? 'pH Reducer (Muriatic Acid or Dry Acid)\nChlorine\nAim pool jets at surface'
+        : 'pH Reducer (Muriatic Acid or Dry Acid)\nChlorine'
+
+      const acidHow = taHigh
+        ? `Step 1 — Add pH reducer (${acidAmount(acidDose)}) to the deep end all at once with the pump running — pouring it concentrated in one spot is what pulls alkalinity down. Wear gloves and eye protection. This dose will also lower your pH. Wait 30–60 minutes for it to circulate.\n\nStep 2 — Brush all pool surfaces — walls, floor, steps, and any corners — before adding shock. Algae and bacteria cling to surfaces and the shock cannot reach what it cannot contact. Brushing knocks it into the water where the chlorine can do its job.\n\nStep 3 — `
+        : `Step 1 — Add pH reducer (${acidAmount(acidDose)}) to the deep end with the pump running. Wear gloves and eye protection. Wait 30–60 minutes for it to fully circulate through the pool.\n\nStep 2 — Brush all pool surfaces — walls, floor, steps, and any corners — before adding shock. Algae and bacteria cling to surfaces and the shock cannot reach what it cannot contact. Brushing knocks it into the water where the chlorine can do its job.\n\nStep 3 — `
+
+      raw.push({
+        order: 0,
+        urgency: 'urgent',
+        param: 'chlorine',
+        title: stepTitle,
+        chemical: stepChemical,
+        amount: needsAcid
+          ? taHigh
+            ? `${acidAmount(acidDose)}\n${liquidDose} gal liquid chlorine · or ${oz(dose, 'lbs')} granular shock (${Math.ceil(dose)} × 1-lb bag${Math.ceil(dose) !== 1 ? 's' : ''})\nPoint a return jet toward the water surface — run 2–4 hrs to off-gas CO₂ and raise pH back naturally`
+            : `${acidAmount(acidDose)}\n${liquidDose} gal liquid chlorine · or ${oz(dose, 'lbs')} granular shock (${Math.ceil(dose)} × 1-lb bag${Math.ceil(dose) !== 1 ? 's' : ''})`
+          : `${liquidDose} gal liquid chlorine · or ${oz(dose, 'lbs')} granular shock (${Math.ceil(dose)} × 1-lb bag${Math.ceil(dose) !== 1 ? 's' : ''})`,
+        why: `Free chlorine is at ${fc} ppm — water is unsafe to swim in. Here is something most pool owners never learn: the effectiveness of chlorine is almost entirely controlled by pH. Chlorine exists in two forms in water — active (hypochlorous acid, HOCl) and inactive (hypochlorite ion, OCl⁻). Only the active form kills bacteria and algae. At pH 7.0, about 73% of your chlorine is in that active form. At pH 7.5, it drops to 49%. At pH 7.8, only 33%. At pH 8.0, just 21%. ${phHigh && phEfficiency ? `Your current pH of ${ph} means only about ${phEfficiency} of the shock you add will actually be working. Lowering pH first before shocking means 2–3× more active sanitizer from the same amount of product.` : phUnknown ? `Since pH is untested, add a small acid dose first as a precaution — if your pH is elevated you could waste the majority of the shock you add.` : `With pH already in range, a high percentage of the shock you add will be in its active, sanitizing form.`}${cyaLow ? ` CYA (stabilizer) is ${cya === null ? 'untested' : `at ${cya} ppm — below the effective range`}. Without stabilizer protecting it, UV sunlight destroys chlorine within hours. The dose shown is higher than usual to account for this — but the real fix is getting CYA into the 30–50 ppm range so future chlorine actually holds.` : cyaHigh ? ` CYA at ${cya} ppm is elevated — stabilizer at high levels partially binds chlorine and reduces how much stays "free" and active. A higher shock dose is needed to push past this and reach effective sanitizing levels.` : ''}`,
+        how: `${needsAcid
+          ? acidHow
+          : `Step 1 — Brush all pool surfaces — walls, floor, steps, and any corners. Algae clings to surfaces and chlorine cannot sanitize what it cannot contact. Brushing first makes the shock dramatically more effective.\n\nStep 2 — `}Add shock in the evening — UV sunlight destroys chlorine rapidly, and shocking during the day means much of it is gone before it can do its job. Use ${oz(dose, 'lbs')} of granular cal-hypo (65%) — or ${liquidDose} gal of liquid chlorine (10–12.5%). See product notes below for other shock types. Pour around the perimeter with the pump running.`,
+        lookFor: `Do not swim until FC tests below 5 ppm — always test before getting in, do not guess by time. Liquid chlorine loses potency quickly in heat and direct sun, so in hot weather you may be able to retest in 1–4 hours. Granular shock takes longer to work through — retest the next morning. Chlorine will spike well above normal levels right after adding; that is expected and not a problem.${cyaLow ? ` Your CYA is ${cya === null ? 'untested' : `only ${cya} ppm`} — UV sunlight can wipe out unstabilized chlorine in just a few hours on a sunny day. If levels drop back near zero by morning, that is why: the shock worked but could not hold. Add CYA stabilizer (see next steps) and re-shock once it is in range.` : cyaHigh ? ` With CYA at ${cya} ppm, some of your chlorine is bound by the stabilizer — that is why a higher dose was recommended. If levels drop back near zero, re-shock with the same amount rather than adding more CYA.` : ` If levels drop back near zero within a day or two, check your CYA. Without adequate stabilizer (30–50 ppm), UV sunlight can destroy most of your chlorine within a few hours on a sunny day.`}`,
+        note: `WHICH SHOCK SHOULD YOU BUY?\n\nCal-hypo 65% (granular) — Best overall value. This is the standard pool shock sold everywhere — "Shock & Swim," "Super Shock," "Pool Shock" at Walmart, Home Depot, or any pool store. Expect $5–9 for a 1 lb bag or around $25–35 for a 5 lb bucket. Use the dose shown above. Pre-dissolve in a bucket of water first — never pour dry cal-hypo directly on a vinyl liner or tile (it generates heat and can bleach or pit surfaces). Add in the evening with the pump running.\n\nCal-hypo "Extra Strength" 73–78% (granular) — Higher concentration means more chlorine per pound. If the bag says 73%, 75%, or 78% available chlorine, reduce your dose by about 12–15%. Example: if the standard dose is 1.5 lbs, use about 1.3 lbs instead. These bags typically cost slightly more per pound but can be a better value per unit of chlorine if priced right. Same pre-dissolve and liner precautions apply.\n\nLiquid chlorine (sodium hypochlorite, 10–12.5%) — Fastest acting: starts working within minutes. Best choice if you need the pool ready by tonight or the next morning. Adds no CYA or calcium, so it will not affect your stabilizer level. The downside: it degrades quickly in storage — buy fresh and use within a few months. Sold in gallon jugs for about $5–8 each; you will need several gallons per treatment since it is much less concentrated than granular shock.\n\nDichlor shock (56–62%) — Convenient and dissolves easily, but adds stabilizer (CYA) with every dose. If your CYA is already above 40 ppm, avoid dichlor entirely — repeated use will push you toward chlorine lock, where the stabilizer traps the chlorine and makes it ineffective regardless of how much you add. Fine for occasional use early in the season when CYA is fresh.\n\nNon-chlorine shock / MPS (potassium monopersulfate) — DO NOT USE for a pool with FC at zero. MPS is an oxidizer, not a sanitizer — it clears up cloudy water and burns off organic waste, but it cannot kill bacteria or algae. It is best used as a weekly oxidizer boost in a healthy pool between regular chlorine treatments, not as an emergency fix.\n\nBOTTOM LINE: For most situations, granular cal-hypo 65% is the right call — it is effective, affordable, and widely available. If you want the pool open the same day, grab liquid chlorine instead.${phUnknown ? '\n\nIf pH is already at or below 7.2, skip the acid pre-treatment and go straight to shocking.' : ''}`,
+      })
+    }
   }
 
   // ── TOTAL ALKALINITY (must be stable before pH adjustment will hold) ────────
   if (ta !== null) {
-    if (ta < 60) {
-      const dose = ((80 - ta) / 10) * 1.5 * v
+    if (ta < R.ta.actionLow) {
+      const dose = ((R.ta.monLow - ta) / 10) * 1.5 * v
       raw.push({
         order: 1,
         urgency: 'soon',
@@ -183,13 +220,13 @@ function buildTreatmentPlan(test: TestInput, v: number): TreatmentStep[] {
         title: 'Raise total alkalinity first',
         chemical: 'Alkalinity Increaser (Baking Soda / Sodium Bicarbonate)',
         amount: oz(dose, 'lbs'),
-        why: `Alkalinity at ${ta} ppm is too low. Think of total alkalinity as the shock absorber for your pool's pH. When TA is in range (80–120 ppm), small disturbances — a rainstorm, a load of swimmers, a chemical addition — barely move the pH needle. When TA is low, those same events can swing pH by a full point in either direction, making the water constantly uncomfortable and unpredictable to treat. This is why TA must be fixed first: if you raise your pH now without addressing TA, the next rain shower will pull it right back down. Low TA and low pH almost always appear together for exactly this reason.`,
+        why: `Alkalinity at ${ta} ppm is too low. Think of total alkalinity as the shock absorber for your pool's pH. When TA is in range (${R.ta.monLow}–${R.ta.monHigh} ppm), small disturbances — a rainstorm, a load of swimmers, a chemical addition — barely move the pH needle. When TA is low, those same events can swing pH by a full point in either direction, making the water constantly uncomfortable and unpredictable to treat. This is why TA must be fixed first: if you raise your pH now without addressing TA, the next rain shower will pull it right back down.`,
         how: 'Split into two doses, 4 hours apart. Broadcast across the pool surface with the pump running — do not dump the whole amount in at once. It dissolves and circulates slowly, so patience is important here.',
-        lookFor: 'Retest alkalinity the next day. Then recheck your pH — once TA is stabilized, pH often drifts partway back to normal on its own, meaning you may need less pH adjustment than expected. This is the right sequence.',
-        note: `${ph !== null && ph < 7.2 ? 'Low pH and low alkalinity almost always go together. Raising TA first is the correct sequence — pH adjusted before TA is stable will drift back within a day or two.\n\n' : ''}Pro tip: Alkalinity Increaser is sold at pool stores as "Alkalinity Up," "Alkalinity Increaser," or "Sodium Bicarbonate." It is identical to grocery store baking soda — the pool store version can cost 3–5× more for the same thing. Arm & Hammer baking soda works perfectly.`,
+        lookFor: `Retest alkalinity the next day. Then recheck your pH — once TA is stabilized, pH often drifts partway back to normal on its own. Target ${R.ta.monLow}–${R.ta.monHigh} ppm.`,
+        note: `Pro tip: Alkalinity Increaser is sold at pool stores as "Alkalinity Up," "Alkalinity Increaser," or "Sodium Bicarbonate." It is identical to grocery store baking soda — the pool store version can cost 3–5× more for the same thing. Arm & Hammer baking soda works perfectly.${isSalt ? '\n\nSalt pool note: Your target alkalinity is 80–100 ppm — slightly tighter than a chlorine pool. Salt generators naturally raise pH over time; keeping TA in this tighter range helps moderate those pH swings.' : ''}`,
       })
-    } else if (ta < 80) {
-      const dose = ((80 - ta) / 10) * 1.5 * v
+    } else if (ta < R.ta.monLow) {
+      const dose = ((R.ta.monLow - ta) / 10) * 1.5 * v
       raw.push({
         order: 1,
         urgency: 'soon',
@@ -197,12 +234,12 @@ function buildTreatmentPlan(test: TestInput, v: number): TreatmentStep[] {
         title: 'Raise alkalinity slightly before adjusting pH',
         chemical: 'Alkalinity Increaser (Baking Soda / Sodium Bicarbonate)',
         amount: oz(dose, 'lbs'),
-        why: `Alkalinity at ${ta} ppm is just below the 80–120 ppm ideal. Total alkalinity acts as a chemical buffer — it absorbs small pH-changing events (rain, bathers, chemical additions) without letting pH move much. A small alkalinity increaser (baking soda) dose now will make your upcoming pH adjustment more stable and longer-lasting.`,
+        why: `Alkalinity at ${ta} ppm is just below the ${R.ta.monLow}–${R.ta.monHigh} ppm ideal. A small alkalinity increaser dose now will make your upcoming pH adjustment more stable and longer-lasting.`,
         how: 'Broadcast across the pool surface with the pump running. Let it circulate for several hours.',
-        lookFor: 'Retest next day. pH may shift slightly upward once TA rises — check pH before adding any pH increaser, so you do not overshoot.',
+        lookFor: `Retest next day. Target ${R.ta.monLow}–${R.ta.monHigh} ppm.`,
       })
-    } else if (ta > 140 && !shockHandledTA) {
-      const dose = Math.round(v * 26 * ((ta - 120) / 10))
+    } else if (ta > R.ta.actionHigh && !shockHandledTA) {
+      const dose = Math.round(v * 26 * ((ta - R.ta.monHigh) / 10))
       const phAlsoHigh = ph !== null && ph > 7.6
       if (phAlsoHigh) taHandledPH = true
       raw.push({
@@ -213,31 +250,28 @@ function buildTreatmentPlan(test: TestInput, v: number): TreatmentStep[] {
         chemical: 'pH Reducer (Muriatic Acid or Dry Acid / pH Down)',
         amount: acidAmount(dose),
         why: phAlsoHigh
-          ? `Alkalinity at ${ta} ppm is too high, and your pH at ${ph} is elevated as well — one acid treatment handles both. High TA makes pH stubbornly resistant to adjustment and promotes scale buildup on pool surfaces. The acid addition that brings TA down will also lower your pH, so there is no need to add acid twice.`
-          : `Alkalinity at ${ta} ppm is too high. While TA needs to be high enough to stabilize pH, too much of it has the opposite effect — it makes pH stubbornly resistant to adjustment, like trying to steer a heavy vehicle. High TA also creates conditions where calcium scale is more likely to form on pool surfaces and equipment. Bringing TA into range first makes all other chemistry easier to manage.`,
+          ? `Alkalinity at ${ta} ppm is too high, and your pH at ${ph} is elevated as well — one acid treatment handles both.${isSalt ? ' Salt generators naturally raise pH over time; bringing alkalinity into the tighter 80–100 ppm salt pool range helps moderate future pH swings.' : ''}`
+          : `Alkalinity at ${ta} ppm is too high. High TA makes pH stubbornly resistant to adjustment and promotes scale buildup.${isSalt ? ' For salt pools, the target is 80–100 ppm (tighter than chlorine pools) — this helps counteract the pH rise that salt generators naturally produce.' : ''}`,
         how: phAlsoHigh
-          ? 'Add muriatic acid to the deep end in the evening with the pump running. Pour slowly along the edge — never splash acid. Wear gloves and eye protection. After adding, run the pump for 2 hours. Since your pH also needs to come down, skip the aeration step or do very little of it — let pH settle naturally rather than aerating it back up.'
-          : 'Add muriatic acid to the deep end in the evening with the pump running. Pour slowly along the edge — never splash acid. Wear gloves and eye protection. After adding, run the pump for 2 hours. Then angle a return jet toward the water surface so it agitates and splashes — this releases CO₂ from the water, which raises pH back up naturally without reversing the alkalinity reduction. Run it 2–4 hours.',
-        lookFor: phAlsoHigh
-          ? 'Retest both TA and pH the next day. Target TA 80–120 ppm and pH 7.2–7.6. One acid treatment typically moves both into range.'
-          : 'Retest next day. Aeration is your friend after an acid treatment — it naturally raises pH without undoing your TA work. Target 80–120 ppm. pH may also need adjustment once TA settles.',
-        note: `ABOUT DRY ACID PRODUCTS\n\nThe dry acid dose shown assumes standard 93% sodium bisulfate — the active ingredient in most pool-grade "pH Down" or "Alkalinity Down" products sold at hardware stores (BioGuard, Clorox, Natural Chemistry, etc.).\n\nMany store-brand products, including some sold at Leslie's, contain only 30–35% sodium bisulfate. At that concentration you would need 2–3× the listed amount to achieve the same result. A bag that says "pH Down" or "Dry Acid" is not always the same strength.\n\nHow to check: look at the label for "Active Ingredient: Sodium Bisulfate ___%" or the percentage listed under "Guaranteed Analysis." If it reads 93%, use the dose shown. If it reads 30–35%, multiply the dose by about 2.5.\n\nBest advice: muriatic acid is the most predictable option — it is a standardized product (31.45% or 20° Baumé) sold everywhere, and our liquid acid dose will be accurate regardless of brand.`,
+          ? 'Add muriatic acid to the deep end in the evening with the pump running. Pour slowly. Wear gloves and eye protection. Since pH also needs to come down, skip aeration — let pH settle naturally.'
+          : 'Add muriatic acid to the deep end in the evening with the pump running. Pour slowly. Wear gloves and eye protection. After 2 hours, angle a return jet toward the surface to release CO₂ and raise pH back naturally without reversing the TA reduction. Run 2–4 hours.',
+        lookFor: `Retest both TA and pH the next day. Target TA ${R.ta.monLow}–${R.ta.monHigh} ppm.`,
+        note: `ABOUT DRY ACID PRODUCTS\n\nThe dry acid dose shown assumes standard 93% sodium bisulfate. Many store-brand "pH Down" products contain only 30–35% sodium bisulfate — at that concentration you need 2–3× the listed amount. Check the label for the percentage before using.`,
       })
-    } else if (ta > 120) {
+    } else if (ta > R.ta.monHigh) {
       raw.push({
         order: 1,
         urgency: 'routine',
         param: 'alkalinity',
-        title: 'Alkalinity slightly high — monitor, no action yet',
+        title: `Alkalinity slightly high — monitor${isSalt ? ', target 80–100 ppm for salt pools' : ''}`,
         chemical: null,
         amount: null,
-        why: `Alkalinity at ${ta} ppm is slightly above the 80–120 ppm sweet spot, but it is not causing problems yet. TA drifts down naturally over time through normal water loss, splash-out, and rain dilution — no chemical intervention is needed.`,
-        how: 'No chemical needed. Do not add any alkalinity increaser (baking soda) until TA drops below 120 ppm.',
-        lookFor: 'Retest weekly. If it climbs above 140 ppm and pH becomes difficult to adjust, a small muriatic acid dose will bring it down.',
+        why: `Alkalinity at ${ta} ppm is slightly above the ${isSalt ? '80–100' : '80–120'} ppm ideal for ${isSalt ? 'salt' : 'chlorine'} pools. TA drifts down naturally over time — no chemical intervention needed yet.${isSalt ? ' Salt generators raise pH naturally, and tighter alkalinity control (80–100 ppm) helps keep those pH swings manageable.' : ''}`,
+        how: `No chemical needed. Do not add any alkalinity increaser until TA drops below ${R.ta.monLow} ppm.`,
+        lookFor: `Retest weekly. If it climbs above ${R.ta.actionHigh} ppm and pH becomes difficult to manage, a small muriatic acid dose will bring it down.`,
       })
     }
   } else {
-    // TA not tested — add an advisory step when pH needs adjustment
     if (ph !== null && (ph < 7.2 || ph > 7.8)) {
       raw.push({
         order: 1,
@@ -246,25 +280,29 @@ function buildTreatmentPlan(test: TestInput, v: number): TreatmentStep[] {
         title: 'Test alkalinity before adjusting pH',
         chemical: null,
         amount: null,
-        why: `We do not have your alkalinity reading, and this matters. Total alkalinity is the buffer that keeps pH stable — it needs to be in range (80–120 ppm) before a pH adjustment will hold. This is one of the most common mistakes in pool care: adjusting pH repeatedly and wondering why it never stays put. The answer is almost always low TA. Low pH and low TA almost always appear together, often because frequent acid additions have slowly depleted both over time.`,
-        how: 'Pick up an alkalinity test strip or tablet test kit and check your TA. If it is below 80 ppm, treat with alkalinity increaser (baking soda) first. If above 120 ppm, bring it down with muriatic acid before touching pH.',
-        lookFor: 'Once TA is confirmed in range, retest pH — it may have partially self-corrected. Then follow the pH step below if still needed.',
+        why: `We do not have your alkalinity reading, and this matters. Total alkalinity is the buffer that keeps pH stable — it needs to be in range before a pH adjustment will hold. Low pH and low TA almost always appear together.`,
+        how: `Pick up an alkalinity test strip or tablet test kit and check your TA. If below ${R.ta.monLow} ppm, treat with alkalinity increaser (baking soda) first. If above ${R.ta.actionHigh} ppm, bring it down with muriatic acid before touching pH.`,
+        lookFor: 'Once TA is confirmed in range, retest pH — it may have partially self-corrected.',
         note: `If you have been chasing pH adjustments that never seem to hold, low alkalinity is the most likely culprit.`,
       })
     }
   }
 
-  // ── pH (effective only after TA is stable) ──────────────────────────────────
-  // Skip if shock or TA step already used acid that covers pH — never tell
-  // the user to add muriatic acid in more than one step.
+  // ── pH ──────────────────────────────────────────────────────────────────────
   if (ph !== null && !shockHandledPH && !taHandledPH) {
-    const taKnownAndOff = ta !== null && (ta < 60 || ta > 140)
+    const taKnownAndOff = ta !== null && (ta < R.ta.actionLow || ta > R.ta.actionHigh)
     const taUnknown = ta === null
     const sequenceNote = taKnownAndOff
       ? 'Complete the alkalinity step above first — once TA is stable, this pH adjustment will hold.'
       : taUnknown
-      ? 'If you have not tested alkalinity yet, check it before adding this — low TA makes pH corrections unstable and they will not hold.'
+      ? 'If you have not tested alkalinity yet, check it before adding this — low TA makes pH corrections unstable.'
+      : isSalt
+      ? 'With alkalinity in the salt pool target range (80–100 ppm), this adjustment will hold well.'
       : 'With alkalinity in range, this adjustment will hold well.'
+
+    const saltPHNote = isSalt
+      ? '\n\nSalt pool note: Salt generators naturally raise pH over time as a byproduct of electrolysis — this is normal. Regular small acid additions (typically every 1–2 weeks) are expected and are not a sign of a problem. Keeping pH at the lower end of the ideal range (7.2–7.4) gives you more time between adjustments.'
+      : ''
 
     if (ph < 7.0) {
       const dose = Math.round(v * 12)
@@ -275,9 +313,10 @@ function buildTreatmentPlan(test: TestInput, v: number): TreatmentStep[] {
         title: 'Raise pH',
         chemical: 'pH Increaser (Soda Ash · Sodium Carbonate · pH Up)',
         amount: oz(dose, 'oz'),
-        why: `pH at ${ph} is too low. Beyond the swimmer discomfort — stinging eyes, irritated skin — low pH is actively corrosive. It slowly etches plaster and grout, damages metal fittings, degrades pool equipment, and eats through vinyl liners over time. Here is the chemistry: at pH ${ph}, a higher percentage of your chlorine is in its active form (hypochlorous acid) — which sounds good, but it also means chlorine is consumed and depleted much faster. You end up using more chlorine to maintain safe levels. Getting pH into the 7.2–7.6 range maximizes how long each dose of chlorine lasts. ${sequenceNote}`,
-        how: 'Dissolve in a bucket of pool water first, then pour slowly around the perimeter with the pump running. Do not pour directly into the skimmer.',
-        lookFor: 'Retest pH 4–6 hours after adding. Add in increments — it is easier to raise pH a little more if needed than to lower it after overshooting. Target 7.2–7.6.',
+        why: `pH at ${ph} is too low. Beyond the swimmer discomfort — stinging eyes, irritated skin — low pH is actively corrosive. It slowly etches plaster and grout, damages metal fittings, and degrades pool equipment. Getting pH into the 7.2–7.6 range maximizes how long each dose of chlorine lasts. ${sequenceNote}`,
+        how: 'Dissolve in a bucket of pool water first, then pour slowly around the perimeter with the pump running.',
+        lookFor: 'Retest pH 4–6 hours after adding. Add in increments — it is easier to raise pH a little more than to lower it after overshooting. Target 7.2–7.6.',
+        note: saltPHNote || undefined,
       })
     } else if (ph < 7.2) {
       const dose = Math.round(v * 6)
@@ -288,9 +327,10 @@ function buildTreatmentPlan(test: TestInput, v: number): TreatmentStep[] {
         title: 'Raise pH slightly',
         chemical: 'pH Increaser (Soda Ash · Sodium Carbonate · pH Up)',
         amount: oz(dose, 'oz'),
-        why: `pH at ${ph} is just below the ideal 7.2–7.6 range. At this level, chlorine is slightly more reactive — which means it depletes faster than it should. A small bump up will bring it into range where chlorine lasts longer and equipment is protected. ${sequenceNote}`,
-        how: 'Dissolve in a bucket of water before adding — it dissolves better this way. Pour slowly around the perimeter with the pump running.',
-        lookFor: 'Retest in 4 hours. Target 7.2–7.6. A single application is usually enough for this small an adjustment.',
+        why: `pH at ${ph} is just below the ideal 7.2–7.6 range. A small bump up will bring it into range where chlorine lasts longer. ${sequenceNote}`,
+        how: 'Dissolve in a bucket of water before adding. Pour slowly around the perimeter with the pump running.',
+        lookFor: 'Retest in 4 hours. Target 7.2–7.6.',
+        note: saltPHNote || undefined,
       })
     } else if (ph > 7.8) {
       const dose = Math.round(v * 26)
@@ -301,9 +341,10 @@ function buildTreatmentPlan(test: TestInput, v: number): TreatmentStep[] {
         title: 'Lower pH',
         chemical: 'pH Reducer (Muriatic Acid or Dry Acid / pH Down)',
         amount: acidAmount(dose),
-        why: `pH at ${ph} is too high — and this is where many pool owners are spending money on chlorine without getting the results they expect. Remember the efficiency curve: at pH 7.8, only about 33% of your chlorine is in its active sanitizing form. At pH 8.0, it drops to 21%. This means your pool can test positive for chlorine and still not be sanitizing effectively — the chlorine is there but it is largely inactive. Bringing pH down unlocks the full potential of the chlorine already in your water. ${sequenceNote}`,
-        how: 'Add to the deep end in the evening with the pump running. Pour slowly in a thin stream along the wall — never splash muriatic acid. Wear gloves and eye protection. Avoid breathing the fumes. Do not pre-dilute in a small container.',
-        lookFor: 'Retest the next morning. Target 7.2–7.6. If pH drops below 7.2, alkalinity may have also come down — retest TA and add a small alkalinity increaser (baking soda) dose if needed.',
+        why: `pH at ${ph} is too high. At pH 7.8, only about 33% of your chlorine is in its active sanitizing form. Bringing pH down unlocks the full potential of the chlorine${isSalt ? ' your generator is producing' : ' already in your water'}. ${sequenceNote}`,
+        how: 'Add to the deep end in the evening with the pump running. Pour slowly in a thin stream along the wall. Wear gloves and eye protection.',
+        lookFor: 'Retest the next morning. Target 7.2–7.6.',
+        note: saltPHNote || undefined,
       })
     } else if (ph > 7.6) {
       const dose = Math.round(v * 13)
@@ -311,94 +352,129 @@ function buildTreatmentPlan(test: TestInput, v: number): TreatmentStep[] {
         order: 2,
         urgency: 'routine',
         param: 'ph',
-        title: 'Lower pH slightly',
+        title: isSalt ? 'Lower pH — routine for salt pools' : 'Lower pH slightly',
         chemical: 'pH Reducer (Muriatic Acid or Dry Acid / pH Down)',
         amount: acidAmount(dose),
-        why: `pH at ${ph} is slightly above the ideal 7.2–7.6 range. Chlorine efficiency starts declining above 7.6 — about 49% of your chlorine is active at 7.5, dropping to 33% by 7.8. A small acid dose now will improve the effectiveness of every chlorine addition you make going forward.`,
+        why: `pH at ${ph} is slightly above the ideal 7.2–7.6 range. Chlorine efficiency starts declining above 7.6 — about 49% of your chlorine is active at 7.5, dropping to 33% by 7.8.${isSalt ? ' Salt generators naturally push pH upward over time — regular small acid additions are a normal part of salt pool maintenance.' : ''}`,
         how: 'Add to the deep end in the evening with the pump running. Pour slowly. Wear gloves.',
-        lookFor: 'Retest next day. Target 7.2–7.6. One small dose is usually enough for this adjustment.',
+        lookFor: 'Retest next day. Target 7.2–7.6.',
+        note: saltPHNote || undefined,
       })
     }
   }
 
   // ── CHLORINE MAINTENANCE (low but not critical — order 3) ───────────────────
   if (fc !== null && fc >= 0.5 && fc < 1) {
-    const dose = Math.round(v * 13 * (1 - fc))
-    const phOff = ph !== null && (ph < 7.2 || ph > 7.8)
-    raw.push({
-      order: 3,
-      urgency: 'soon',
-      param: 'chlorine',
-      title: 'Add chlorine',
-      chemical: 'Liquid Chlorine or Granular Shock',
-      amount: chlorineBothAmounts(dose),
-      why: `Free chlorine at ${fc} ppm is below the 1 ppm safe minimum. Chlorine is your pool's primary line of defense against bacteria, algae, and pathogens — and its effectiveness is directly tied to pH. ${phOff ? `By completing the pH adjustment above first, you will get significantly more active sanitizer from the same amount of chlorine you add.` : `With pH in the ideal 7.2–7.6 range, the chlorine you add now will be working at close to full strength.`}`,
-      how: 'Pour around the perimeter with the pump running. Add in the evening when possible — UV sunlight degrades chlorine rapidly, and an evening addition gives the chlorine hours to circulate and work overnight before the sun can break it down.',
-      lookFor: 'Retest in 4 hours. Target 1–3 ppm for normal swimming. If chlorine drops back to low levels within a day, test your CYA — without adequate stabilizer, UV can burn off most of your chlorine within just a few hours on a sunny day.',
-      note: `Liquid chlorine (sodium hypochlorite): works within minutes, leaves no residue, and does not add CYA or calcium — best choice for a quick same-day top-up or if you plan to swim soon.\n\nGranular shock (cal-hypo): takes 30–60 minutes to fully dissolve and activate, but releases chlorine more slowly and stays in the water longer — better for an end-of-day or overnight treatment. Pre-dissolve in a bucket of water before adding — never pour dry granular directly on a vinyl liner.\n\nAvoid dichlor shock for routine top-ups: it adds CYA with every dose and will slowly push your stabilizer levels too high over a season.${cya === null ? '\n\nNote: we do not have your CYA reading. If chlorine disappears faster than expected between tests, low stabilizer is almost certainly why.' : ''}`,
-    })
-  }
-
-  // ── CYA / STABILIZER (protect the chlorine — order 4) ──────────────────────
-  if (cya !== null) {
-    if (cya < 20) {
-      const dose = ((40 - cya) / 10) * 1.3 * v
+    if (isSalt) {
       raw.push({
-        order: 4,
+        order: 3,
         urgency: 'soon',
-        param: 'cya',
-        title: 'Add Cyanuric Acid (CYA)',
-        chemical: 'Cyanuric Acid (Stabilizer)',
-        amount: oz(dose, 'lbs'),
-        why: `CYA at ${cya} ppm is too low. Here is what Cyanuric Acid actually does: it forms a temporary bond with chlorine molecules and acts as a shield against UV radiation. Without that shield, direct sunlight can destroy up to 90% of your pool's chlorine within 2 hours on a clear day. With CYA at the proper level (30–50 ppm), that same chlorine lasts significantly longer — meaning fewer treatments, more consistent protection, and lower chemical costs over the season. This is why CYA is called a stabilizer. Add it after establishing your chlorine level so there is something worth protecting.`,
-        how: 'Place stabilizer in an old sock or mesh bag and hang it directly in front of a return jet, or drop it into the skimmer basket with the pump running. Do not try to pre-dissolve it — it needs to dissolve slowly over time. Keep the pump running continuously until fully dissolved.',
-        lookFor: 'CYA takes 5–7 days to fully dissolve and register accurately on a test. Once in range, you rarely need to add more within a season — CYA does not evaporate or degrade on its own. You only need to top it off after significant water replacement. Target 30–50 ppm.',
+        param: 'chlorine',
+        title: 'Increase your salt generator output',
+        chemical: 'Salt Generator — increase output %',
+        amount: 'Increase by 10–20% for 2–3 days',
+        why: `Free chlorine at ${fc} ppm is below the 1 ppm minimum. Your salt generator should be able to raise this without any chemical additions — simply increasing the output percentage for a few days is usually all that is needed.`,
+        how: `Increase your SWG output percentage by 10–20% (e.g., from 50% to 65%). Run the pump for at least 8 hours per day. If you have a boost or superchlorinate mode, run it for one 24-hour cycle.\n\nIf chlorine does not recover within 48 hours at increased output: check your salt level (should be 2700–3400 ppm), inspect the cell for scale buildup, and confirm the cell is still within its service life.`,
+        lookFor: 'Retest in 24 hours. Target 1–3 ppm. Once in range, return the SWG to its normal output setting.',
+        note: `If chlorine repeatedly drops despite correct SWG output:\n\n1. Salt level — confirm it is in the 2700–3400 ppm range. Low salt reduces cell efficiency dramatically.\n2. Cell scale — calcium deposits on the cell reduce chlorine output. Inspect every 3 months and clean with diluted muriatic acid if needed.\n3. Cell age — most salt cells last 3–5 years. An aging cell produces progressively less chlorine at the same output setting.\n4. Stabilizer (CYA) — salt pools need 70–80 ppm CYA to protect the chlorine the generator produces. If CYA is low, UV burns off chlorine faster than the cell can replace it.`,
       })
-    } else if (cya < 30) {
-      const dose = ((40 - cya) / 10) * 1.3 * v
+    } else {
+      const dose = Math.round(v * 13 * (1 - fc))
+      const phOff = ph !== null && (ph < 7.2 || ph > 7.8)
       raw.push({
-        order: 4,
-        urgency: 'routine',
-        param: 'cya',
-        title: 'Add Cyanuric Acid (CYA) — small top-up',
-        chemical: 'Cyanuric Acid (Stabilizer)',
-        amount: oz(dose, 'lbs'),
-        why: `CYA at ${cya} ppm is slightly below the ideal 30–50 ppm range. Without enough stabilizer, UV light shortens the lifespan of every chlorine dose you add — you end up adding chlorine more frequently and spending more than you need to. A small top-up now will extend your chlorine's staying power.`,
-        how: 'Add to the skimmer basket or in a mesh bag in front of a return jet. Run the pump continuously. It dissolves slowly — do not expect a quick test result.',
-        lookFor: 'Retest in 5–7 days. Target 30–50 ppm. CYA accumulates season over season so add conservatively — it is much easier to raise it than to lower it.',
-      })
-    } else if (cya > 80) {
-      raw.push({
-        order: 4,
-        urgency: 'routine',
-        param: 'cya',
-        title: 'CYA elevated — plan a partial drain when conditions are right',
-        chemical: null,
-        amount: null,
-        why: `CYA at ${cya} ppm is above the 80 ppm threshold where chlorine lock can begin. When CYA gets too high, the bond it forms with chlorine becomes so strong that the chlorine cannot break free to sanitize. You can test positive for chlorine and still have water that is not effectively killing bacteria. There is no chemical treatment — the only fix is replacing a portion of the water. This is not an emergency this week, but it is worth planning for.`,
-        how: `Plan this for a mild-weather day — not during a heat wave, and not right after you have just refilled the pool. Drain 20–30% and refill with fresh water. After refilling, retest CYA and repeat if still above 80 ppm. While waiting for the right time, switch to liquid chlorine or cal-hypo shock — both are CYA-free and will not push levels higher. Stop using trichlor tabs or dichlor products until CYA comes down.`,
-        lookFor: 'Retest CYA 24 hours after refilling and mixing. Target 30–50 ppm. If your local tap water is already high in CYA, consider having it tested — some municipal supplies contain stabilizer.',
-        note: `The most common cause of chronically high CYA is regular use of slow-dissolve trichlor tabs. Each tablet adds CYA alongside chlorine, and it accumulates all season with no way to remove it except dilution. Many pool owners who use tabs year after year hit chlorine lock and never understand why the pool never looks quite right despite constant chemical additions.`,
-      })
-    } else if (cya > 60) {
-      raw.push({
-        order: 4,
-        urgency: 'routine',
-        param: 'cya',
-        title: 'Cyanuric Acid (CYA) slightly elevated — monitor',
-        chemical: null,
-        amount: null,
-        why: `CYA at ${cya} ppm is slightly above the ideal range but is not yet causing problems. It will naturally dilute over time through splash-out, backwashing, and rain. No action needed now, but be aware that continuing to use trichlor tabs or dichlor shock will push it higher.`,
-        how: 'No chemical needed. Hold off on adding more stabilizer or trichlor products until CYA drops below 60 ppm.',
-        lookFor: 'Retest monthly. If CYA climbs to 80 ppm, a partial drain and refill will be necessary to avoid chlorine lock.',
+        order: 3,
+        urgency: 'soon',
+        param: 'chlorine',
+        title: 'Add chlorine',
+        chemical: 'Liquid Chlorine or Granular Shock',
+        amount: chlorineBothAmounts(dose),
+        why: `Free chlorine at ${fc} ppm is below the 1 ppm safe minimum. ${phOff ? `By completing the pH adjustment above first, you will get significantly more active sanitizer from the same amount of chlorine you add.` : `With pH in the ideal 7.2–7.6 range, the chlorine you add now will be working at close to full strength.`}`,
+        how: 'Pour around the perimeter with the pump running. Add in the evening when possible — UV sunlight degrades chlorine rapidly.',
+        lookFor: `Retest in 4 hours. Target 1–3 ppm. If chlorine drops back to low levels within a day, test your CYA — without adequate stabilizer, UV can burn off most of your chlorine within just a few hours on a sunny day.`,
+        note: `Liquid chlorine (sodium hypochlorite): works within minutes, leaves no residue, and does not add CYA or calcium.\n\nGranular shock (cal-hypo): takes 30–60 minutes to fully dissolve and activate, but releases chlorine more slowly. Pre-dissolve in a bucket before adding — never pour dry granular directly on a vinyl liner.\n\nAvoid dichlor shock for routine top-ups: it adds CYA with every dose.${cya === null ? '\n\nNote: we do not have your CYA reading. If chlorine disappears faster than expected, low stabilizer is almost certainly why.' : ''}`,
       })
     }
   }
 
-  // ── CALCIUM HARDNESS (slowest to change — order 5) ──────────────────────────
+  // ── CYA / STABILIZER (order 4) ──────────────────────────────────────────────
+  if (cya !== null) {
+    const R_cya = isSalt ? SALT_RANGES.cya : CHLORINE_RANGES.cya
+    const cyaIdealRange = isSalt ? '70–80 ppm' : '30–50 ppm'
+    const cyaTarget = isSalt ? 75 : 40
+
+    if (cya < R_cya.actionLow) {
+      const dose = ((cyaTarget - cya) / 10) * 1.3 * v
+      raw.push({
+        order: 4,
+        urgency: 'soon',
+        param: 'cya',
+        title: isSalt ? 'Add Cyanuric Acid — salt pools need more' : 'Add Cyanuric Acid (CYA)',
+        chemical: 'Cyanuric Acid (Stabilizer)',
+        amount: oz(dose, 'lbs'),
+        why: isSalt
+          ? `CYA at ${cya} ppm is too low for a salt pool. Salt generators produce chlorine continuously, and without enough stabilizer, UV sunlight destroys that chlorine almost as fast as the cell produces it. Salt pools need 70–80 ppm CYA — higher than a chlorine pool — because the SWG runs continuously and needs the protection to keep up with UV demand. Without adequate CYA, the cell works overtime and wears out faster.`
+          : `CYA at ${cya} ppm is too low. Cyanuric Acid is your pool's stabilizer — without enough of it, UV sunlight can destroy up to 90% of your pool's chlorine within 2 hours on a clear day. With CYA at the proper level (30–50 ppm), that same chlorine lasts significantly longer — fewer treatments, more consistent protection, lower costs.`,
+        how: 'Place stabilizer in an old sock or mesh bag and hang it in front of a return jet, or drop into the skimmer basket with the pump running. Keep the pump running continuously until fully dissolved.',
+        lookFor: `CYA takes 5–7 days to fully dissolve and register accurately. Target ${cyaIdealRange}. Once in range, you rarely need to add more within a season — CYA does not evaporate or degrade on its own.`,
+      })
+    } else if (cya < R_cya.monLow) {
+      const dose = ((cyaTarget - cya) / 10) * 1.3 * v
+      raw.push({
+        order: 4,
+        urgency: 'routine',
+        param: 'cya',
+        title: isSalt ? 'CYA slightly low for salt pool' : 'Add Cyanuric Acid (CYA) — small top-up',
+        chemical: 'Cyanuric Acid (Stabilizer)',
+        amount: oz(dose, 'lbs'),
+        why: isSalt
+          ? `CYA at ${cya} ppm is below the 70–80 ppm target for salt pools. With lower stabilizer, UV burns off more of the chlorine your generator produces — the cell has to work harder to keep up, which shortens its life. A top-up now brings you into the optimal range.`
+          : `CYA at ${cya} ppm is slightly below the ideal 30–50 ppm range. Without enough stabilizer, UV shortens the lifespan of every chlorine dose you add.`,
+        how: 'Add to the skimmer basket or in a mesh bag in front of a return jet. Run the pump continuously. It dissolves slowly.',
+        lookFor: `Retest in 5–7 days. Target ${cyaIdealRange}.`,
+      })
+    } else if (cya > R_cya.actionHigh) {
+      raw.push({
+        order: 4,
+        urgency: 'routine',
+        param: 'cya',
+        title: 'CYA elevated — plan a partial drain',
+        chemical: null,
+        amount: null,
+        why: isSalt
+          ? `CYA at ${cya} ppm is above the ${R_cya.actionHigh} ppm threshold where chlorine lock can begin. Even in a salt pool, too much stabilizer bonds with the chlorine your generator produces, trapping it in an inactive form. The pool can test positive for chlorine and still not be sanitizing effectively. There is no chemical fix — dilution is the only solution.`
+          : `CYA at ${cya} ppm is above the 80 ppm threshold where chlorine lock can begin. You can test positive for chlorine and still have water that is not killing bacteria. There is no chemical treatment — replacing a portion of the water is the only fix.`,
+        how: `Plan this for a mild-weather day. Drain 20–30% and refill with fresh water. After refilling, retest CYA and repeat if still above ${R_cya.actionHigh} ppm. ${isSalt ? 'Switch to liquid chlorine for any manual additions while CYA is elevated — avoid dichlor.' : 'Switch to liquid chlorine or cal-hypo shock — both are CYA-free. Stop using trichlor tabs or dichlor products.'}`,
+        lookFor: `Retest CYA 24 hours after refilling. Target ${cyaIdealRange}.`,
+        note: isSalt
+          ? `The most common cause of high CYA in salt pools is using dichlor shock for manual treatments. Each dichlor dose adds CYA, and it accumulates with no way to remove it except dilution. For manual additions in a salt pool, always use liquid chlorine (sodium hypochlorite) — it adds neither CYA nor calcium.`
+          : `The most common cause of chronically high CYA is regular use of slow-dissolve trichlor tabs. Each tablet adds CYA alongside chlorine, and it accumulates all season.`,
+      })
+    } else if (cya > R_cya.monHigh) {
+      raw.push({
+        order: 4,
+        urgency: 'routine',
+        param: 'cya',
+        title: isSalt ? 'CYA slightly above salt pool target' : 'Cyanuric Acid (CYA) slightly elevated — monitor',
+        chemical: null,
+        amount: null,
+        why: isSalt
+          ? `CYA at ${cya} ppm is slightly above the 70–80 ppm target for salt pools. At this level chlorine effectiveness is only mildly affected, but continuing to use dichlor shock will push it higher. Switch to liquid chlorine for any manual additions.`
+          : `CYA at ${cya} ppm is slightly above the ideal range but not yet causing problems. It will naturally dilute through splash-out, backwashing, and rain.`,
+        how: `No chemical needed. ${isSalt ? 'Avoid dichlor shock — use liquid chlorine for any manual additions.' : 'Hold off on adding more stabilizer or trichlor products until CYA drops below 60 ppm.'}`,
+        lookFor: `Retest monthly. If CYA climbs above ${R_cya.actionHigh} ppm, a partial drain will be needed.`,
+      })
+    }
+  }
+
+  // ── CALCIUM HARDNESS (order 5) ───────────────────────────────────────────────
   if (ca !== null) {
-    if (ca < 150) {
-      const dose = ((200 - ca) / 10) * 1.25 * v
+    const R_ca = isSalt ? SALT_RANGES.ca : CHLORINE_RANGES.ca
+    const caNote = isSalt
+      ? '\n\nSalt pool note: Calcium hardness is especially important for salt pools — scale deposits on the salt cell reduce chlorine output and shorten cell life. Keep calcium in the 200–350 ppm range and target pH 7.2–7.4 to minimize scale risk.'
+      : ''
+
+    if (ca < R_ca.actionLow) {
+      const dose = ((R_ca.monLow - ca) / 10) * 1.25 * v
       raw.push({
         order: 5,
         urgency: 'soon',
@@ -406,12 +482,13 @@ function buildTreatmentPlan(test: TestInput, v: number): TreatmentStep[] {
         title: 'Raise calcium hardness',
         chemical: 'Calcium Chloride',
         amount: oz(dose, 'lbs'),
-        why: `Calcium at ${ca} ppm is too low. Water chemistry always seeks balance — if something is missing from the water, it will pull it from the nearest available source to reach equilibrium. With soft water, that source is your pool itself. Low-calcium water slowly dissolves calcium from plaster, grout, and concrete, etching and pitting surfaces over months and years. It also corrodes metal fittings and equipment. The damage is invisible at first but expensive to repair. Address pH and alkalinity first (those directly affect swimmer safety), then bring calcium up to give the water what it needs so it stops taking it from your pool.`,
-        how: 'Always pre-dissolve calcium chloride in a bucket of water before adding it to the pool — dry calcium chloride reacts with water and generates significant heat, which can damage pool surfaces if added directly. Add in 2–3 smaller doses over several days rather than all at once.',
-        lookFor: 'Retest 24 hours after each addition. Calcium moves slowly and you want to avoid overshooting. Target 200–400 ppm.',
+        why: `Calcium at ${ca} ppm is too low. Water chemistry always seeks balance — soft water slowly dissolves calcium from your pool surface, leading to etching and pitting over time.${isSalt ? ' For salt pools, low calcium also accelerates corrosion on the metal components of the salt cell.' : ''}`,
+        how: 'Always pre-dissolve calcium chloride in a bucket of water before adding — dry calcium chloride generates heat on contact with water and can damage surfaces. Add in 2–3 smaller doses over several days.',
+        lookFor: `Retest 24 hours after each addition. Target ${R_ca.monLow}–${R_ca.monHigh} ppm.`,
+        note: caNote || undefined,
       })
-    } else if (ca < 200) {
-      const dose = ((200 - ca) / 10) * 1.25 * v
+    } else if (ca < R_ca.monLow) {
+      const dose = ((R_ca.monLow - ca) / 10) * 1.25 * v
       raw.push({
         order: 5,
         urgency: 'routine',
@@ -419,35 +496,38 @@ function buildTreatmentPlan(test: TestInput, v: number): TreatmentStep[] {
         title: 'Raise calcium slightly',
         chemical: 'Calcium Chloride',
         amount: oz(dose, 'lbs'),
-        why: `Calcium at ${ca} ppm is slightly below the 200–400 ppm ideal. Water with insufficient calcium is mildly aggressive — a small top-up now protects your pool surface from slow etching and keeps water chemistry in balance.`,
+        why: `Calcium at ${ca} ppm is slightly below the ${R_ca.monLow}–${R_ca.monHigh} ppm ideal. A small top-up now protects your pool surface from slow etching.`,
         how: 'Pre-dissolve in a bucket of water before adding. Add slowly with the pump running.',
-        lookFor: 'Retest in a few days. Target 200–400 ppm.',
+        lookFor: `Retest in a few days. Target ${R_ca.monLow}–${R_ca.monHigh} ppm.`,
+        note: caNote || undefined,
       })
-    } else if (ca > 600) {
+    } else if (ca > R_ca.actionHigh) {
       raw.push({
         order: 5,
         urgency: 'soon',
         param: 'calcium',
-        title: 'Calcium high — scale risk, consider partial drain',
+        title: `Calcium high — scale risk${isSalt ? ', cell protection needed' : ''}`,
         chemical: null,
         amount: null,
-        why: `Calcium at ${ca} ppm is high enough to cause visible scale buildup — that white, chalky crust on walls, tiles, and equipment fittings. When calcium saturation exceeds what the water can hold, it precipitates out. There is no chemical that removes calcium from pool water; dilution is the primary fix. However, in hard water regions (Arizona, Nevada, the Southwest) municipal tap water can arrive at 300–400 ppm on its own, meaning a partial drain helps but the replacement water refills some of the calcium you just removed.`,
-        how: 'First priority: add a sequestering agent (such as Jack\'s Magic Blue Stuff, SeaKlear Calcium & Scale, or similar phosphonate-based products). These keep calcium in solution so it cannot deposit on surfaces — a realistic first step before committing to a drain. If calcium continues to climb above 700–800 ppm, drain 20–30% and refill. Do not add any calcium chloride.',
-        lookFor: 'Retest monthly. If you are in a hard water area and levels keep returning to 500+ even after a partial drain, a sequestering agent used monthly is the long-term management strategy rather than repeated draining.',
-        note: 'In hard water regions, tap water itself can be 300–400 ppm calcium. Draining and refilling helps but does not solve the root cause — your source water is the input. A sequestering agent is a more sustainable solution than frequent draining.',
+        why: `Calcium at ${ca} ppm is high enough to cause visible scale buildup.${isSalt ? ' For salt pools this is especially important — calcium scale on the salt cell dramatically reduces chlorine output and shortens cell life.' : ''} There is no chemical that removes calcium from pool water; dilution and sequestering agents are the primary tools.`,
+        how: `First priority: add a sequestering agent (Jack's Magic Blue Stuff, SeaKlear Calcium & Scale, or similar phosphonate-based products). These keep calcium in solution so it cannot deposit on surfaces${isSalt ? ' or the salt cell' : ''}. If calcium continues to climb, drain 20–30% and refill. Do not add any calcium chloride.`,
+        lookFor: `Retest monthly. Target ${R_ca.monLow}–${R_ca.monHigh} ppm.`,
+        note: `In hard water regions, tap water itself can be 300–400 ppm calcium. A sequestering agent used monthly is a more sustainable solution than repeated draining.${caNote}`,
       })
-    } else if (ca > 400) {
+    } else if (ca > R_ca.monHigh) {
       raw.push({
         order: 5,
         urgency: 'routine',
         param: 'calcium',
-        title: 'Calcium elevated — normal for hard water areas',
+        title: isSalt ? 'Calcium above salt pool target' : 'Calcium elevated — common in hard water areas',
         chemical: null,
         amount: null,
-        why: `Calcium at ${ca} ppm is above the textbook 200–400 ppm ideal. However, in hard water regions (Arizona and much of the Southwest), municipal tap water arrives at 300–400 ppm already — so pool water in this range is very common and manageable. Scale formation is more about the balance between calcium, pH, alkalinity, and temperature (Langelier Saturation Index) than any single number. At this level with pH and alkalinity in range, scale risk is low.`,
-        how: 'No chemical needed. Avoid adding any calcium chloride. Keep pH at 7.2–7.4 (lower end of range) — this reduces scale tendency even at elevated calcium levels. If you want extra protection, a monthly sequestering agent prevents scale deposits on surfaces and equipment.',
-        lookFor: 'Retest monthly. Watch for white scale deposits on tile, walls, or around fittings — that is the real signal. If calcium climbs above 600 ppm, consider a sequestering agent as a first step before draining.',
-        note: 'In hard water areas, if you recently refilled the pool with tap water, calcium will naturally come in elevated. This is expected — not a failure of chemistry management.',
+        why: isSalt
+          ? `Calcium at ${ca} ppm is above the 200–350 ppm target for salt pools. At this level scale can begin forming on the salt cell, gradually reducing chlorine output. Keep pH at 7.2–7.4 (lower end of range) to slow scale formation.`
+          : `Calcium at ${ca} ppm is above the textbook ideal but in hard water regions this is very common and manageable. At this level with pH and alkalinity in range, scale risk is low.`,
+        how: 'No chemical needed. Avoid adding any calcium chloride.',
+        lookFor: `Retest monthly. Watch for scale deposits on tile, walls, or equipment.${isSalt ? ' Inspect the salt cell every 3 months — scale on the cell shows as white deposits inside the cell.' : ''}`,
+        note: caNote || undefined,
       })
     }
   }
@@ -468,18 +548,27 @@ function buildTreatmentPlan(test: TestInput, v: number): TreatmentStep[] {
   })
 }
 
-function generateMaintenance(test: TestInput): MaintenanceTip[] {
+function generateMaintenance(test: TestInput, isSalt: boolean): MaintenanceTip[] {
   const tips: MaintenanceTip[] = []
 
-  // Testing frequency
   tips.push({
     category: 'testing',
     title: 'Test twice a week in warm weather',
-    body: 'Check pH and free chlorine at least twice a week during spring and summer — chemistry shifts faster in warm water and under heavy use. Once a week is usually enough in cooler months.',
+    body: 'Check pH and free chlorine at least twice a week during spring and summer. Once a week is usually enough in cooler months.',
   })
 
-  // Chlorine guidance tuned to CYA level
-  if (test.cya !== null && test.cya > 60) {
+  if (isSalt) {
+    tips.push({
+      category: 'chlorine',
+      title: 'Adjust SWG output — don\'t just add chemicals',
+      body: 'When chlorine is low, the first response should always be increasing your salt generator output percentage, not reaching for chemicals. Salt pools are designed to be self-sustaining. Only use liquid chlorine as a backup if the SWG cannot keep up.',
+    })
+    tips.push({
+      category: 'chlorine',
+      title: 'Salt cell: inspect every 3 months for scale',
+      body: 'Calcium scale on the salt cell reduces chlorine output significantly. Every 3 months, inspect the cell — white deposits inside mean it needs cleaning with diluted muriatic acid (1 part acid to 10 parts water, 15–20 minute soak). Keep salt in the 2700–3400 ppm range and calcium below 350 ppm for longest cell life.',
+    })
+  } else if (test.cya !== null && test.cya > 60) {
     tips.push({
       category: 'chlorine',
       title: `Keep chlorine at 2–3 ppm while CYA is elevated (currently ${test.cya} ppm)`,
@@ -489,170 +578,232 @@ function generateMaintenance(test: TestInput): MaintenanceTip[] {
     tips.push({
       category: 'chlorine',
       title: `Chlorine burns off fast — CYA is low (${test.cya} ppm)`,
-      body: 'Without enough stabilizer, UV destroys chlorine within hours on a sunny day. Test every 1–2 days and add chlorine more frequently until CYA reaches 30–50 ppm. Always add chlorine in the evening.',
+      body: 'Without enough stabilizer, UV destroys chlorine within hours on a sunny day. Test every 1–2 days and add chlorine more frequently until CYA reaches 30–50 ppm.',
     })
   } else {
     tips.push({
       category: 'chlorine',
       title: 'Add chlorine when it drops below 1 ppm',
-      body: 'Check twice a week. Add liquid chlorine or granular shock when readings dip below 1 ppm. Adding in the evening prevents UV from burning off a large portion of what you just added before it circulates.',
+      body: 'Check twice a week. Add liquid chlorine or granular shock when readings dip below 1 ppm. Adding in the evening prevents UV from burning off a large portion before it circulates.',
     })
   }
 
-  // When to shock
   tips.push({
     category: 'shock',
-    title: 'Shock after heavy rain, parties, or if water looks off',
-    body: 'Shock the pool after significant rainfall (rain dilutes and destabilizes chemistry), after heavy swimmer loads, if chlorine reads 0, or if the water looks hazy. In peak summer heat, a weekly shock as prevention is a good habit.',
+    title: isSalt
+      ? 'Boost SWG after heavy rain or parties'
+      : 'Shock after heavy rain, parties, or if water looks off',
+    body: isSalt
+      ? 'After heavy rain, large swimmer loads, or if water looks hazy — run your salt generator on boost/superchlorinate mode for 24 hours. If the pool is visibly cloudy or green, add liquid chlorine as a one-time treatment (do not use cal-hypo — it scales the cell).'
+      : 'Shock the pool after significant rainfall, after heavy swimmer loads, if chlorine reads 0, or if the water looks hazy. In peak summer heat, a weekly shock as prevention is a good habit.',
   })
 
-  // Brushing
   tips.push({
     category: 'brushing',
     title: 'Brush weekly — algae starts on surfaces, not in the water',
-    body: 'Brush walls, floor, steps, and shaded corners once a week. Algae and biofilm establish on surfaces before they are visible in the water — brushing breaks it loose so chlorine can reach it. Pay extra attention to low-flow areas like behind ladders and under steps.',
+    body: 'Brush walls, floor, steps, and shaded corners once a week. Algae and biofilm establish on surfaces before they are visible in the water — brushing breaks it loose so chlorine can reach it.',
   })
 
-  // Hot weather
   tips.push({
     category: 'seasonal',
     title: 'In heat above 85°F — chlorine demand roughly doubles',
-    body: 'Hot water accelerates chlorine consumption and algae growth. During heat waves: keep chlorine at 2–3 ppm, run the filter 10–12 hours per day, and consider shocking weekly even if the water looks clear. After heavy rain in summer, test within 24 hours.',
+    body: isSalt
+      ? 'Hot water dramatically increases chlorine demand. In heat waves: increase SWG output by 10–15%, run the filter 10–12 hours per day, and retest more frequently. Salt generators can struggle to keep up in extreme heat — monitor closely.'
+      : 'Hot water accelerates chlorine consumption and algae growth. During heat waves: keep chlorine at 2–3 ppm, run the filter 10–12 hours per day, and consider shocking weekly even if the water looks clear.',
   })
 
-  // Filter runtime
   tips.push({
     category: 'filter',
     title: 'Run the filter 8–12 hours per day',
-    body: 'Circulation is the foundation of clear water — chemicals cannot do their job without it. In summer or during heat waves, run closer to 12 hours. In cooler months or off-season, 6–8 hours is usually enough. If your pool stays cloudy despite correct chemistry, run the filter 24 hours until it clears.',
+    body: isSalt
+      ? 'Circulation is critical for salt pools — the SWG only produces chlorine while the pump is running. In summer or during heat waves, run 10–12 hours. If your pool stays cloudy despite correct chemistry, run 24 hours until it clears.'
+      : 'Circulation is the foundation of clear water — chemicals cannot do their job without it. In summer, run closer to 12 hours. In cooler months, 6–8 hours is usually enough.',
   })
 
-  // Salt pool addendum
-  if (test.salt !== null && test.salt > 500) {
+  if (isSalt) {
     tips.push({
       category: 'filter',
-      title: 'Salt cell: inspect every 3 months for scale',
-      body: 'Calcium scale on the salt cell reduces chlorine output significantly. Every 3 months, inspect the cell and clean with diluted muriatic acid if you see white deposits. Keep salt in the 2700–3400 ppm range for best performance.',
+      title: 'Keep salt level 2700–3400 ppm year-round',
+      body: 'Salt level affects SWG efficiency more than most people realize. Below 2400 ppm the cell underperforms and may trigger a low-salt alarm. Above 3800 ppm it can corrode equipment and reduce efficiency. Test salt monthly and after significant rainfall or water addition.',
     })
   }
 
   return tips
 }
 
-export function calculateRecommendations(test: TestInput, volumeGallons: number): RecommendationResult {
+export function calculateRecommendations(
+  test: TestInput,
+  volumeGallons: number,
+  poolType = 'inground',
+): RecommendationResult {
   const v = volumeGallons / 10000
+  const isSalt = poolType === 'saltwater' || poolType === 'salt'
+  const R = isSalt ? SALT_RANGES : CHLORINE_RANGES
   const recs: Rec[] = []
 
   const MISSING: Record<string, Rec> = {
     ph: { status: 'unknown', param: 'ph', title: 'pH not tested', desc: 'pH controls chlorine effectiveness and swimmer comfort. If too low (< 7.2) it corrodes equipment and irritates skin. If too high (> 7.8) chlorine becomes ineffective and scale forms.', tags: ['Ideal: 7.2 – 7.6', 'Test soon'] },
-    free_chlorine: { status: 'unknown', param: 'free_chlorine', title: 'Free chlorine not tested', desc: "Chlorine is your primary defense against bacteria and algae. Below 1 ppm the water is unsafe to swim in. Above 5 ppm it causes eye and skin irritation. HTH strips typically don't include free chlorine — consider a separate liquid or tablet test.", tags: ['Ideal: 1 – 3 ppm', 'Test separately if possible'] },
-    total_alkalinity: { status: 'unknown', param: 'total_alkalinity', title: 'Alkalinity not tested', desc: 'Total alkalinity acts as a pH buffer — it keeps pH from swinging wildly with every chemical addition or rain event. When low, pH becomes unpredictable. When high, pH gets stuck and is hard to adjust.', tags: ['Ideal: 80 – 120 ppm', 'Test monthly'] },
-    cya: { status: 'unknown', param: 'cya', title: 'Cyanuric Acid (CYA) not tested', desc: 'Cyanuric Acid (CYA) is your pool\'s stabilizer — it shields chlorine from being broken down by UV sunlight. Without it, sunlight can destroy 90% of your chlorine within hours. If CYA gets too high (> 80 ppm) it blocks chlorine from sanitizing, called "chlorine lock."', tags: ['Ideal: 30 – 50 ppm', 'Test monthly'] },
-    calcium_hardness: { status: 'unknown', param: 'calcium_hardness', title: 'Calcium hardness not tested', desc: 'Low calcium (< 200 ppm) causes water to aggressively leach calcium from your pool surface, leading to etching and pitting over time. High calcium (> 400 ppm) causes white scale deposits on walls, tiles, and equipment.', tags: ['Ideal: 200 – 400 ppm', 'Test monthly'] },
+    free_chlorine: { status: 'unknown', param: 'free_chlorine', title: 'Free chlorine not tested', desc: "Chlorine is your primary defense against bacteria and algae. Below 1 ppm the water is unsafe to swim in. Above 5 ppm it causes eye and skin irritation.", tags: ['Ideal: 1 – 3 ppm', 'Test separately if possible'] },
+    total_alkalinity: { status: 'unknown', param: 'total_alkalinity', title: 'Alkalinity not tested', desc: `Total alkalinity acts as a pH buffer — it keeps pH from swinging wildly. Target ${isSalt ? '80–100' : '80–120'} ppm.`, tags: [`Ideal: ${isSalt ? '80–100' : '80–120'} ppm`, 'Test monthly'] },
+    cya: isSalt
+      ? { status: 'unknown', param: 'cya', title: 'Cyanuric Acid (CYA) not tested', desc: 'CYA is your stabilizer — it shields chlorine from UV sunlight. Salt pools need 70–80 ppm (higher than chlorine pools) because the SWG runs continuously and UV works against it all day. Without enough CYA the cell has to work overtime and wears out faster.', tags: ['Ideal for salt pools: 70–80 ppm', 'Test monthly'] }
+      : { status: 'unknown', param: 'cya', title: 'Cyanuric Acid (CYA) not tested', desc: 'Cyanuric Acid (CYA) is your pool\'s stabilizer — it shields chlorine from being broken down by UV sunlight. Without it, sunlight can destroy 90% of your chlorine within hours. If CYA gets too high (> 80 ppm) it blocks chlorine from sanitizing.', tags: ['Ideal: 30 – 50 ppm', 'Test monthly'] },
+    calcium_hardness: { status: 'unknown', param: 'calcium_hardness', title: 'Calcium hardness not tested', desc: `Low calcium causes water to leach calcium from pool surfaces, leading to etching over time. High calcium causes scale deposits.${isSalt ? ' For salt pools, scale on the salt cell reduces chlorine output and shortens cell life.' : ''}`, tags: [`Ideal: ${isSalt ? '200–350' : '200–400'} ppm`, 'Test monthly'] },
   }
 
-  // pH
+  // ── pH ──────────────────────────────────────────────────────────────────────
   if (test.ph === null) { recs.push(MISSING.ph) }
   else if (test.ph < 7.0) {
     const dose = Math.round(v * 12)
     recs.push({ status: 'action', param: 'ph', title: 'Raise your pH', desc: `pH is at ${test.ph} — too low. Add pH Increaser (Soda Ash / pH Up) to protect your equipment and swimmer comfort.`, tags: [`pH Increaser (Soda Ash / pH Up) · ${oz(dose, 'oz')}`, 'Re-test in 4 hours'] })
   } else if (test.ph < 7.2) {
     const dose = Math.round(v * 6)
-    recs.push({ status: 'monitor', param: 'ph', title: 'pH slightly low', desc: `pH is at ${test.ph}. A small dose of pH Increaser (Soda Ash / pH Up) will bring it into range.`, tags: [`pH Increaser (Soda Ash / pH Up) · ${oz(dose, 'oz')}`, 'Monitor daily'] })
+    recs.push({ status: 'monitor', param: 'ph', title: 'pH slightly low', desc: `pH is at ${test.ph}. A small dose of pH Increaser will bring it into range.`, tags: [`pH Increaser (Soda Ash / pH Up) · ${oz(dose, 'oz')}`, 'Monitor daily'] })
   } else if (test.ph > 7.8) {
     const dose = Math.round(v * 26)
-    recs.push({ status: 'action', param: 'ph', title: 'Lower your pH', desc: `pH is at ${test.ph} — too high. Add pH reducer this evening after sunset.`, tags: [`pH Reducer (Muriatic Acid or Dry Acid) · ${acidAmount(dose)}`, 'Re-test tomorrow'] })
+    recs.push({ status: 'action', param: 'ph', title: 'Lower your pH', desc: `pH is at ${test.ph} — too high. Add pH reducer this evening.${isSalt ? ' Salt generators naturally raise pH — regular small acid additions are normal.' : ''}`, tags: [`pH Reducer (Muriatic Acid or Dry Acid) · ${acidAmount(dose)}`, 'Re-test tomorrow'] })
   } else if (test.ph > 7.6) {
     const dose = Math.round(v * 13)
-    recs.push({ status: 'monitor', param: 'ph', title: 'pH slightly high', desc: `pH is at ${test.ph}. A small dose of pH reducer will bring it into range.`, tags: [`pH Reducer (Muriatic Acid or Dry Acid) · ${acidAmount(dose)}`, 'Monitor daily'] })
+    recs.push({ status: isSalt ? 'action' : 'monitor', param: 'ph', title: isSalt ? 'Lower pH — routine salt pool maintenance' : 'pH slightly high', desc: `pH is at ${test.ph}. A small acid dose will bring it into range.${isSalt ? ' Salt generators push pH upward over time — regular acid additions are a normal part of salt pool maintenance.' : ''}`, tags: [`pH Reducer (Muriatic Acid or Dry Acid) · ${acidAmount(dose)}`, isSalt ? 'Re-test tomorrow' : 'Monitor daily'] })
   } else if (test.free_chlorine !== null && test.free_chlorine < 0.5 && test.ph > 7.2) {
-    // pH is technically in range, but needs to come down to 7.2 before shocking —
-    // high pH wastes most of a shock dose. Show as monitor so it doesn't contradict the treatment plan.
-    recs.push({ status: 'monitor', param: 'ph', title: 'Lower pH to 7.2 before shocking', desc: `pH at ${test.ph} is in range for normal use, but lower it to 7.2 first — at higher pH most of the shock you add is wasted and won't sanitize effectively.`, tags: [] })
+    recs.push({ status: 'monitor', param: 'ph', title: 'Lower pH to 7.2 before shocking', desc: `pH at ${test.ph} is in range for normal use, but lower it to 7.2 first — at higher pH most of the shock you add is wasted.`, tags: [] })
   } else {
     recs.push({ status: 'good', param: 'ph', title: 'pH is perfect', desc: `pH at ${test.ph} — right in the ideal range of 7.2–7.6.`, tags: [] })
   }
 
-  // Free Chlorine
+  // ── Free Chlorine ────────────────────────────────────────────────────────────
   if (test.free_chlorine === null) { recs.push(MISSING.free_chlorine) }
   else if (test.free_chlorine < 0.5) {
-    const cyaLow  = test.cya === null || test.cya < 20
-    const cyaHigh = test.cya !== null && test.cya >= 50
-    const dosePerTenK = cyaLow || cyaHigh ? 2 : 1.5
-    const dose = Math.round(v * dosePerTenK * 2) / 2
-    const phNeedsWork = test.ph !== null && test.ph > 7.2
-    if (phNeedsWork) {
-      recs.push({ status: 'action', param: 'chlorine', title: 'Chlorine critically low — two steps', desc: `Free chlorine at ${test.free_chlorine} ppm — unsafe for swimming. Step 1: add pH reducer to bring pH to 7.2. Step 2: shock the pool. At pH ${test.ph}, high pH makes most of the shock ineffective — lower it first and the same dose works 2–3× better.`, tags: [] })
+    if (isSalt) {
+      const phNeedsWork = test.ph !== null && test.ph > 7.2
+      recs.push({ status: 'action', param: 'chlorine', title: phNeedsWork ? 'Chlorine critically low — lower pH first, then boost SWG' : 'Chlorine critically low — boost your salt generator', desc: phNeedsWork
+        ? `Free chlorine at ${test.free_chlorine} ppm — unsafe for swimming. Step 1: lower pH to 7.2. Step 2: set your salt generator to maximum output / boost mode. Low pH makes the chlorine your generator produces 2–3× more effective.`
+        : `Free chlorine at ${test.free_chlorine} ppm — unsafe for swimming. Set your salt generator to 100% output / boost mode immediately. If FC does not recover within 48 hours, add liquid chlorine as a backup (do not use cal-hypo).`,
+        tags: [] })
     } else {
-      recs.push({ status: 'action', param: 'chlorine', title: 'Chlorine critically low — shock now', desc: `Free chlorine at ${test.free_chlorine} ppm — unsafe for swimming. Shock the pool this evening. See the treatment plan below for exact dose.`, tags: [] })
+      const cyaLow  = test.cya === null || test.cya < 20
+      const cyaHigh = test.cya !== null && test.cya >= 50
+      const dosePerTenK = cyaLow || cyaHigh ? 2 : 1.5
+      const dose = Math.round(v * dosePerTenK * 2) / 2
+      const phNeedsWork = test.ph !== null && test.ph > 7.2
+      if (phNeedsWork) {
+        recs.push({ status: 'action', param: 'chlorine', title: 'Chlorine critically low — two steps', desc: `Free chlorine at ${test.free_chlorine} ppm — unsafe for swimming. Step 1: add pH reducer to bring pH to 7.2. Step 2: shock the pool. At pH ${test.ph}, high pH makes most of the shock ineffective — lower it first and the same dose works 2–3× better.`, tags: [] })
+      } else {
+        recs.push({ status: 'action', param: 'chlorine', title: 'Chlorine critically low — shock now', desc: `Free chlorine at ${test.free_chlorine} ppm — unsafe for swimming. Shock the pool this evening.`, tags: [] })
+      }
     }
   } else if (test.free_chlorine < 1) {
-    const dose = Math.round(v * 13 * (1 - test.free_chlorine))
-    recs.push({ status: 'action', param: 'chlorine', title: 'Add chlorine', desc: `Free chlorine at ${test.free_chlorine} ppm — below the safe minimum of 1 ppm.`, tags: [`Liquid or Granular · ${chlorineBothAmounts(dose)}`, 'Re-test in 4 hours'] })
+    if (isSalt) {
+      recs.push({ status: 'action', param: 'chlorine', title: 'Increase salt generator output', desc: `Free chlorine at ${test.free_chlorine} ppm — below the 1 ppm minimum. Increase your SWG output by 10–20% for 2–3 days. See the treatment plan for details.`, tags: ['Increase SWG output %', 'Re-test in 24 hours'] })
+    } else {
+      const dose = Math.round(v * 13 * (1 - test.free_chlorine))
+      recs.push({ status: 'action', param: 'chlorine', title: 'Add chlorine', desc: `Free chlorine at ${test.free_chlorine} ppm — below the safe minimum of 1 ppm.`, tags: [`Liquid or Granular · ${chlorineBothAmounts(dose)}`, 'Re-test in 4 hours'] })
+    }
   } else if (test.free_chlorine > 5) {
-    recs.push({ status: 'monitor', param: 'chlorine', title: 'Chlorine high — wait before swimming', desc: `Free chlorine at ${test.free_chlorine} ppm. Wait 24–48 hours before swimming. Sunlight will naturally lower it.`, tags: ['No chemicals needed', 'Re-test tomorrow'] })
+    recs.push({ status: 'monitor', param: 'chlorine', title: isSalt ? 'Chlorine high — reduce SWG output' : 'Chlorine high — wait before swimming', desc: isSalt
+      ? `Free chlorine at ${test.free_chlorine} ppm. Reduce your SWG output by 10–20% for a few days. Wait until FC is below 5 ppm before swimming.`
+      : `Free chlorine at ${test.free_chlorine} ppm. Wait 24–48 hours before swimming. Sunlight will naturally lower it.`,
+      tags: [isSalt ? 'Reduce SWG output' : 'No chemicals needed', 'Re-test tomorrow'] })
   } else {
-    recs.push({ status: 'good', param: 'chlorine', title: 'Chlorine is in range', desc: `Free chlorine at ${test.free_chlorine} ppm. No action needed. Check again in 3 days.`, tags: [] })
+    recs.push({ status: 'good', param: 'chlorine', title: 'Chlorine is in range', desc: `Free chlorine at ${test.free_chlorine} ppm. No action needed.`, tags: [] })
   }
 
-  // Total Alkalinity
+  // ── Total Alkalinity ─────────────────────────────────────────────────────────
   if (test.total_alkalinity === null) { recs.push(MISSING.total_alkalinity) }
-  else if (test.total_alkalinity < 60) {
-    const dose = ((80 - test.total_alkalinity) / 10) * 1.5 * v
-    recs.push({ status: 'action', param: 'alkalinity', title: 'Raise total alkalinity', desc: `Alkalinity at ${test.total_alkalinity} ppm — too low. Fix this before adjusting pH or the adjustment will not hold.`, tags: [`Alkalinity Increaser (Baking Soda / Sodium Bicarbonate) · ${oz(dose, 'lbs')}`, 'Add in doses', 'Re-test next day'] })
-  } else if (test.total_alkalinity < 80) {
-    const dose = ((80 - test.total_alkalinity) / 10) * 1.5 * v
-    recs.push({ status: 'monitor', param: 'alkalinity', title: 'Alkalinity slightly low', desc: `Alkalinity at ${test.total_alkalinity} ppm. A small alkalinity increaser (baking soda) dose will stabilize it.`, tags: [`Alkalinity Increaser (Baking Soda / Sodium Bicarbonate) · ${oz(dose, 'lbs')}`, 'Monitor weekly'] })
-  } else if (test.total_alkalinity > 140) {
-    const dose = Math.round(v * 26 * ((test.total_alkalinity - 120) / 10))
-    recs.push({ status: 'action', param: 'alkalinity', title: 'Lower total alkalinity', desc: `Alkalinity at ${test.total_alkalinity} ppm — too high. Add pH reducer to the deep end, then aim a return jet toward the surface and run the pump 2–4 hours — this naturally raises pH back up without reversing the alkalinity drop.`, tags: [] })
-  } else if (test.total_alkalinity > 120) {
-    recs.push({ status: 'monitor', param: 'alkalinity', title: 'Alkalinity slightly high', desc: `Alkalinity at ${test.total_alkalinity} ppm. Monitor weekly — it will drift down naturally.`, tags: ['Monitor weekly'] })
+  else if (test.total_alkalinity < R.ta.actionLow) {
+    const dose = ((R.ta.monLow - test.total_alkalinity) / 10) * 1.5 * v
+    recs.push({ status: 'action', param: 'alkalinity', title: 'Raise total alkalinity', desc: `Alkalinity at ${test.total_alkalinity} ppm — too low. Fix this before adjusting pH or the adjustment will not hold.`, tags: [`Alkalinity Increaser (Baking Soda) · ${oz(dose, 'lbs')}`, 'Add in doses', 'Re-test next day'] })
+  } else if (test.total_alkalinity < R.ta.monLow) {
+    const dose = ((R.ta.monLow - test.total_alkalinity) / 10) * 1.5 * v
+    recs.push({ status: 'monitor', param: 'alkalinity', title: 'Alkalinity slightly low', desc: `Alkalinity at ${test.total_alkalinity} ppm. A small baking soda dose will stabilize it.`, tags: [`Alkalinity Increaser (Baking Soda) · ${oz(dose, 'lbs')}`, 'Monitor weekly'] })
+  } else if (test.total_alkalinity > R.ta.actionHigh) {
+    const dose = Math.round(v * 26 * ((test.total_alkalinity - R.ta.monHigh) / 10))
+    recs.push({ status: 'action', param: 'alkalinity', title: 'Lower total alkalinity', desc: `Alkalinity at ${test.total_alkalinity} ppm — too high. Add pH reducer to the deep end, then aim a return jet toward the surface and run 2–4 hours to raise pH back naturally.${isSalt ? ' Target 80–100 ppm for salt pools.' : ''}`, tags: [] })
+  } else if (test.total_alkalinity > R.ta.monHigh) {
+    recs.push({ status: 'monitor', param: 'alkalinity', title: isSalt ? 'Alkalinity above salt pool target' : 'Alkalinity slightly high', desc: `Alkalinity at ${test.total_alkalinity} ppm. Monitor weekly — it will drift down naturally. ${isSalt ? 'Target 80–100 ppm for salt pools.' : ''}`, tags: ['Monitor weekly'] })
   } else {
     recs.push({ status: 'good', param: 'alkalinity', title: 'Alkalinity on target', desc: `Total alkalinity at ${test.total_alkalinity} ppm. Right in range.`, tags: [] })
   }
 
-  // CYA
+  // ── CYA ──────────────────────────────────────────────────────────────────────
+  const R_cya = isSalt ? SALT_RANGES.cya : CHLORINE_RANGES.cya
+  const cyaIdeal = isSalt ? '70–80 ppm' : '30–50 ppm'
   if (test.cya === null) { recs.push(MISSING.cya) }
-  else if (test.cya < 20) {
-    const dose = ((40 - test.cya) / 10) * 1.3 * v
-    recs.push({ status: 'action', param: 'cya', title: 'Cyanuric Acid (CYA) too low', desc: `CYA at ${test.cya} ppm — too low. Cyanuric Acid is your pool's stabilizer, and without enough of it, UV sunlight burns off chlorine within hours.`, tags: [`Cyanuric Acid · ${oz(dose, 'lbs')}`, 'Add to skimmer', 'Re-test in 5 days'] })
-  } else if (test.cya < 30) {
-    const dose = ((40 - test.cya) / 10) * 1.3 * v
-    recs.push({ status: 'monitor', param: 'cya', title: 'Cyanuric Acid (CYA) slightly low', desc: `CYA at ${test.cya} ppm. Cyanuric Acid protects chlorine from UV — a small dose will keep your chlorine from burning off in sunlight.`, tags: [`Cyanuric Acid · ${oz(dose, 'lbs')}`, 'Monitor weekly'] })
-  } else if (test.cya > 80) {
+  else if (test.cya < R_cya.actionLow) {
+    const dose = ((isSalt ? 75 : 40) - test.cya) / 10 * 1.3 * v
+    recs.push({ status: 'action', param: 'cya', title: isSalt ? 'CYA too low for salt pool' : 'Cyanuric Acid (CYA) too low', desc: isSalt
+      ? `CYA at ${test.cya} ppm — too low for a salt pool. Salt generators need 70–80 ppm CYA or UV sunlight burns off chlorine faster than the cell can produce it, forcing the cell to work overtime.`
+      : `CYA at ${test.cya} ppm — too low. UV sunlight burns off chlorine within hours without adequate stabilizer.`,
+      tags: [`Cyanuric Acid · ${oz(dose, 'lbs')}`, 'Add to skimmer', `Re-test in 5 days`, `Target: ${cyaIdeal}`] })
+  } else if (test.cya < R_cya.monLow) {
+    const dose = ((isSalt ? 75 : 40) - test.cya) / 10 * 1.3 * v
+    recs.push({ status: 'monitor', param: 'cya', title: isSalt ? 'CYA slightly low for salt pool' : 'Cyanuric Acid (CYA) slightly low', desc: isSalt
+      ? `CYA at ${test.cya} ppm. Salt pools target 70–80 ppm — a top-up will help your generator work more efficiently.`
+      : `CYA at ${test.cya} ppm. A small stabilizer dose will protect chlorine from UV.`,
+      tags: [`Cyanuric Acid · ${oz(dose, 'lbs')}`, 'Monitor weekly'] })
+  } else if (test.cya > R_cya.actionHigh) {
     recs.push({ status: 'action', param: 'cya', title: 'CYA too high — dilute', desc: `CYA at ${test.cya} ppm. High stabilizer blocks chlorine from working (chlorine lock). Drain and refill 20–30% of the pool.`, tags: ['Partial drain & refill', 'No chemical fix', 'Re-test after refill'] })
-  } else if (test.cya > 60) {
-    recs.push({ status: 'monitor', param: 'cya', title: 'Cyanuric Acid (CYA) slightly elevated', desc: `CYA at ${test.cya} ppm. Dilute by replacing ~10% of pool water over the next week.`, tags: ['Monitor weekly'] })
+  } else if (test.cya > R_cya.monHigh) {
+    recs.push({ status: 'monitor', param: 'cya', title: isSalt ? 'CYA slightly above salt pool target' : 'Cyanuric Acid slightly elevated', desc: isSalt
+      ? `CYA at ${test.cya} ppm is slightly above the 70–80 ppm salt pool target. Avoid dichlor shock — use liquid chlorine for any manual additions.`
+      : `CYA at ${test.cya} ppm. Dilute by replacing ~10% of pool water over the next week.`,
+      tags: ['Monitor weekly'] })
   } else {
-    recs.push({ status: 'good', param: 'cya', title: 'Cyanuric Acid (CYA) in range', desc: `CYA at ${test.cya} ppm. Cyanuric Acid (CYA) is your pool's stabilizer — it protects chlorine from being broken down by UV sunlight. Your chlorine is well-shielded.`, tags: [] })
+    recs.push({ status: 'good', param: 'cya', title: 'Cyanuric Acid (CYA) in range', desc: isSalt
+      ? `CYA at ${test.cya} ppm — right in the 70–80 ppm target for salt pools. Your generator's chlorine output is well-protected from UV.`
+      : `CYA at ${test.cya} ppm. Your chlorine is well-shielded from UV sunlight.`,
+      tags: [] })
   }
 
-  // Calcium Hardness
+  // ── Calcium Hardness ─────────────────────────────────────────────────────────
+  const R_ca = isSalt ? SALT_RANGES.ca : CHLORINE_RANGES.ca
   if (test.calcium_hardness === null) { recs.push(MISSING.calcium_hardness) }
-  else if (test.calcium_hardness < 150) {
-    const dose = ((200 - test.calcium_hardness) / 10) * 1.25 * v
-    recs.push({ status: 'action', param: 'calcium', title: 'Raise calcium hardness', desc: `Calcium at ${test.calcium_hardness} ppm — too low. Soft water etches plaster and corrodes equipment.`, tags: [`Calcium Chloride · ${oz(dose, 'lbs')}`, 'Add in small doses', 'Re-test next day'] })
-  } else if (test.calcium_hardness < 200) {
-    const dose = ((200 - test.calcium_hardness) / 10) * 1.25 * v
+  else if (test.calcium_hardness < R_ca.actionLow) {
+    const dose = ((R_ca.monLow - test.calcium_hardness) / 10) * 1.25 * v
+    recs.push({ status: 'action', param: 'calcium', title: 'Raise calcium hardness', desc: `Calcium at ${test.calcium_hardness} ppm — too low. Soft water etches plaster and corrodes equipment.${isSalt ? ' Low calcium also damages the salt cell.' : ''}`, tags: [`Calcium Chloride · ${oz(dose, 'lbs')}`, 'Add in small doses', 'Re-test next day'] })
+  } else if (test.calcium_hardness < R_ca.monLow) {
+    const dose = ((R_ca.monLow - test.calcium_hardness) / 10) * 1.25 * v
     recs.push({ status: 'monitor', param: 'calcium', title: 'Calcium slightly low', desc: `Calcium at ${test.calcium_hardness} ppm. A small dose will protect your pool surface.`, tags: [`Calcium Chloride · ${oz(dose, 'lbs')}`, 'Monitor monthly'] })
-  } else if (test.calcium_hardness > 600) {
-    recs.push({ status: 'action', param: 'calcium', title: 'Calcium high — scale risk', desc: `Calcium at ${test.calcium_hardness} ppm. Start with a sequestering agent to keep calcium in solution. In hard water areas, draining helps but tap water refills much of what you remove — sequestering is the more practical long-term fix.`, tags: [] })
-  } else if (test.calcium_hardness > 400) {
-    recs.push({ status: 'monitor', param: 'calcium', title: 'Calcium elevated — common in hard water', desc: `Calcium at ${test.calcium_hardness} ppm. In hard water regions this is expected. Keep pH at the lower end (7.2–7.4) to reduce scale risk. No drain needed at this level.`, tags: ['Monitor monthly'] })
+  } else if (test.calcium_hardness > R_ca.actionHigh) {
+    recs.push({ status: 'action', param: 'calcium', title: isSalt ? 'Calcium high — cell scale risk' : 'Calcium high — scale risk', desc: `Calcium at ${test.calcium_hardness} ppm.${isSalt ? ' Calcium scale on the salt cell reduces chlorine output and shortens cell life.' : ''} Use a sequestering agent to keep calcium in solution. In hard water areas, draining helps but the replacement water refills much of what you remove — sequestering is the more practical long-term fix.`, tags: [] })
+  } else if (test.calcium_hardness > R_ca.monHigh) {
+    recs.push({ status: 'monitor', param: 'calcium', title: isSalt ? 'Calcium above salt pool target' : 'Calcium elevated — common in hard water', desc: isSalt
+      ? `Calcium at ${test.calcium_hardness} ppm is above the 200–350 ppm salt pool target. Keep pH at 7.2–7.4 to slow scale formation on the cell. Inspect cell every 3 months.`
+      : `Calcium at ${test.calcium_hardness} ppm. In hard water regions this is expected. Keep pH at the lower end (7.2–7.4) to reduce scale risk.`,
+      tags: ['Monitor monthly'] })
   } else {
-    recs.push({ status: 'good', param: 'calcium', title: 'Calcium hardness good', desc: `Calcium at ${test.calcium_hardness} ppm. Your pool surface and equipment are well protected.`, tags: [] })
+    recs.push({ status: 'good', param: 'calcium', title: 'Calcium hardness good', desc: `Calcium at ${test.calcium_hardness} ppm. Your pool surface and equipment are well protected.${isSalt ? ' Salt cell scale risk is low at this level.' : ''}`, tags: [] })
+  }
+
+  // ── Salt Level (salt pools only) ─────────────────────────────────────────────
+  if (isSalt) {
+    if (test.salt === null) {
+      recs.push({ status: 'unknown', param: 'salt', title: 'Salt level not tested', desc: 'Salt level directly controls your generator\'s chlorine output. Too low and the cell underperforms or shuts off. Too high and equipment can corrode. Test monthly and after adding water.', tags: ['Ideal: 2700–3400 ppm', 'Test monthly'] })
+    } else if (test.salt < 2400) {
+      const saltNeeded = Math.round(((2700 - test.salt) / 1000) * (volumeGallons / 1000) * 8.34)
+      recs.push({ status: 'action', param: 'salt', title: 'Salt level too low — add pool salt', desc: `Salt at ${test.salt} ppm is below the minimum for most salt generators. Your SWG is likely underperforming or showing a low-salt alarm. Add approximately ${saltNeeded} lbs of pool-grade salt.`, tags: [`Pool Salt · ~${saltNeeded} lbs`, 'Re-test after 24 hours'] })
+    } else if (test.salt < 2700) {
+      const saltNeeded = Math.round(((2700 - test.salt) / 1000) * (volumeGallons / 1000) * 8.34)
+      recs.push({ status: 'monitor', param: 'salt', title: 'Salt slightly low', desc: `Salt at ${test.salt} ppm is slightly below the 2700–3400 ppm ideal. A small top-up will keep the generator running at full efficiency.`, tags: [`Pool Salt · ~${saltNeeded} lbs`, 'Monitor monthly'] })
+    } else if (test.salt > 3800) {
+      recs.push({ status: 'action', param: 'salt', title: 'Salt too high — dilute', desc: `Salt at ${test.salt} ppm is too high. Excessive salt can cause corrosion on pool equipment and reduces SWG efficiency. Drain 10–20% of the pool and refill with fresh water.`, tags: ['Partial drain & refill', 'Re-test after 24 hours'] })
+    } else if (test.salt > 3400) {
+      recs.push({ status: 'monitor', param: 'salt', title: 'Salt slightly elevated', desc: `Salt at ${test.salt} ppm is slightly above the 2700–3400 ppm ideal. Normal evaporation and splash-out will bring it down over time. No action needed unless it climbs above 3800 ppm.`, tags: ['Monitor monthly'] })
+    } else {
+      recs.push({ status: 'good', param: 'salt', title: 'Salt level is perfect', desc: `Salt at ${test.salt} ppm — right in the 2700–3400 ppm ideal range. Your generator has everything it needs to run at full efficiency.`, tags: [] })
+    }
   }
 
   const actionCount = recs.filter(r => r.status === 'action').length
   const monitorCount = recs.filter(r => r.status === 'monitor').length
-  // Unknown (untested) params reduce score — you can't claim a perfect pool without a complete picture.
-  // Salt is optional (salt pools only) so excluded from the penalty.
-  const unknownCount = recs.filter(r => r.status === 'unknown' && r.param !== 'salt').length
+  // Unknown (untested) params reduce score.
+  // For salt pools, salt itself is required — not optional.
+  // For non-salt pools, the salt field is excluded from penalty.
+  const unknownCount = recs.filter(r => r.status === 'unknown' && (isSalt || r.param !== 'salt')).length
   const health_score = Math.max(10, 100 - actionCount * 18 - monitorCount * 6 - unknownCount * 8)
 
-  const treatment_plan = buildTreatmentPlan(test, v)
-  const maintenance = generateMaintenance(test)
+  const treatment_plan = buildTreatmentPlan(test, v, isSalt)
+  const maintenance = generateMaintenance(test, isSalt)
 
   return {
     health_score,

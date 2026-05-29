@@ -24,7 +24,15 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Missing pool info' }, { status: 400 })
   }
 
-  const result = calculateRecommendations(testInput, volumeGallons)
+  // Fetch pool type so recommendations can use salt-pool-specific ranges and advice
+  const { data: poolRow } = await adminClient
+    .from('pools')
+    .select('type')
+    .eq('id', poolId)
+    .single()
+  const poolType: string = poolRow?.type ?? 'inground'
+
+  const result = calculateRecommendations(testInput, volumeGallons, poolType)
   console.log('[/api/log] health_score:', result.health_score, 'actions:', result.action.length, 'monitors:', result.monitor.length)
 
   const { error } = await adminClient.from('test_results').insert({
