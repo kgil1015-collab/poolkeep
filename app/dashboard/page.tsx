@@ -452,9 +452,9 @@ export default function DashboardPage() {
               </div>
               {unknownCount > 0 && score !== null && (
                 <button onClick={() => router.push('/log')} className="text-center mt-2 px-6 leading-snug hover:opacity-90 transition-opacity">
-                  <span className="text-xs" style={{color:'rgba(255,255,255,0.72)'}}>
+                  <span className="text-xs" style={{color:'rgba(255,255,255,0.55)'}}>
                     Based on {testedCount} of 5 parameters —{' '}
-                    <span style={{color:'rgba(255,255,255,0.92)', textDecoration:'underline', textUnderlineOffset:3}}>tap to log more →</span>
+                    <span style={{color:'#00E0B0', textDecoration:'underline', textUnderlineOffset:3}}>tap to log more →</span>
                   </span>
                 </button>
               )}
