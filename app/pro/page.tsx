@@ -156,7 +156,24 @@ export default function ProPage() {
           </button>
         </div>
         <div className="relative">
-          <p className="text-white/50 text-xs font-semibold uppercase tracking-widest mb-1">{isPro ? 'Your Plan' : 'Upgrade'}</p>
+          {isPro ? (
+            <p className="text-white/50 text-xs font-semibold uppercase tracking-widest mb-1">Your Plan</p>
+          ) : (
+            /* Free → Pro upgrade path shown right in the header */
+            <div className="flex items-center gap-2 mb-3">
+              <span className="text-[11px] font-bold px-2.5 py-1.5 rounded-full"
+                style={{background:'rgba(255,255,255,0.08)', color:'rgba(255,255,255,0.50)', border:'1px solid rgba(255,255,255,0.12)'}}>
+                Free Plan
+              </span>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.25)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="9 18 15 12 9 6"/>
+              </svg>
+              <span className="text-[11px] font-bold px-2.5 py-1.5 rounded-full"
+                style={{background:'rgba(0,224,176,0.18)', color:'#00E0B0', border:'1px solid rgba(0,224,176,0.30)'}}>
+                Pro
+              </span>
+            </div>
+          )}
           <div className="flex items-center gap-2.5 mb-1">
             <h1 className="text-white text-2xl font-bold" style={{fontFamily:"'Oswald',sans-serif",letterSpacing:'-.01em'}}>PoolKeep Pro</h1>
             {/* Diamond */}
@@ -276,15 +293,6 @@ export default function ProPage() {
           </>
         ) : (
           <>
-            {/* Current plan */}
-            <div className="bg-white rounded-2xl px-4 py-3 shadow-sm border border-gray-100 flex items-center justify-between">
-              <div>
-                <p className="text-xs font-bold uppercase tracking-widest text-text-muted">Your current plan</p>
-                <p className="text-sm font-bold text-text-primary mt-0.5">Free</p>
-              </div>
-              <span className="text-[11px] font-bold uppercase tracking-widest px-3 py-1 rounded-full" style={{background:'#F0F6FA',color:'#8AAABB'}}>Free</span>
-            </div>
-
             {/* Plans — each card has its own CTA */}
             <div className="space-y-3">
 
