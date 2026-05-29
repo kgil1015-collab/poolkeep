@@ -27,6 +27,7 @@ export type TreatmentStep = {
   how: string
   lookFor: string
   note?: string
+  waitAfter?: string | null   // timing guidance before starting the next step
 }
 
 export type MaintenanceTip = {
@@ -544,7 +545,32 @@ function buildTreatmentPlan(test: TestInput, v: number, isSalt: boolean): Treatm
     else if (order === 4 && step.chemical === null) when = 'plan-ahead'
     else if (order === 4) when = 'this-week'
     else when = step.chemical === null ? 'plan-ahead' : 'this-week'
-    return { ...step, step: i + 1, when }
+
+    // Timing guidance shown between this step and the next in the treatment plan
+    let waitAfter: string | null = null
+    if (step.chemical !== null) {
+      if (order === 0) {
+        // Shock: timing already fully explained in lookFor — no inter-step connector needed
+        waitAfter = null
+      } else if (order === 1) {
+        // Alkalinity adjustment — needs to circulate before pH will hold
+        waitAfter = 'Wait 4–6 hours for this to circulate, then retest alkalinity before the next step'
+      } else if (order === 2) {
+        // pH adjustment — needs to fully mix before it reads accurately
+        waitAfter = 'Wait 4–6 hours for pH to stabilize, then retest before proceeding'
+      } else if (order === 3) {
+        // Chlorine top-up — short wait
+        waitAfter = 'Retest in 1–4 hours (liquid chlorine) or next morning (granular)'
+      } else if (order === 4) {
+        // CYA dissolves very slowly
+        waitAfter = 'CYA takes 5–7 days to fully dissolve — do not retest until then'
+      } else if (order === 5) {
+        // Calcium
+        waitAfter = 'Wait 24 hours, then retest before adding more'
+      }
+    }
+
+    return { ...step, step: i + 1, when, waitAfter }
   })
 }
 

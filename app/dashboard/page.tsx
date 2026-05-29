@@ -1,6 +1,6 @@
 ﻿'use client'
 
-import { useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 
@@ -635,8 +635,8 @@ export default function DashboardPage() {
                             </div>
                             {gi < groups.length - 1 && <div className="h-px flex-1 bg-gray-100" />}
                           </div>
-                          <div className="space-y-3 pl-5 border-l-2" style={{borderColor: group.meta.color + '30'}}>
-                            {group.steps.map(step => {
+                          <div className="pl-5 border-l-2" style={{borderColor: group.meta.color + '30'}}>
+                            {group.steps.map((step, si) => {
                               const stepColor = step.step === 1
                                 ? '#DC2626' : step.step === 2
                                 ? '#EA580C' : '#D97706'
@@ -657,7 +657,8 @@ export default function DashboardPage() {
                               })()
 
                               return (
-                                <div key={step.step} className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                                <React.Fragment key={step.step}>
+                                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mb-3">
                                   {/* Compact always-visible header */}
                                   <div className="px-4 pt-3.5 pb-3 flex items-start gap-3">
                                     <div className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 font-bold text-sm text-white mt-0.5" style={{background: stepColor, fontFamily:"'Oswald',sans-serif"}}>
@@ -783,6 +784,19 @@ export default function DashboardPage() {
                                     </div>
                                   )}
                                 </div>
+
+                                {/* Inter-step wait connector */}
+                                {si < group.steps.length - 1 && step.waitAfter && (
+                                  <div className="flex items-center gap-2.5 px-3 py-2.5 mb-3 rounded-xl" style={{background:'rgba(0,120,184,0.05)', border:'1px dashed rgba(0,120,184,0.18)'}}>
+                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#0078B8" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
+                                      <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+                                    </svg>
+                                    <p className="text-[11px] font-medium leading-snug" style={{color:'#3A6A8A'}}>
+                                      {step.waitAfter}
+                                    </p>
+                                  </div>
+                                )}
+                                </React.Fragment>
                               )
                             })}
                           </div>
