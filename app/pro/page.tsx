@@ -159,19 +159,23 @@ export default function ProPage() {
           {isPro ? (
             <p className="text-white/50 text-xs font-semibold uppercase tracking-widest mb-1">Your Plan</p>
           ) : (
-            /* Free → Pro upgrade path shown right in the header */
-            <div className="flex items-center gap-2 mb-3">
-              <span className="text-[11px] font-bold px-2.5 py-1.5 rounded-full"
-                style={{background:'rgba(255,255,255,0.08)', color:'rgba(255,255,255,0.50)', border:'1px solid rgba(255,255,255,0.12)'}}>
-                Free Plan
-              </span>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.25)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="9 18 15 12 9 6"/>
-              </svg>
-              <span className="text-[11px] font-bold px-2.5 py-1.5 rounded-full"
-                style={{background:'rgba(0,224,176,0.18)', color:'#00E0B0', border:'1px solid rgba(0,224,176,0.30)'}}>
-                Pro
-              </span>
+            /* Current plan + upgrade call-to-action in the header */
+            <div className="mb-3">
+              {/* Row 1: Current plan */}
+              <div className="flex items-center gap-2 mb-1.5">
+                <p className="text-white/45 text-xs font-semibold">Current plan:</p>
+                <span className="text-xs font-bold text-white px-2.5 py-1 rounded-full"
+                  style={{background:'rgba(255,255,255,0.12)', border:'1px solid rgba(255,255,255,0.18)'}}>
+                  Free
+                </span>
+              </div>
+              {/* Row 2: Upgrade prompt */}
+              <div className="flex items-center gap-1.5">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#00E0B0" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/>
+                </svg>
+                <p className="text-sm font-bold" style={{color:'#00E0B0'}}>Upgrade to Pro</p>
+              </div>
             </div>
           )}
           <div className="flex items-center gap-2.5 mb-1">
