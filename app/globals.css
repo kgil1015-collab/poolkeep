@@ -43,22 +43,16 @@ body {
   to   { transform: translateX(-50%); }
 }
 
-/* Health score ring draw */
-@keyframes ringDraw {
-  from { stroke-dashoffset: 352; }  /* circumference ≈ 351.9 */
-  to   { stroke-dashoffset: 0; }
+/* Wave at the health-score water surface (fixed 112px period) */
+@keyframes waveSurface {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-112px); }
 }
 
 /* Score number springs in */
 @keyframes scoreSpring {
   from { transform: scale(0.55); opacity: 0; }
   to   { transform: scale(1);    opacity: 1; }
-}
-
-/* Excellent-score glow pulse on the ring */
-@keyframes ringGlow {
-  0%, 100% { opacity: 0.08; }
-  50%       { opacity: 0.28; }
 }
 
 /* Light-through-water shimmer sweep across the header */

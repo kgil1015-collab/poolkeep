@@ -1,6 +1,6 @@
 ﻿'use client'
 
-import React, { useEffect, useState, useRef } from 'react'
+import React, { useEffect, useState } from 'react'
 import WaveDivider from '@/app/components/WaveDivider'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
@@ -147,8 +147,8 @@ export default function DashboardPage() {
   const [showToast, setShowToast] = useState(false)
   const [showUpgradeToast, setShowUpgradeToast] = useState(false)
   const [expandedSteps, setExpandedSteps] = useState<Set<number>>(new Set())
-  // Animated arc length for the health-score ring (starts at 0 → animates to target)
-  const [displayArc, setDisplayArc] = useState(0)
+  // Animated score for the water-fill health indicator (0 → actual score)
+  const [displayScore, setDisplayScore] = useState(0)
 
   useEffect(() => {
     if (sessionStorage.getItem('poolkeep_just_logged')) {
@@ -187,13 +187,12 @@ export default function DashboardPage() {
     })
   }, [router])
 
-  // Animate score ring draw whenever the test result changes
+  // Animate water level rising whenever the test result changes
   useEffect(() => {
-    if (!lastTest) { setDisplayArc(0); return }
+    if (!lastTest) { setDisplayScore(0); return }
     const score = computeScore(lastTest.recommendations)
-    const circ = 2 * Math.PI * 56
-    setDisplayArc(0)
-    const t = setTimeout(() => setDisplayArc((score / 100) * circ), 120)
+    setDisplayScore(0)
+    const t = setTimeout(() => setDisplayScore(score), 120)
     return () => clearTimeout(t)
   }, [lastTest])
 
@@ -365,7 +364,7 @@ export default function DashboardPage() {
           )}
         </div>
 
-        {/* Health score — clean water-toned ring */}
+        {/* Health score — water fill: rises from bottom like a pool */}
         {(() => {
           const score = lastTest ? computeScore(lastTest.recommendations) : null
           const { color, glow } = statusAccent(score)
@@ -373,41 +372,70 @@ export default function DashboardPage() {
             ? lastTest.recommendations.unknown.filter(u => u.param !== 'salt').length
             : 0
           const testedCount = 5 - unknownCount
-          const circumference = 2 * Math.PI * 56
-          const arcLength = score !== null ? (score / 100) * circumference : 0
+
+          // Water fill geometry: circle cx=76 cy=76 r=56 → spans y 20→132 (dia=112)
+          // translateY shifts the water block down; CSS transition makes it rise
+          const fillH = score !== null ? Math.round(112 * displayScore / 100) : 0
+          const offsetY = 112 - fillH
+
+          // Colour shifts teal when pool is excellent
+          const excellent = score !== null && score >= 90
+          const waterDeep = excellent ? 'rgba(0,180,140,0.50)' : 'rgba(0,80,150,0.50)'
+          const waveFront = excellent ? 'rgba(0,224,176,0.72)' : 'rgba(0,168,240,0.72)'
+          const waveBack  = excellent ? 'rgba(0,196,160,0.42)' : 'rgba(0,140,210,0.42)'
 
           return (
             <div className="flex flex-col items-center pb-5">
               <p className="text-white/40 text-[10px] font-bold uppercase tracking-widest mb-3">Health Score</p>
               <div className="relative flex items-center justify-center" style={{width:152, height:152}}>
                 <svg width="152" height="152" viewBox="0 0 152 152" style={{position:'absolute',top:0,left:0}}>
-                  {/* Muted track */}
-                  <circle cx="76" cy="76" r="56" fill="none" stroke="rgba(0,120,184,0.28)" strokeWidth="10"/>
-                  {/* Glow pulse ring — only shown when pool is excellent */}
-                  {score !== null && score >= 90 && (
-                    <circle cx="76" cy="76" r="56" fill="none"
-                      stroke="#00E0B0" strokeWidth="20" strokeLinecap="round"
-                      strokeDasharray={`${displayArc} ${circumference}`}
-                      transform="rotate(-90 76 76)"
-                      style={{ animation: 'ringGlow 2.8s ease-in-out infinite', transition: 'stroke-dasharray 1.4s cubic-bezier(0.4,0,0.2,1)' }}
-                    />
-                  )}
-                  {/* Bright teal score arc — draws in on mount */}
+                  <defs>
+                    <clipPath id="scoreCircleClip">
+                      <circle cx="76" cy="76" r="55"/>
+                    </clipPath>
+                  </defs>
+
+                  {/* Dark navy pool base */}
+                  <circle cx="76" cy="76" r="56" fill="rgba(0,20,45,0.80)" stroke="rgba(0,120,184,0.40)" strokeWidth="2.5"/>
+
+                  {/* Water fill — all clipped to circle */}
                   {score !== null && (
-                    <circle cx="76" cy="76" r="56" fill="none"
-                      stroke="#00E0B0" strokeWidth="10" strokeLinecap="round"
-                      strokeDasharray={`${displayArc} ${circumference}`}
-                      transform="rotate(-90 76 76)"
-                      style={{ transition: 'stroke-dasharray 1.4s cubic-bezier(0.4, 0, 0.2, 1)' }}
-                    />
+                    <g clipPath="url(#scoreCircleClip)">
+                      {/* Bulk water — rises from bottom */}
+                      <rect x="20" y="20" width="112" height="112" fill={waterDeep}
+                        style={{transform:`translateY(${offsetY}px)`, transition:'transform 1.5s cubic-bezier(0.4,0,0.2,1)'}}
+                      />
+                      {/* Wave surface — front layer, scrolls left */}
+                      <g style={{transform:`translateY(${offsetY}px)`, transition:'transform 1.5s cubic-bezier(0.4,0,0.2,1)'}}>
+                        <path
+                          d="M-92,20 Q-64,13 -36,20 Q-8,27 20,20 Q48,13 76,20 Q104,27 132,20 Q160,13 188,20 Q216,27 244,20 Q272,13 300,20 L300,33 L-92,33 Z"
+                          fill={waveFront}
+                          style={{animation:'waveSurface 3s linear infinite'}}
+                        />
+                      </g>
+                      {/* Wave surface — back layer, scrolls right */}
+                      <g style={{transform:`translateY(${offsetY + 5}px)`, transition:'transform 1.5s cubic-bezier(0.4,0,0.2,1)'}}>
+                        <path
+                          d="M-92,20 Q-64,27 -36,20 Q-8,13 20,20 Q48,27 76,20 Q104,13 132,20 Q160,27 188,20 Q216,13 244,20 L244,33 L-92,33 Z"
+                          fill={waveBack}
+                          style={{animation:'waveSurface 4.5s linear infinite reverse'}}
+                        />
+                      </g>
+                    </g>
                   )}
+
+                  {/* Rim ring — drawn on top so it always looks crisp */}
+                  <circle cx="76" cy="76" r="56" fill="none" stroke="rgba(0,120,184,0.45)" strokeWidth="2.5"/>
                 </svg>
-                {/* Score number — springs in */}
+
+                {/* Score number floats above the water */}
                 <div className="relative z-10 flex flex-col items-center">
                   <p
                     key={score}
                     className="text-white font-bold leading-none"
-                    style={{fontSize:68, fontFamily:"'Oswald',sans-serif", letterSpacing:'-3px',
+                    style={{
+                      fontSize:68, fontFamily:"'Oswald',sans-serif", letterSpacing:'-3px',
+                      textShadow:'0 2px 20px rgba(0,0,0,0.6)',
                       animation: score !== null ? 'scoreSpring 0.75s cubic-bezier(0.34,1.56,0.64,1) forwards' : 'none',
                     }}
                   >
