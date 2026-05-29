@@ -141,7 +141,7 @@ function buildTreatmentPlan(test: TestInput, v: number, isSalt: boolean): Treatm
     if (isSalt) {
       // ── Salt pool: SWG boost first, liquid chlorine as emergency backup ──────
       const acidStep = needsAcid
-        ? `Step 1 — Add pH reducer (${acidAmount(acidDose)}) to the deep end with the pump running. Wear gloves and eye protection. Wait 30–60 minutes to circulate.\n\n`
+        ? `Step 1 — Add muriatic acid (${acidAmount(acidDose)}) to the deep end with the pump running. Wear gloves and eye protection. Wait 30–60 minutes to circulate.\n\n`
         : ''
 
       raw.push({
@@ -152,7 +152,7 @@ function buildTreatmentPlan(test: TestInput, v: number, isSalt: boolean): Treatm
           ? 'Lower pH first, then boost your salt generator'
           : 'Boost your salt generator — do not swim yet',
         chemical: needsAcid
-          ? 'pH Reducer (Muriatic Acid or Dry Acid)\nSalt Generator — set to 100% / boost mode'
+          ? 'Muriatic Acid (or Dry Acid · pH Down)\nSalt Generator — set to 100% / boost mode'
           : 'Salt Generator — set to 100% / boost mode',
         amount: needsAcid
           ? `${acidAmount(acidDose)}\nSet SWG to 100% output for 24–48 hours`
@@ -181,12 +181,12 @@ function buildTreatmentPlan(test: TestInput, v: number, isSalt: boolean): Treatm
       const stepChemical = !needsAcid
         ? 'Chlorine'
         : taHigh
-        ? 'pH Reducer (Muriatic Acid or Dry Acid)\nChlorine\nAim pool jets at surface'
-        : 'pH Reducer (Muriatic Acid or Dry Acid)\nChlorine'
+        ? 'Muriatic Acid (or Dry Acid · pH Down)\nChlorine\nAim pool jets at surface'
+        : 'Muriatic Acid (or Dry Acid · pH Down)\nChlorine'
 
       const acidHow = taHigh
-        ? `Step 1 — Add pH reducer (${acidAmount(acidDose)}) to the deep end all at once with the pump running — pouring it concentrated in one spot is what pulls alkalinity down. Wear gloves and eye protection. This dose will also lower your pH. Wait 30–60 minutes for it to circulate.\n\nStep 2 — Brush all pool surfaces — walls, floor, steps, and any corners — before adding shock. Algae and bacteria cling to surfaces and the shock cannot reach what it cannot contact. Brushing knocks it into the water where the chlorine can do its job.\n\nStep 3 — `
-        : `Step 1 — Add pH reducer (${acidAmount(acidDose)}) to the deep end with the pump running. Wear gloves and eye protection. Wait 30–60 minutes for it to fully circulate through the pool.\n\nStep 2 — Brush all pool surfaces — walls, floor, steps, and any corners — before adding shock. Algae and bacteria cling to surfaces and the shock cannot reach what it cannot contact. Brushing knocks it into the water where the chlorine can do its job.\n\nStep 3 — `
+        ? `Step 1 — Add muriatic acid (${acidAmount(acidDose)}) to the deep end all at once with the pump running — pouring it concentrated in one spot is what pulls alkalinity down. Wear gloves and eye protection. This dose will also lower your pH. Wait 30–60 minutes for it to circulate.\n\nStep 2 — Brush all pool surfaces — walls, floor, steps, and any corners — before adding shock. Algae and bacteria cling to surfaces and the shock cannot reach what it cannot contact. Brushing knocks it into the water where the chlorine can do its job.\n\nStep 3 — `
+        : `Step 1 — Add muriatic acid (${acidAmount(acidDose)}) to the deep end with the pump running. Wear gloves and eye protection. Wait 30–60 minutes for it to fully circulate through the pool.\n\nStep 2 — Brush all pool surfaces — walls, floor, steps, and any corners — before adding shock. Algae and bacteria cling to surfaces and the shock cannot reach what it cannot contact. Brushing knocks it into the water where the chlorine can do its job.\n\nStep 3 — `
 
       raw.push({
         order: 0,
@@ -247,7 +247,7 @@ function buildTreatmentPlan(test: TestInput, v: number, isSalt: boolean): Treatm
         urgency: 'soon',
         param: 'alkalinity',
         title: phAlsoHigh ? 'Lower alkalinity and pH' : 'Lower total alkalinity',
-        chemical: 'pH Reducer (Muriatic Acid or Dry Acid / pH Down)',
+        chemical: 'Muriatic Acid (or Dry Acid · pH Down)',
         amount: acidAmount(dose),
         why: phAlsoHigh
           ? `Alkalinity at ${ta} ppm is too high, and your pH at ${ph} is elevated as well — one acid treatment handles both.${isSalt ? ' Salt generators naturally raise pH over time; bringing alkalinity into the tighter 80–100 ppm salt pool range helps moderate future pH swings.' : ''}`
@@ -339,7 +339,7 @@ function buildTreatmentPlan(test: TestInput, v: number, isSalt: boolean): Treatm
         urgency: 'soon',
         param: 'ph',
         title: 'Lower pH',
-        chemical: 'pH Reducer (Muriatic Acid or Dry Acid / pH Down)',
+        chemical: 'Muriatic Acid (or Dry Acid · pH Down)',
         amount: acidAmount(dose),
         why: `pH at ${ph} is too high. At pH 7.8, only about 33% of your chlorine is in its active sanitizing form. Bringing pH down unlocks the full potential of the chlorine${isSalt ? ' your generator is producing' : ' already in your water'}. ${sequenceNote}`,
         how: 'Add to the deep end in the evening with the pump running. Pour slowly in a thin stream along the wall. Wear gloves and eye protection.',
@@ -353,7 +353,7 @@ function buildTreatmentPlan(test: TestInput, v: number, isSalt: boolean): Treatm
         urgency: 'routine',
         param: 'ph',
         title: isSalt ? 'Lower pH — routine for salt pools' : 'Lower pH slightly',
-        chemical: 'pH Reducer (Muriatic Acid or Dry Acid / pH Down)',
+        chemical: 'Muriatic Acid (or Dry Acid · pH Down)',
         amount: acidAmount(dose),
         why: `pH at ${ph} is slightly above the ideal 7.2–7.6 range. Chlorine efficiency starts declining above 7.6 — about 49% of your chlorine is active at 7.5, dropping to 33% by 7.8.${isSalt ? ' Salt generators naturally push pH upward over time — regular small acid additions are a normal part of salt pool maintenance.' : ''}`,
         how: 'Add to the deep end in the evening with the pump running. Pour slowly. Wear gloves.',
@@ -661,10 +661,10 @@ export function calculateRecommendations(
     recs.push({ status: 'monitor', param: 'ph', title: 'pH slightly low', desc: `pH is at ${test.ph}. A small dose of pH Increaser will bring it into range.`, tags: [`pH Increaser (Soda Ash / pH Up) · ${oz(dose, 'oz')}`, 'Monitor daily'] })
   } else if (test.ph > 7.8) {
     const dose = Math.round(v * 26)
-    recs.push({ status: 'action', param: 'ph', title: 'Lower your pH', desc: `pH is at ${test.ph} — too high. Add pH reducer this evening.${isSalt ? ' Salt generators naturally raise pH — regular small acid additions are normal.' : ''}`, tags: [`pH Reducer (Muriatic Acid or Dry Acid) · ${acidAmount(dose)}`, 'Re-test tomorrow'] })
+    recs.push({ status: 'action', param: 'ph', title: 'Lower your pH', desc: `pH is at ${test.ph} — too high. Add muriatic acid this evening.${isSalt ? ' Salt generators naturally raise pH — regular small acid additions are normal.' : ''}`, tags: [`Muriatic Acid (or Dry Acid) · ${acidAmount(dose)}`, 'Re-test tomorrow'] })
   } else if (test.ph > 7.6) {
     const dose = Math.round(v * 13)
-    recs.push({ status: isSalt ? 'action' : 'monitor', param: 'ph', title: isSalt ? 'Lower pH — routine salt pool maintenance' : 'pH slightly high', desc: `pH is at ${test.ph}. A small acid dose will bring it into range.${isSalt ? ' Salt generators push pH upward over time — regular acid additions are a normal part of salt pool maintenance.' : ''}`, tags: [`pH Reducer (Muriatic Acid or Dry Acid) · ${acidAmount(dose)}`, isSalt ? 'Re-test tomorrow' : 'Monitor daily'] })
+    recs.push({ status: isSalt ? 'action' : 'monitor', param: 'ph', title: isSalt ? 'Lower pH — routine salt pool maintenance' : 'pH slightly high', desc: `pH is at ${test.ph}. A small acid dose will bring it into range.${isSalt ? ' Salt generators push pH upward over time — regular acid additions are a normal part of salt pool maintenance.' : ''}`, tags: [`Muriatic Acid (or Dry Acid) · ${acidAmount(dose)}`, isSalt ? 'Re-test tomorrow' : 'Monitor daily'] })
   } else if (test.free_chlorine !== null && test.free_chlorine < 0.5 && test.ph > 7.2) {
     recs.push({ status: 'monitor', param: 'ph', title: 'Lower pH to 7.2 before shocking', desc: `pH at ${test.ph} is in range for normal use, but lower it to 7.2 first — at higher pH most of the shock you add is wasted.`, tags: [] })
   } else {
@@ -687,7 +687,7 @@ export function calculateRecommendations(
       const dose = Math.round(v * dosePerTenK * 2) / 2
       const phNeedsWork = test.ph !== null && test.ph > 7.2
       if (phNeedsWork) {
-        recs.push({ status: 'action', param: 'chlorine', title: 'Chlorine critically low — two steps', desc: `Free chlorine at ${test.free_chlorine} ppm — unsafe for swimming. Step 1: add pH reducer to bring pH to 7.2. Step 2: shock the pool. At pH ${test.ph}, high pH makes most of the shock ineffective — lower it first and the same dose works 2–3× better.`, tags: [] })
+        recs.push({ status: 'action', param: 'chlorine', title: 'Chlorine critically low — two steps', desc: `Free chlorine at ${test.free_chlorine} ppm — unsafe for swimming. Step 1: add muriatic acid to bring pH to 7.2. Step 2: shock the pool. At pH ${test.ph}, high pH makes most of the shock ineffective — lower it first and the same dose works 2–3× better.`, tags: [] })
       } else {
         recs.push({ status: 'action', param: 'chlorine', title: 'Chlorine critically low — shock now', desc: `Free chlorine at ${test.free_chlorine} ppm — unsafe for swimming. Shock the pool this evening.`, tags: [] })
       }
@@ -718,7 +718,7 @@ export function calculateRecommendations(
     recs.push({ status: 'monitor', param: 'alkalinity', title: 'Alkalinity slightly low', desc: `Alkalinity at ${test.total_alkalinity} ppm. A small baking soda dose will stabilize it.`, tags: [`Alkalinity Increaser (Baking Soda) · ${oz(dose, 'lbs')}`, 'Monitor weekly'] })
   } else if (test.total_alkalinity > R.ta.actionHigh) {
     const dose = Math.round(v * 26 * ((test.total_alkalinity - R.ta.monHigh) / 10))
-    recs.push({ status: 'action', param: 'alkalinity', title: 'Lower total alkalinity', desc: `Alkalinity at ${test.total_alkalinity} ppm — too high. Add pH reducer to the deep end, then aim a return jet toward the surface and run 2–4 hours to raise pH back naturally.${isSalt ? ' Target 80–100 ppm for salt pools.' : ''}`, tags: [] })
+    recs.push({ status: 'action', param: 'alkalinity', title: 'Lower total alkalinity', desc: `Alkalinity at ${test.total_alkalinity} ppm — too high. Add muriatic acid to the deep end, then aim a return jet toward the surface and run 2–4 hours to raise pH back naturally.${isSalt ? ' Target 80–100 ppm for salt pools.' : ''}`, tags: [] })
   } else if (test.total_alkalinity > R.ta.monHigh) {
     recs.push({ status: 'monitor', param: 'alkalinity', title: isSalt ? 'Alkalinity above salt pool target' : 'Alkalinity slightly high', desc: `Alkalinity at ${test.total_alkalinity} ppm. Monitor weekly — it will drift down naturally. ${isSalt ? 'Target 80–100 ppm for salt pools.' : ''}`, tags: ['Monitor weekly'] })
   } else {
