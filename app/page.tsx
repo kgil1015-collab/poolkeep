@@ -1,6 +1,43 @@
 import Link from 'next/link'
+import { createClient } from '@supabase/supabase-js'
 
-export default function LandingPage() {
+// Revalidate every hour so the counter stays reasonably fresh without
+// hitting the DB on every page view.
+export const revalidate = 3600
+
+const FOUNDING_TOTAL = 50    // Total founding spots available — keeps urgency high from day one
+const FOUNDING_FLOOR = 3     // Never show fewer than this — avoid showing "0 left"
+
+async function getSpotsLeft(): Promise<number> {
+  try {
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    )
+    const { count } = await supabase
+      .from('profiles')
+      .select('*', { count: 'exact', head: true })
+    const taken = count ?? 0
+    return Math.max(FOUNDING_FLOOR, FOUNDING_TOTAL - taken)
+  } catch {
+    return 147 // safe fallback if DB is unreachable
+  }
+}
+
+function spotsLabel(n: number): string {
+  if (n <= 5)  return `⚠️ Only ${n} founding spots left`
+  if (n <= 15) return `🔥 Almost gone — ${n} spots left`
+  return `🔥 ${n} Founding Spots Left`
+}
+
+function spotsBadgeLabel(n: number): string {
+  if (n <= 5)  return `⚠️ Only ${n} Spots Left`
+  if (n <= 15) return `Hurry — ${n} Spots Left`
+  return `Limited — ${n} Spots Left`
+}
+
+export default async function LandingPage() {
+  const spotsLeft = await getSpotsLeft()
   return (
     <div className="min-h-screen bg-white">
 
@@ -40,7 +77,7 @@ export default function LandingPage() {
         <div className="flex justify-center gap-2 flex-wrap mb-6">
           <span className="bg-white/10 border border-white/20 text-white/85 text-xs font-medium px-3 py-1 rounded-full">✦ Works on Any Phone</span>
           <span className="bg-white/10 border border-white/20 text-white/85 text-xs font-medium px-3 py-1 rounded-full">✦ No Hardware Required</span>
-          <span className="bg-red-500/25 border border-red-400/40 text-white/85 text-xs font-medium px-3 py-1 rounded-full">🔥 73 Founding Spots Left</span>
+          <span className="bg-red-500/25 border border-red-400/40 text-white/85 text-xs font-medium px-3 py-1 rounded-full">{spotsLabel(spotsLeft)}</span>
         </div>
         <h1 className="font-bold tracking-tight leading-tight mb-5" style={{fontFamily:"'Oswald',sans-serif",fontSize:'clamp(42px,7vw,72px)'}}>
           Stop Guessing,<br />Start Swimming.
@@ -124,7 +161,7 @@ export default function LandingPage() {
       <section id="pricing" className="py-16 px-6 bg-white">
         <div className="max-w-2xl mx-auto">
           <div className="text-center mb-10">
-            <span className="inline-block bg-red-50 border border-red-200 text-red-600 text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full mb-4">Limited — 73 Spots Left</span>
+            <span className="inline-block bg-red-50 border border-red-200 text-red-600 text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full mb-4">{spotsBadgeLabel(spotsLeft)}</span>
             <h2 className="text-3xl font-bold tracking-tight" style={{fontFamily:"'Oswald',sans-serif"}}>Lock in the founding rate. Forever.</h2>
             <p className="text-text-muted text-sm mt-3 max-w-md mx-auto">Founding members lock in today&apos;s price for life — even when the price goes up. Start free, upgrade when you&apos;re ready.</p>
           </div>
@@ -357,7 +394,7 @@ export default function LandingPage() {
 
       {/* Final CTA */}
       <section className="bg-pool-deep py-16 px-6 text-center">
-        <div className="inline-block bg-red-500/20 border border-red-400/30 text-white/80 text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full mb-6">73 founding spots remaining</div>
+        <div className="inline-block bg-red-500/20 border border-red-400/30 text-white/80 text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full mb-6">{spotsLabel(spotsLeft)}</div>
         <h2 className="text-3xl font-bold text-white tracking-tight mb-3" style={{fontFamily:"'Oswald',sans-serif"}}>Your pool should be the best part of summer.</h2>
         <p className="text-white/70 mb-2 max-w-md mx-auto">Start free. Lock in $4.99/mo when you upgrade. That rate stays yours forever.</p>
         <p className="text-white/40 text-xs mb-8">Regular price will increase as founding spots fill.</p>

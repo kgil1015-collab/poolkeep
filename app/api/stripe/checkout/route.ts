@@ -59,6 +59,17 @@ export async function POST(req: NextRequest) {
       payment_method_types: ['card'],
       line_items: [
         { price: priceId, quantity: 1 },
+        // Founding members pay a one-time $60 setup fee on top of the $4.99/mo rate.
+        // This is displayed as a separate line item in Stripe Checkout so the user
+        // sees both charges clearly before confirming.
+        ...(founding ? [{
+          price_data: {
+            currency: 'usd' as const,
+            product_data: { name: 'Founding Member — One-Time Access Fee' },
+            unit_amount: 6000,
+          },
+          quantity: 1,
+        }] : []),
       ],
       success_url: `${appUrl}/dashboard?upgraded=1`,
       cancel_url: `${appUrl}/pro`,
