@@ -7,12 +7,12 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 
 const PARAMS = [
-  { key: 'ph',               label: 'pH',                  unit: '',    placeholder: '7.4', min: 0,    max: 14,   step: '0.1', range: '7.2 – 7.6',      hint: '' },
-  { key: 'free_chlorine',    label: 'Free Chlorine',       unit: 'ppm', placeholder: '—',   min: 0,    max: 20,   step: '0.1', range: '1 – 3 ppm',       hint: '' },
-  { key: 'total_alkalinity', label: 'Total Alkalinity',    unit: 'ppm', placeholder: '100', min: 0,    max: 500,  step: '1',   range: '80 – 120 ppm',    hint: '' },
-  { key: 'cya',              label: 'Cyanuric Acid (CYA)', unit: 'ppm', placeholder: '40',  min: 0,    max: 300,  step: '1',   range: '30 – 50 ppm',     hint: '' },
-  { key: 'calcium_hardness', label: 'Calcium Hardness',    unit: 'ppm', placeholder: '300', min: 0,    max: 1000, step: '1',   range: '200 – 400 ppm',   hint: 'Use calcium hardness — not total hardness. Test strips often show total hardness (higher). Use a drop-test or a result from a professional pool retailer for calcium hardness specifically.' },
-  { key: 'salt',             label: 'Salt',                unit: 'ppm', placeholder: '—',   min: 0,    max: 6000, step: '1',   range: '2700 – 3400 ppm', hint: '' },
+  { key: 'ph',               label: 'pH',                  unit: '',    placeholder: '7.4', min: 0,    max: 14,   step: '0.1', range: '7.2 – 7.6',      hint: '',           saltOnly: false },
+  { key: 'free_chlorine',    label: 'Free Chlorine',       unit: 'ppm', placeholder: '—',   min: 0,    max: 20,   step: '0.1', range: '1 – 3 ppm',       hint: '',           saltOnly: false },
+  { key: 'total_alkalinity', label: 'Total Alkalinity',    unit: 'ppm', placeholder: '100', min: 0,    max: 500,  step: '1',   range: '80 – 120 ppm',    hint: '',           saltOnly: false },
+  { key: 'cya',              label: 'Cyanuric Acid (CYA)', unit: 'ppm', placeholder: '40',  min: 0,    max: 300,  step: '1',   range: '30 – 50 ppm',     hint: 'Cyanuric acid (also called stabilizer or conditioner) protects chlorine from sunlight. Found on most liquid test kits and 5-in-1+ test strips. Skip if your kit doesn\'t test for it.', saltOnly: false },
+  { key: 'calcium_hardness', label: 'Calcium Hardness',    unit: 'ppm', placeholder: '300', min: 0,    max: 1000, step: '1',   range: '200 – 400 ppm',   hint: 'Use calcium hardness — not total hardness. Test strips often show total hardness (higher). Use a drop-test kit or a reading from a pool store for calcium hardness specifically.', saltOnly: false },
+  { key: 'salt',             label: 'Salt',                unit: 'ppm', placeholder: '—',   min: 0,    max: 6000, step: '1',   range: '2700 – 3400 ppm', hint: 'Salt pools only. If you have a standard chlorine pool, leave this blank — it won\'t affect your score.', saltOnly: true },
 ]
 
 const FREE_LIMIT = 5
@@ -253,6 +253,18 @@ export default function LogTestPage() {
       {/* Form */}
       <div className="flex-1 px-4 pt-4 pb-10 bg-surface">
         {showNudge && <NudgeBanner count={testCount} />}
+
+        {/* First-timer tip — only shown before the first test is logged */}
+        {testCount === 0 && (
+          <div className="rounded-2xl px-4 py-3.5 mb-4 flex items-start gap-3" style={{background:'rgba(0,120,184,0.06)', border:'1.5px solid rgba(0,120,184,0.15)'}}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0078B8" strokeWidth="2.2" strokeLinecap="round" className="shrink-0 mt-0.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            <div>
+              <p className="text-xs font-bold mb-0.5" style={{color:'#0078B8'}}>Enter the numbers from your test kit or strips</p>
+              <p className="text-[11px] leading-relaxed" style={{color:'#4A7A9A'}}>Only fill in what you tested — you can skip any field. More readings = more accurate score.</p>
+            </div>
+          </div>
+        )}
+
         {error && <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl px-4 py-3 mb-4">{error}</div>}
 
         {/* Salt pool toggle */}
@@ -291,7 +303,10 @@ export default function LogTestPage() {
                     {i + 1}
                   </div>
                   <div>
-                    <p className="text-xs font-bold uppercase tracking-widest mb-0.5" style={{color:'#1A3A4A'}}>{p.label}</p>
+                    <div className="flex items-center gap-2 mb-0.5">
+                      <p className="text-xs font-bold uppercase tracking-widest" style={{color:'#1A3A4A'}}>{p.label}</p>
+                      {p.saltOnly && <span className="text-[9px] font-bold uppercase tracking-widest px-1.5 py-0.5 rounded-full" style={{background:'rgba(0,120,184,0.08)',color:'#5A8AA0'}}>Salt pools only</span>}
+                    </div>
                     <p className="text-[10px] font-medium" style={{color:'#5A7A8A'}}>{p.range}</p>
                     {p.hint && <p className="text-[10px] leading-snug mt-0.5" style={{color:'#B97A00'}}>{p.hint}</p>}
                   </div>
