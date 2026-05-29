@@ -6,6 +6,13 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 
+const POOL_TYPES = [
+  { id: 'inground',     label: 'In-Ground',      sub: 'Standard chlorine in-ground pool' },
+  { id: 'saltwater',   label: 'Salt Water',      sub: 'Salt chlorine generator (SWG) pool' },
+  { id: 'above_ground',label: 'Above-Ground',    sub: 'Above-ground or semi-inground' },
+  { id: 'spa',         label: 'Spa / Hot Tub',   sub: 'Spa, hot tub, or plunge pool' },
+]
+
 const SIZES = [
   { label: 'Small',       sub: '~10,000 gal', value: 10000 },
   { label: 'Medium',      sub: '~15,000 gal', value: 15000 },
@@ -17,6 +24,7 @@ export default function EditPoolPage() {
   const router = useRouter()
   const [poolId, setPoolId] = useState<string | null>(null)
   const [poolName, setPoolName] = useState('')
+  const [poolType, setPoolType] = useState('')
   const [volumeGallons, setVolumeGallons] = useState<number | null>(null)
   const [customVolume, setCustomVolume] = useState('')
   const [loading, setLoading] = useState(true)
@@ -32,13 +40,14 @@ export default function EditPoolPage() {
 
       const { data: pool } = await supabase
         .from('pools')
-        .select('id,name,volume_gallons')
+        .select('id,name,type,volume_gallons')
         .eq('id', savedId)
         .single()
 
       if (!pool) { router.push('/dashboard'); return }
       setPoolId(pool.id)
       setPoolName(pool.name ?? '')
+      setPoolType(pool.type ?? 'inground')
 
       const matchedSize = SIZES.find(s => s.value === pool.volume_gallons)
       if (matchedSize) {
@@ -60,7 +69,7 @@ export default function EditPoolPage() {
     const supabase = createClient()
     const { error: dbError } = await supabase
       .from('pools')
-      .update({ name: poolName.trim(), volume_gallons: volume })
+      .update({ name: poolName.trim(), type: poolType, volume_gallons: volume })
       .eq('id', poolId!)
 
     setSaving(false)
@@ -125,6 +134,33 @@ export default function EditPoolPage() {
             placeholder="Backyard Pool"
             className="w-full text-sm outline-none text-text-primary bg-transparent border-b border-gray-100 pb-2 focus:border-pool-dark transition-colors"
           />
+        </div>
+
+        {/* Pool Type */}
+        <div>
+          <p className="text-xs font-bold uppercase tracking-widest mb-2 px-1" style={{color:'#1A3A4A'}}>Pool Type</p>
+          <div className="space-y-2">
+            {POOL_TYPES.map(t => {
+              const active = poolType === t.id
+              return (
+                <button
+                  key={t.id}
+                  onClick={() => setPoolType(t.id)}
+                  className="w-full bg-white rounded-2xl p-3.5 flex items-center justify-between text-left border-2 transition-all shadow-sm"
+                  style={{borderColor: active ? '#0078B8' : '#E8F0F6'}}
+                >
+                  <div>
+                    <p className="font-semibold text-text-primary text-sm">{t.label}</p>
+                    <p className="text-text-muted text-xs mt-0.5">{t.sub}</p>
+                  </div>
+                  <div className="w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 ml-3 transition-all"
+                    style={{borderColor: active ? '#0078B8' : '#D1D9DD', background: active ? '#0078B8' : 'transparent'}}>
+                    {active && <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>}
+                  </div>
+                </button>
+              )
+            })}
+          </div>
         </div>
 
         {/* Size */}

@@ -7,7 +7,8 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 
 const POOL_TYPES = [
-  { id: 'inground', label: 'In-Ground', sub: 'Standard in-ground pool' },
+  { id: 'inground', label: 'In-Ground', sub: 'Standard chlorine in-ground pool' },
+  { id: 'saltwater', label: 'Salt Water', sub: 'Salt chlorine generator (SWG) pool' },
   { id: 'above_ground', label: 'Above-Ground', sub: 'Above-ground or semi-inground' },
   { id: 'spa', label: 'Spa / Hot Tub', sub: 'Spa, hot tub, or plunge pool' },
 ]
