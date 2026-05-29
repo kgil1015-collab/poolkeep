@@ -5,6 +5,7 @@ export const dynamic = 'force-dynamic'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
+import WaveDivider from '@/app/components/WaveDivider'
 
 type TestResult = {
   id: string
@@ -141,7 +142,7 @@ export default function HistoryPage() {
           <div className="h-7 w-32 rounded-full bg-white/20 mb-1" />
           <div className="h-3 w-20 rounded-full bg-white/15" />
         </div>
-        <div className="bg-pool-deep"><svg viewBox="0 0 480 32" className="w-full block"><path d="M0,28 C160,30 300,6 480,12 L480,32 L0,32 Z" fill="#F0F6FA"/></svg></div>
+        <WaveDivider />
         <div className="px-4 pt-3 pb-1 flex gap-2 animate-pulse">
           <div className="flex-1 h-9 rounded-xl bg-white shadow-sm" />
           <div className="flex-1 h-9 rounded-xl bg-white shadow-sm" />
@@ -177,11 +178,7 @@ export default function HistoryPage() {
       </div>
 
       {/* Wave */}
-      <div className="bg-pool-deep">
-        <svg viewBox="0 0 480 32" xmlns="http://www.w3.org/2000/svg" className="w-full block" style={{display:'block',marginBottom:-1}}>
-          <path d="M0,28 C160,30 300,6 480,12 L480,32 L0,32 Z" fill="#F0F6FA"/>
-        </svg>
-      </div>
+      <WaveDivider />
 
       {/* Tab switcher */}
       <div className="bg-surface px-4 pt-3 pb-1 flex gap-2">

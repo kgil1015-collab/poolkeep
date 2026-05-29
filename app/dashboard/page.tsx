@@ -1,6 +1,7 @@
 ﻿'use client'
 
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useRef } from 'react'
+import WaveDivider from '@/app/components/WaveDivider'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 
@@ -146,6 +147,8 @@ export default function DashboardPage() {
   const [showToast, setShowToast] = useState(false)
   const [showUpgradeToast, setShowUpgradeToast] = useState(false)
   const [expandedSteps, setExpandedSteps] = useState<Set<number>>(new Set())
+  // Animated arc length for the health-score ring (starts at 0 → animates to target)
+  const [displayArc, setDisplayArc] = useState(0)
 
   useEffect(() => {
     if (sessionStorage.getItem('poolkeep_just_logged')) {
@@ -183,6 +186,16 @@ export default function DashboardPage() {
       setLoading(false)
     })
   }, [router])
+
+  // Animate score ring draw whenever the test result changes
+  useEffect(() => {
+    if (!lastTest) { setDisplayArc(0); return }
+    const score = computeScore(lastTest.recommendations)
+    const circ = 2 * Math.PI * 56
+    setDisplayArc(0)
+    const t = setTimeout(() => setDisplayArc((score / 100) * circ), 120)
+    return () => clearTimeout(t)
+  }, [lastTest])
 
   async function handleSignOut() {
     const supabase = createClient()
@@ -231,7 +244,7 @@ export default function DashboardPage() {
             <div className="h-4 w-32 rounded-full bg-white/15" />
           </div>
         </div>
-        <div className="bg-pool-deep"><svg viewBox="0 0 480 32" className="w-full block"><path d="M0,28 C160,30 300,6 480,12 L480,32 L0,32 Z" fill="#F0F6FA"/></svg></div>
+        <WaveDivider />
         <div className="flex-1 px-4 pt-4 pb-24 animate-pulse space-y-3">
           <div className="h-20 rounded-2xl bg-white shadow-sm" />
           <div className="space-y-2">
@@ -255,6 +268,14 @@ export default function DashboardPage() {
         {lastTest && (
           <div className="absolute inset-0 pointer-events-none" style={{background: statusAccent(computeScore(lastTest.recommendations)).overlay}} />
         )}
+        {/* Light-through-water shimmer */}
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background: 'linear-gradient(115deg, transparent 35%, rgba(255,255,255,0.06) 50%, transparent 65%)',
+            animation: 'headerShimmer 9s ease-in-out infinite',
+          }}
+        />
         <div className="flex items-center justify-between mb-5">
           <div className="flex items-center gap-2">
             <svg viewBox="28 8 144 175" width="16" height="22" xmlns="http://www.w3.org/2000/svg">
@@ -360,20 +381,36 @@ export default function DashboardPage() {
               <p className="text-white/40 text-[10px] font-bold uppercase tracking-widest mb-3">Health Score</p>
               <div className="relative flex items-center justify-center" style={{width:152, height:152}}>
                 <svg width="152" height="152" viewBox="0 0 152 152" style={{position:'absolute',top:0,left:0}}>
-                  {/* Muted track — visible pool blue so unfilled portion reads clearly */}
+                  {/* Muted track */}
                   <circle cx="76" cy="76" r="56" fill="none" stroke="rgba(0,120,184,0.28)" strokeWidth="10"/>
-                  {/* Bright teal score arc */}
+                  {/* Glow pulse ring — only shown when pool is excellent */}
+                  {score !== null && score >= 90 && (
+                    <circle cx="76" cy="76" r="56" fill="none"
+                      stroke="#00E0B0" strokeWidth="20" strokeLinecap="round"
+                      strokeDasharray={`${displayArc} ${circumference}`}
+                      transform="rotate(-90 76 76)"
+                      style={{ animation: 'ringGlow 2.8s ease-in-out infinite', transition: 'stroke-dasharray 1.4s cubic-bezier(0.4,0,0.2,1)' }}
+                    />
+                  )}
+                  {/* Bright teal score arc — draws in on mount */}
                   {score !== null && (
                     <circle cx="76" cy="76" r="56" fill="none"
                       stroke="#00E0B0" strokeWidth="10" strokeLinecap="round"
-                      strokeDasharray={`${arcLength} ${circumference}`}
+                      strokeDasharray={`${displayArc} ${circumference}`}
                       transform="rotate(-90 76 76)"
+                      style={{ transition: 'stroke-dasharray 1.4s cubic-bezier(0.4, 0, 0.2, 1)' }}
                     />
                   )}
                 </svg>
-                {/* Score number + sub-label */}
+                {/* Score number — springs in */}
                 <div className="relative z-10 flex flex-col items-center">
-                  <p className="text-white font-bold leading-none" style={{fontSize:68, fontFamily:"'Oswald',sans-serif", letterSpacing:'-3px'}}>
+                  <p
+                    key={score}
+                    className="text-white font-bold leading-none"
+                    style={{fontSize:68, fontFamily:"'Oswald',sans-serif", letterSpacing:'-3px',
+                      animation: score !== null ? 'scoreSpring 0.75s cubic-bezier(0.34,1.56,0.64,1) forwards' : 'none',
+                    }}
+                  >
                     {score ?? '—'}
                   </p>
                 </div>
@@ -409,11 +446,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Wave transition */}
-      <div className="bg-pool-deep">
-        <svg viewBox="0 0 480 32" xmlns="http://www.w3.org/2000/svg" className="w-full block" style={{display:'block',marginBottom:-1}}>
-          <path d="M0,28 C160,30 300,6 480,12 L480,32 L0,32 Z" fill="#F0F6FA"/>
-        </svg>
-      </div>
+      <WaveDivider />
 
       {/* Content */}
       <div className="flex-1 px-4 pt-3 pb-24 bg-surface">

@@ -5,6 +5,7 @@ export const dynamic = 'force-dynamic'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
+import WaveDivider from '@/app/components/WaveDivider'
 
 const FREE_FEATURES = [
   '1 pool',
@@ -169,11 +170,7 @@ export default function ProPage() {
       </div>
 
       {/* Wave */}
-      <div className="bg-pool-deep">
-        <svg viewBox="0 0 480 32" xmlns="http://www.w3.org/2000/svg" className="w-full block" style={{display:'block',marginBottom:-1}}>
-          <path d="M0,28 C160,30 300,6 480,12 L480,32 L0,32 Z" fill="#F0F6FA"/>
-        </svg>
-      </div>
+      <WaveDivider />
 
       <div className="flex-1 px-4 pt-4 pb-28 bg-surface space-y-4">
 

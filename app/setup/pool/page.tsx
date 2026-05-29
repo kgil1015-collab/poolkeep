@@ -5,6 +5,7 @@ export const dynamic = 'force-dynamic'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
+import WaveDivider from '@/app/components/WaveDivider'
 
 const SANITIZERS = [
   {
@@ -107,9 +108,7 @@ export default function PoolSetupPage() {
           <div className="h-3 w-24 rounded-full bg-white/15 mb-2" />
           <div className="h-7 w-40 rounded-full bg-white/20" />
         </div>
-        <div className="bg-pool-deep">
-          <svg viewBox="0 0 480 32" className="w-full block"><path d="M0,28 C160,30 300,6 480,12 L480,32 L0,32 Z" fill="#F0F6FA"/></svg>
-        </div>
+        <WaveDivider />
         <div className="flex-1 px-4 pt-6 animate-pulse space-y-4">
           <div className="h-16 rounded-2xl bg-white shadow-sm" />
           <div className="h-16 rounded-2xl bg-white shadow-sm" />
@@ -189,11 +188,7 @@ export default function PoolSetupPage() {
       </div>
 
       {/* Wave */}
-      <div className="bg-pool-deep">
-        <svg viewBox="0 0 480 32" xmlns="http://www.w3.org/2000/svg" className="w-full block" style={{display:'block',marginBottom:-1}}>
-          <path d="M0,28 C160,30 300,6 480,12 L480,32 L0,32 Z" fill="#F0F6FA"/>
-        </svg>
-      </div>
+      <WaveDivider />
 
       {/* Content */}
       <div className="flex-1 px-4 pt-4 pb-10 bg-surface">

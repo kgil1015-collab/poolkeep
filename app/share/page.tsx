@@ -5,6 +5,7 @@ export const dynamic = 'force-dynamic'
 import { useEffect, useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
+import WaveDivider from '@/app/components/WaveDivider'
 
 type TestResult = {
   health_score: number
@@ -194,7 +195,7 @@ export default function SharePage() {
             <div className="h-4 w-28 rounded-full bg-white/15" />
           </div>
         </div>
-        <div className="bg-pool-deep"><svg viewBox="0 0 480 32" className="w-full block"><path d="M0,28 C160,30 300,6 480,12 L480,32 L0,32 Z" fill="#F0F6FA"/></svg></div>
+        <WaveDivider />
         <div className="flex-1 px-4 pt-4 pb-10 animate-pulse space-y-3">
           <div className="h-12 rounded-2xl bg-white shadow-sm" />
           {[1,2,3,4,5].map(i => <div key={i} className="h-10 rounded-xl bg-white shadow-sm" />)}
@@ -237,11 +238,7 @@ export default function SharePage() {
         </div>
 
         {/* Wave */}
-        <div className="bg-pool-deep no-print">
-          <svg viewBox="0 0 480 32" xmlns="http://www.w3.org/2000/svg" className="w-full block" style={{display:'block',marginBottom:-1}}>
-            <path d="M0,28 C160,30 300,6 480,12 L480,32 L0,32 Z" fill="#F0F6FA"/>
-          </svg>
-        </div>
+        <WaveDivider className="no-print" />
 
         <div className="flex-1 px-4 pt-4 pb-28 bg-surface">
           {!test ? (

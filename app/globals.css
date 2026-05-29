@@ -28,7 +28,42 @@
 
 body {
   font-family: 'DM Sans', system-ui, sans-serif;
-  background: var(--surface);
+  background-color: var(--surface);
+  /* Subtle repeating water-ripple texture across the whole app */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='40'%3E%3Cpath d='M0%2C20 Q50%2C8 100%2C20 Q150%2C32 200%2C20' fill='none' stroke='%230078B8' stroke-width='1.2' opacity='0.055'/%3E%3C/svg%3E");
   color: var(--text);
   -webkit-font-smoothing: antialiased;
+}
+
+/* ─── Water / pool animations ─────────────────────────────────── */
+
+/* Seamless horizontal wave scroll — used by WaveDivider layers */
+@keyframes waveScroll {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+/* Health score ring draw */
+@keyframes ringDraw {
+  from { stroke-dashoffset: 352; }  /* circumference ≈ 351.9 */
+  to   { stroke-dashoffset: 0; }
+}
+
+/* Score number springs in */
+@keyframes scoreSpring {
+  from { transform: scale(0.55); opacity: 0; }
+  to   { transform: scale(1);    opacity: 1; }
+}
+
+/* Excellent-score glow pulse on the ring */
+@keyframes ringGlow {
+  0%, 100% { opacity: 0.08; }
+  50%       { opacity: 0.28; }
+}
+
+/* Light-through-water shimmer sweep across the header */
+@keyframes headerShimmer {
+  0%        { transform: translateX(-150%) skewX(-15deg); opacity: 0;   }
+  15%, 85%  { opacity: 1; }
+  100%      { transform: translateX(250%)  skewX(-15deg); opacity: 0;   }
 }

@@ -5,6 +5,7 @@ export const dynamic = 'force-dynamic'
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
+import WaveDivider from '@/app/components/WaveDivider'
 
 const PARAMS = [
   { key: 'ph',               label: 'pH',                  unit: '',    placeholder: '7.4', min: 0,    max: 14,   step: '0.1', range: '7.2 – 7.6',      hint: '',           saltOnly: false },
@@ -56,11 +57,7 @@ function UpgradeScreen({ poolName }: { poolName: string }) {
       </div>
 
       {/* Wave */}
-      <div className="bg-pool-deep">
-        <svg viewBox="0 0 480 32" xmlns="http://www.w3.org/2000/svg" className="w-full block" style={{display:'block',marginBottom:-1}}>
-          <path d="M0,28 C160,30 300,6 480,12 L480,32 L0,32 Z" fill="#F0F6FA"/>
-        </svg>
-      </div>
+      <WaveDivider />
 
       {/* Upgrade card */}
       <div className="flex-1 px-4 pt-6 pb-10 bg-surface flex flex-col">
@@ -126,7 +123,7 @@ export default function LogTestPage() {
   const router = useRouter()
   const [values, setValues] = useState<Record<string, string>>({})
   const inputRefs = useRef<Record<string, HTMLInputElement | null>>({})
-  const [pool, setPool] = useState<{ id: string; name: string; volume_gallons: number } | null>(null)
+  const [pool, setPool] = useState<{ id: string; name: string; volume_gallons: number; type?: string } | null>(null)
   const [poolLoading, setPoolLoading] = useState(true)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -140,7 +137,7 @@ export default function LogTestPage() {
       if (!data.user) { router.push('/login'); return }
       const [{ data: profile }, { data: pools }] = await Promise.all([
         supabase.from('profiles').select('subscription_status').eq('id', data.user.id).maybeSingle(),
-        supabase.from('pools').select('id,name,volume_gallons').order('created_at', { ascending: true }),
+        supabase.from('pools').select('id,name,volume_gallons,type').order('created_at', { ascending: true }),
       ])
       const pro = profile?.subscription_status === 'active' || profile?.subscription_status === 'trialing'
       setIsPro(pro)
@@ -149,8 +146,11 @@ export default function LogTestPage() {
       const active = (savedId && pools.find(p => p.id === savedId)) || pools[0]
       localStorage.setItem('poolkeep_active_pool', active.id)
       setPool(active)
+      // Salt pool detection: DB type wins, localStorage toggle can also enable it
       const saltKey = `poolkeep_salt_pool_${active.id}`
-      setIsSaltPool(localStorage.getItem(saltKey) === 'true')
+      const dbIsSalt = active.type === 'saltwater' || active.type === 'salt'
+      const localIsSalt = localStorage.getItem(saltKey) === 'true'
+      setIsSaltPool(dbIsSalt || localIsSalt)
       if (!pro) {
         const { count } = await supabase
           .from('test_results')
@@ -211,7 +211,7 @@ export default function LogTestPage() {
           <div className="h-3 w-20 rounded-full bg-white/15 mb-2" />
           <div className="h-7 w-32 rounded-full bg-white/20" />
         </div>
-        <div className="bg-pool-deep"><svg viewBox="0 0 480 32" className="w-full block"><path d="M0,28 C160,30 300,6 480,12 L480,32 L0,32 Z" fill="#F0F6FA"/></svg></div>
+        <WaveDivider />
         <div className="flex-1 px-4 pt-4 pb-10 animate-pulse space-y-3">
           {[1,2,3,4,5,6].map(i => <div key={i} className="h-16 rounded-2xl bg-white shadow-sm" />)}
         </div>
@@ -244,11 +244,7 @@ export default function LogTestPage() {
       </div>
 
       {/* Wave */}
-      <div className="bg-pool-deep">
-        <svg viewBox="0 0 480 32" xmlns="http://www.w3.org/2000/svg" className="w-full block" style={{display:'block',marginBottom:-1}}>
-          <path d="M0,28 C160,30 300,6 480,12 L480,32 L0,32 Z" fill="#F0F6FA"/>
-        </svg>
-      </div>
+      <WaveDivider />
 
       {/* Form */}
       <div className="flex-1 px-4 pt-4 pb-10 bg-surface">
@@ -308,7 +304,7 @@ export default function LogTestPage() {
                       {p.saltOnly && <span className="text-[9px] font-bold uppercase tracking-widest px-1.5 py-0.5 rounded-full" style={{background:'rgba(0,120,184,0.08)',color:'#5A8AA0'}}>Salt pools only</span>}
                     </div>
                     <p className="text-[10px] font-medium" style={{color:'#5A7A8A'}}>{p.range}</p>
-                    {p.hint && <p className="text-[10px] leading-snug mt-0.5" style={{color:'#B97A00'}}>{p.hint}</p>}
+                    {p.hint && <p className="text-[10px] leading-snug mt-0.5" style={{color:'#4A7A9A'}}>{p.hint}</p>}
                   </div>
                 </div>
                 {/* Input side — visually distinct tap target */}
