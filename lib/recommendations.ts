@@ -92,7 +92,7 @@ const SALT_RANGES = {
 }
 
 const CHLORINE_RANGES = {
-  cya:  { actionLow: 20, monLow: 30, monHigh: 60,  actionHigh: 80 },
+  cya:  { actionLow: 20, monLow: 30, monHigh: 75,  actionHigh: 100 },
   ta:   { actionLow: 60, monLow: 80, monHigh: 120, actionHigh: 140 },
   ca:   { actionLow: 150, monLow: 200, monHigh: 400, actionHigh: 600 },
 }
@@ -438,17 +438,17 @@ function buildTreatmentPlan(test: TestInput, v: number, isSalt: boolean): Treatm
         order: 4,
         urgency: 'routine',
         param: 'cya',
-        title: 'CYA elevated — plan a partial drain',
+        title: 'CYA elevated — confirm reading, then consider dilution',
         chemical: null,
         amount: null,
         why: isSalt
-          ? `CYA at ${cya} ppm is above the ${R_cya.actionHigh} ppm threshold where chlorine lock can begin. Even in a salt pool, too much stabilizer bonds with the chlorine your generator produces, trapping it in an inactive form. The pool can test positive for chlorine and still not be sanitizing effectively. There is no chemical fix — dilution is the only solution.`
-          : `CYA at ${cya} ppm is above the 80 ppm threshold where chlorine lock can begin. You can test positive for chlorine and still have water that is not killing bacteria. There is no chemical treatment — replacing a portion of the water is the only fix.`,
-        how: `Plan this for a mild-weather day. Drain 20–30% and refill with fresh water. After refilling, retest CYA and repeat if still above ${R_cya.actionHigh} ppm. ${isSalt ? 'Switch to liquid chlorine for any manual additions while CYA is elevated — avoid dichlor.' : 'Switch to liquid chlorine or cal-hypo shock — both are CYA-free. Stop using trichlor tabs or dichlor products.'}`,
-        lookFor: `Retest CYA 24 hours after refilling. Target ${cyaIdealRange}.`,
+          ? `CYA at ${cya} ppm is above the ${R_cya.actionHigh} ppm level where stabilizer can begin to trap chlorine in an inactive form — the pool can test positive for chlorine and still not sanitize effectively. There is no chemical fix; dilution is the only solution. Before draining, confirm the reading with a drop test or pool store — CYA test strips can be off by 20–40 ppm.`
+          : `CYA at ${cya} ppm is above the 100 ppm level where stabilizer starts to meaningfully reduce chlorine effectiveness. Before taking action, confirm with a drop test kit (Taylor K-2006 or similar) or a pool store water analysis — CYA test strips are notoriously inaccurate and can read 20–40 ppm high. If the drop test confirms the reading, a partial drain is the only fix.`,
+        how: `First: stop adding any products that contain CYA — this means trichlor tabs and dichlor shock. Switch to liquid chlorine (sodium hypochlorite) or cal-hypo granular shock, both of which are CYA-free. CYA dilutes naturally through splash-out, backwashing, and rainfall — give it a few weeks of liquid-only chlorine before planning a drain.\n\nIf CYA remains above ${R_cya.actionHigh} ppm on a drop test: plan a partial drain on a mild-weather day. Drain 20–30% and refill with fresh water. Retest 24 hours after refilling.`,
+        lookFor: `Retest CYA after switching to CYA-free chlorine products for 2–3 weeks. If still elevated on a confirmed drop test, target ${cyaIdealRange} after dilution.`,
         note: isSalt
-          ? `The most common cause of high CYA in salt pools is using dichlor shock for manual treatments. Each dichlor dose adds CYA, and it accumulates with no way to remove it except dilution. For manual additions in a salt pool, always use liquid chlorine (sodium hypochlorite) — it adds neither CYA nor calcium.`
-          : `The most common cause of chronically high CYA is regular use of slow-dissolve trichlor tabs. Each tablet adds CYA alongside chlorine, and it accumulates all season.`,
+          ? `CYA TEST STRIP ACCURACY\n\nCYA is measured by a turbidity (cloudiness) method — you mix pool water with a reagent and look for a black dot to disappear. Test strips that estimate CYA by color are significantly less reliable and can read 20–40 ppm higher than actual. Before draining any water, get a drop-test confirmation (Taylor K-2006 or a pool store lab test).\n\nThe most common cause of high CYA in salt pools is using dichlor shock for manual treatments. Each dichlor dose adds CYA, and it accumulates with no way to remove it except dilution. For manual additions in a salt pool, always use liquid chlorine (sodium hypochlorite) — it adds neither CYA nor calcium.`
+          : `CYA TEST STRIP ACCURACY\n\nCYA is measured by a turbidity (cloudiness) method — you mix pool water with a reagent and look for a black dot to disappear. Test strips that estimate CYA by color are significantly less reliable and can read 20–40 ppm higher than actual. Before draining any water, get a drop-test confirmation (Taylor K-2006 or a pool store lab test).\n\nThe most common cause of chronically high CYA is regular use of slow-dissolve trichlor tabs. Each tablet adds CYA alongside chlorine, and it accumulates all season. Switching to liquid chlorine stops the accumulation immediately.`,
       })
     } else if (cya > R_cya.monHigh) {
       raw.push({
@@ -768,12 +768,12 @@ export function calculateRecommendations(
       : `CYA at ${test.cya} ppm. A small stabilizer dose will protect chlorine from UV.`,
       tags: [`Cyanuric Acid · ${oz(dose, 'lbs')}`, 'Monitor weekly'] })
   } else if (test.cya > R_cya.actionHigh) {
-    recs.push({ status: 'action', param: 'cya', title: 'CYA too high — dilute', desc: `CYA at ${test.cya} ppm. High stabilizer blocks chlorine from working (chlorine lock). Drain and refill 20–30% of the pool.`, tags: ['Partial drain & refill', 'No chemical fix', 'Re-test after refill'] })
+    recs.push({ status: 'action', param: 'cya', title: 'CYA elevated — verify reading first', desc: `CYA at ${test.cya} ppm. Test strips can read 20–40 ppm high for CYA — confirm with a drop test or pool store before draining. Switch to liquid chlorine now to stop adding more CYA. See treatment plan for details.`, tags: ['Confirm with drop test', 'Switch to liquid chlorine', 'Partial drain if confirmed'] })
   } else if (test.cya > R_cya.monHigh) {
-    recs.push({ status: 'monitor', param: 'cya', title: isSalt ? 'CYA slightly above salt pool target' : 'Cyanuric Acid slightly elevated', desc: isSalt
-      ? `CYA at ${test.cya} ppm is slightly above the 70–80 ppm salt pool target. Avoid dichlor shock — use liquid chlorine for any manual additions.`
-      : `CYA at ${test.cya} ppm. Dilute by replacing ~10% of pool water over the next week.`,
-      tags: ['Monitor weekly'] })
+    recs.push({ status: 'monitor', param: 'cya', title: isSalt ? 'CYA slightly above salt pool target' : 'CYA slightly elevated — switch chlorine type', desc: isSalt
+      ? `CYA at ${test.cya} ppm is slightly above the 70–80 ppm salt pool target. Avoid dichlor shock — use liquid chlorine for any manual additions and it will dilute naturally.`
+      : `CYA at ${test.cya} ppm. Switch to liquid chlorine or cal-hypo shock (both CYA-free) and it will dilute naturally through splash-out and backwashing — no drain needed yet.`,
+      tags: ['Switch to liquid chlorine', 'Monitor monthly'] })
   } else {
     recs.push({ status: 'good', param: 'cya', title: 'Cyanuric Acid (CYA) in range', desc: isSalt
       ? `CYA at ${test.cya} ppm — right in the 70–80 ppm target for salt pools. Your generator's chlorine output is well-protected from UV.`
