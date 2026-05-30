@@ -549,6 +549,7 @@ export default function DashboardPage() {
             {/* ACTION NEEDED — icon cards */}
             {(() => {
               const actionItems = [...lastTest.recommendations.action, ...lastTest.recommendations.monitor]
+                .filter(rec => rec.param !== 'calcium') // calcium shown in Water Report instead
               // Sort: chlorine (most urgent safety issue) always first
               const chlorineFirst = (x: {param: string}) => x.param === 'chlorine' ? -1 : 0
               actionItems.sort((a, b) => chlorineFirst(a) - chlorineFirst(b))
@@ -655,6 +656,95 @@ export default function DashboardPage() {
               )
             })()}
 
+            {/* ── WATER REPORT ────────────────────────────────────────────── */}
+            {(() => {
+              const t = lastTest
+              const REPORT_PARAMS = [
+                { key:'ph',               label:'pH',               unit:'',    displayMin:6.5, displayMax:9.0,  goodLow:7.2,  goodHigh:7.6,  warnLow:7.0,  warnHigh:7.8,  rangeLabel:'7.2 – 7.6',    hardWater:false },
+                { key:'free_chlorine',    label:'Free Chlorine',    unit:'ppm', displayMin:0,   displayMax:8,    goodLow:1,    goodHigh:3,    warnLow:0.5,  warnHigh:5,    rangeLabel:'1 – 3 ppm',      hardWater:false },
+                { key:'total_alkalinity', label:'Total Alkalinity', unit:'ppm', displayMin:0,   displayMax:250,  goodLow:80,   goodHigh:120,  warnLow:60,   warnHigh:140,  rangeLabel:'80 – 120 ppm',   hardWater:false },
+                { key:'cya',              label:'Cyanuric Acid',    unit:'ppm', displayMin:0,   displayMax:150,  goodLow:30,   goodHigh:50,   warnLow:20,   warnHigh:80,   rangeLabel:'30 – 50 ppm',    hardWater:false },
+                { key:'calcium_hardness', label:'Calcium Hardness', unit:'ppm', displayMin:0,   displayMax:800,  goodLow:200,  goodHigh:400,  warnLow:150,  warnHigh:600,  rangeLabel:'200 – 400 ppm',  hardWater:true  },
+              ]
+              const pct = (v: number, lo: number, hi: number) => Math.min(100, Math.max(0, (v - lo) / (hi - lo) * 100))
+              type RStatus = 'good'|'monitor'|'action'|'unknown'
+              const getStatus = (val: number|null, gLo: number, gHi: number, wLo: number, wHi: number): RStatus => {
+                if (val === null) return 'unknown'
+                if (val >= gLo && val <= gHi) return 'good'
+                if (val >= wLo && val <= wHi) return 'monitor'
+                return 'action'
+              }
+              const SM: Record<RStatus,{dot:string;badge:string;badgeBg:string}> = {
+                good:    { dot:'#1DB869', badge:'✓ In Range',    badgeBg:'rgba(29,184,105,0.12)'  },
+                monitor: { dot:'#F5A623', badge:'Monitor',       badgeBg:'rgba(245,166,35,0.12)'  },
+                action:  { dot:'#E5304A', badge:'Needs Action',  badgeBg:'rgba(229,48,74,0.10)'   },
+                unknown: { dot:'#8AAABB', badge:'Not Tested',    badgeBg:'rgba(138,170,187,0.12)' },
+              }
+              return (
+                <div className="mb-5">
+                  <div className="flex items-center justify-between mb-2.5">
+                    <p className="text-xs font-bold uppercase tracking-widest" style={{color:'#1A3A4A'}}>Water Report</p>
+                    <p className="text-[10px] text-text-muted">{new Date(t.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric'})}</p>
+                  </div>
+                  <div className="bg-white rounded-2xl shadow-sm overflow-hidden" style={{border:'1.5px solid #E0EBF3'}}>
+                    {REPORT_PARAMS.map((p, i) => {
+                      const raw = t[p.key as keyof TestResult] as number | null
+                      const status = getStatus(raw, p.goodLow, p.goodHigh, p.warnLow, p.warnHigh)
+                      const { dot, badge, badgeBg } = SM[status]
+                      const goodLoPct  = pct(p.goodLow,  p.displayMin, p.displayMax)
+                      const goodHiPct  = pct(p.goodHigh, p.displayMin, p.displayMax)
+                      const valPct     = raw !== null ? pct(raw, p.displayMin, p.displayMax) : null
+                      const showHWNote = p.hardWater && raw !== null && raw > p.goodHigh
+                      return (
+                        <div key={p.key} style={{borderTop: i > 0 ? '1px solid #F0F6FA' : 'none'}}>
+                          <div className="px-4 pt-3.5 pb-2.5">
+                            {/* Name row */}
+                            <div className="flex items-center gap-2 mb-2">
+                              <div className="w-2 h-2 rounded-full shrink-0" style={{background:dot}} />
+                              <p className="text-xs font-bold flex-1" style={{color:'#1A2E3B'}}>{p.label}</p>
+                              {raw !== null ? (
+                                <p className="text-sm font-bold mr-2" style={{color:dot, fontFamily:"'DM Mono',monospace"}}>
+                                  {raw % 1 === 0 ? raw : raw.toFixed(1)}{p.unit ? ` ${p.unit}` : ''}
+                                </p>
+                              ) : null}
+                              <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full shrink-0" style={{background:badgeBg, color:dot}}>
+                                {badge}
+                              </span>
+                            </div>
+                            {/* Range bar */}
+                            {raw !== null ? (
+                              <>
+                                <div className="relative mb-1.5" style={{height:8, borderRadius:4, background:'#E8F0F6'}}>
+                                  {/* Ideal zone */}
+                                  <div style={{position:'absolute',top:0,bottom:0,left:`${goodLoPct}%`,width:`${goodHiPct-goodLoPct}%`,background:'rgba(29,184,105,0.30)',borderRadius:4}} />
+                                  {/* Value marker */}
+                                  {valPct !== null && (
+                                    <div style={{position:'absolute',top:'50%',left:`${valPct}%`,transform:'translate(-50%,-50%)',width:14,height:14,borderRadius:'50%',background:dot,border:'2.5px solid white',boxShadow:`0 1px 5px ${dot}70`,zIndex:2}} />
+                                  )}
+                                </div>
+                                <p className="text-[10px]" style={{color:'#8AAABB'}}>Ideal: {p.rangeLabel}</p>
+                              </>
+                            ) : (
+                              <p className="text-[10px] italic" style={{color:'#8AAABB'}}>Test this parameter for a more complete score</p>
+                            )}
+                          </div>
+                          {/* Hard water note */}
+                          {showHWNote && (
+                            <div className="mx-3 mb-3 px-3 py-2 rounded-xl flex items-start gap-2" style={{background:'rgba(0,120,184,0.05)',border:'1px solid rgba(0,120,184,0.14)'}}>
+                              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#4A7A9A" strokeWidth="2.2" strokeLinecap="round" className="shrink-0 mt-0.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                              <p className="text-[11px] leading-snug" style={{color:'#4A7A9A'}}>
+                                In hard water regions like Arizona, high calcium is chronic — tap water refills with similar hardness. A monthly sequestering agent (Jack&apos;s Magic, SeaKlear) keeps calcium in solution and prevents scale. Draining helps short-term but the hardness returns with the next refill.
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              )
+            })()}
+
             {/* Treatment plan — timeline grouped */}
             {lastTest.recommendations.treatment_plan && lastTest.recommendations.treatment_plan.length > 0 ? (
               <>
@@ -663,7 +753,7 @@ export default function DashboardPage() {
                   <span className="text-[10px] text-text-muted">— exact doses, in order</span>
                 </div>
                 {(() => {
-                  const steps = lastTest.recommendations.treatment_plan
+                  const steps = lastTest.recommendations.treatment_plan.filter((s: TreatmentStep) => s.param !== 'calcium')
                   const WHEN_ORDER = ['today', 'in-1-2-days', 'this-week', 'plan-ahead'] as const
                   const WHEN_LABELS: Record<string, { label: string; sublabel: string; color: string; bg: string }> = {
                     'today':       { label: 'Do Today',     sublabel: 'Start here',              color: '#DC2626', bg: 'rgba(220,38,38,0.07)' },
@@ -911,7 +1001,9 @@ export default function DashboardPage() {
               // Filter out pH from 'good' when FC is critically low and pH > 7.2 —
               // in that scenario pH needs to be lowered before shocking, not celebrated.
               const phNeedsShockPrep = (lastTest.free_chlorine ?? 99) < 0.5 && (lastTest.ph ?? 0) > 7.2
-              const goodItems = lastTest.recommendations.good.filter(g => !(g.param === 'ph' && phNeedsShockPrep))
+              const goodItems = lastTest.recommendations.good.filter(g =>
+                !(g.param === 'ph' && phNeedsShockPrep) && g.param !== 'calcium'
+              )
               return goodItems.length > 0 ? (
               <div className="mb-5">
                 <p className="text-xs font-bold uppercase tracking-widest mb-2.5" style={{color:'#1A3A4A'}}>Looking Good</p>
