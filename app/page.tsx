@@ -163,6 +163,48 @@ export default async function LandingPage() {
         </div>
       </section>
 
+      {/* Our Philosophy */}
+      <section className="py-16 px-6 bg-white border-t border-gray-100">
+        <div className="max-w-3xl mx-auto">
+          <div className="text-center mb-10">
+            <p className="text-pool-dark text-sm font-bold uppercase tracking-widest mb-3">Our Philosophy</p>
+            <h2 className="text-3xl font-bold tracking-tight" style={{fontFamily:"'Oswald',sans-serif"}}>Minimum effective dose.<br/>Maximum peace of mind.</h2>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-10">
+            {[
+              {
+                icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>,
+                title: 'Test less, not more',
+                desc: 'We tell you exactly when to test and what to test for. No more daily strip obsession — we save your kit for when it actually matters.',
+              },
+              {
+                icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2C6 9 4 13 4 16a8 8 0 0 0 16 0c0-3-2-7-8-14z"/></svg>,
+                title: 'Add only what you need',
+                desc: 'Most pools are overtreated. PoolKeep gives precise doses based on your actual readings — not guesswork or store upsells.',
+              },
+              {
+                icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>,
+                title: 'A few habits, consistently',
+                desc: 'Stable chlorine, balanced pH, a clean filter, and a weekly brush. That\'s 95% of pool care. We make sure those four things are always handled.',
+              },
+            ].map((item, i) => (
+              <div key={i} className="text-center px-2">
+                <div className="w-12 h-12 rounded-2xl flex items-center justify-center mx-auto mb-4" style={{background:'rgba(0,120,184,0.08)',color:'#0078B8'}}>
+                  {item.icon}
+                </div>
+                <h3 className="text-base font-bold text-text-primary mb-2" style={{fontFamily:"'Oswald',sans-serif"}}>{item.title}</h3>
+                <p className="text-text-muted text-sm leading-relaxed">{item.desc}</p>
+              </div>
+            ))}
+          </div>
+          <div className="rounded-2xl px-6 py-5 text-center" style={{background:'linear-gradient(135deg,#F0F9FF,#E8F5F0)',border:'1.5px solid #C8E0EE'}}>
+            <p className="text-sm font-semibold text-text-primary leading-relaxed max-w-xl mx-auto">
+              &ldquo;PoolKeep was built by a pool owner who got tired of spending Saturdays guessing at chemicals. No upsells. No mystery products. Just honest guidance that keeps your water clear with the least amount of work possible.&rdquo;
+            </p>
+          </div>
+        </div>
+      </section>
+
       {/* Founding Member Pricing */}
       <section id="pricing" className="py-16 px-6 bg-white">
         <div className="max-w-2xl mx-auto">

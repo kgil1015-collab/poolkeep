@@ -61,7 +61,8 @@ function buildReportText(poolName: string, test: TestResult, isSalt: boolean): s
   lines.push(`Health Score: ${score}/100 (${scoreLabel(score)})`)
   lines.push('')
   lines.push('READINGS')
-  const activeReadings = isSalt ? READINGS : READINGS.filter(r => r.key !== 'salt')
+  const hasSaltReading = test.salt !== null
+  const activeReadings = (isSalt || hasSaltReading) ? READINGS : READINGS.filter(r => r.key !== 'salt')
   activeReadings.forEach(p => {
     const val = test[p.key as keyof TestResult]
     if (typeof val === 'number') {
@@ -107,7 +108,8 @@ function buildSmsText(poolName: string, test: TestResult, isSalt: boolean): stri
   } else {
     parts.push('All clear — no action needed')
   }
-  const activeReadings = isSalt ? READINGS : READINGS.filter(r => r.key !== 'salt')
+  const hasSaltReading = test.salt !== null
+  const activeReadings = (isSalt || hasSaltReading) ? READINGS : READINGS.filter(r => r.key !== 'salt')
   const readings = activeReadings
     .filter(p => test[p.key as keyof TestResult] !== null)
     .map(p => `${p.label} ${(p.fmt as (v: number) => string)(test[p.key as keyof TestResult] as number)}`)
@@ -209,7 +211,10 @@ export default function SharePage() {
   const canNativeShare = typeof navigator !== 'undefined' && !!navigator.share
   const isMobile = typeof navigator !== 'undefined' && /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent)
   const isSalt = pool?.type === 'saltwater' || pool?.type === 'salt'
-  const activeReadings = isSalt ? READINGS : READINGS.filter(r => r.key !== 'salt')
+  // Show salt row only for salt pools OR if a salt reading was actually logged
+  // This catches any pool type mismatch in the DB
+  const hasSaltReading = test !== null && test.salt !== null
+  const activeReadings = (isSalt || hasSaltReading) ? READINGS : READINGS.filter(r => r.key !== 'salt')
 
   return (
     <>

@@ -31,7 +31,7 @@ export type TreatmentStep = {
 }
 
 export type MaintenanceTip = {
-  category: 'testing' | 'chlorine' | 'shock' | 'brushing' | 'seasonal' | 'filter' | 'skimmer' | 'cartridge'
+  category: 'testing' | 'chlorine' | 'shock' | 'brushing' | 'seasonal' | 'filter' | 'skimmer' | 'cartridge' | 'enzyme'
   title: string
   body: string
 }
@@ -658,6 +658,12 @@ function generateMaintenance(test: TestInput, isSalt: boolean): MaintenanceTip[]
     category: 'cartridge',
     title: 'Rinse your filter cartridge every 2–4 weeks',
     body: 'This is one of the most overlooked maintenance tasks — and one of the highest-impact ones. A dirty cartridge doesn\'t just reduce flow, it actively recirculates debris and oils back into the pool, causing cloudiness that no amount of chemicals will fix.\n\nRinse with a garden hose (top to bottom between the pleats) every 2–4 weeks during swim season. Deep clean with cartridge cleaner solution every 1–2 months. Replace when pleats are torn, crushed, or no longer hold their shape — typically every 1–3 seasons depending on use.\n\nIf your pool water is persistently cloudy despite correct chemistry, a dirty or worn cartridge is almost always the reason.',
+  })
+
+  tips.push({
+    category: 'enzyme',
+    title: 'Weekly enzymes reduce chlorine demand',
+    body: 'Pool enzymes break down oils, sunscreen, and organic buildup that silently consume chlorine — things your filter can\'t catch and chemicals can\'t easily remove. Less organic load means your chlorine goes further and your water stays clearer with less effort.\n\nAdd one capful per 10,000 gallons per week directly to the skimmer while the pump runs. Unlike clarifiers, enzymes actually eliminate the organic matter rather than just clumping it together.\n\nLook for: Natural Chemistry Pool Perfect, BioGuard Optimizer Plus, or any enzyme-based pool product. Leslie\'s Perfect Weekly uses this same enzyme technology combined with a phosphate remover — the enzyme part is genuinely useful, though the phosphate removal isn\'t necessary if your chlorine is well-maintained.\n\nEspecially worthwhile for: pools with heavy bather loads, lots of sunscreen use, or pools in areas with significant tree debris.',
   })
 
   tips.push({

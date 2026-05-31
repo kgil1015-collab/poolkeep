@@ -774,6 +774,70 @@ export default function DashboardPage() {
               )
             })()}
 
+            {/* ── THIS WEEK ───────────────────────────────────────────────── */}
+            {(() => {
+              const recs = liveRecs ?? lastTest.recommendations
+              const hasActions = recs.action.length > 0
+              const month = new Date().getMonth()
+              const isPeakSeason = month >= 4 && month <= 8
+              const quickDays = isPeakSeason ? '2–3' : '4–5'
+              const fullDays  = isPeakSeason ? '7'   : '10–14'
+              const v = (pool?.volume_gallons ?? 10000) / 10000
+              const fc = lastTest.free_chlorine
+              const ph = lastTest.ph
+              function fmtLiq(floz: number): string {
+                if (floz >= 128) return `${(floz / 128).toFixed(1)} gal`
+                return `${Math.round(floz)} fl oz`
+              }
+              const fcDose = fmtLiq(Math.round(v * 13))          // top-up if FC drops low
+              const acidDose = fmtLiq(Math.round(v * 13))        // if pH climbs to 7.8
+
+              const sectionHeader = (label: string) => (
+                <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:10}}>
+                  <div style={{width:14,height:1.5,background:'#00CCA3',borderRadius:2,flexShrink:0}} />
+                  <p style={{fontSize:10,fontWeight:500,letterSpacing:'0.16em',color:'#6A9AB0',textTransform:'uppercase' as const,fontFamily:"'Space Grotesk',sans-serif"}}>{label}</p>
+                </div>
+              )
+
+              if (hasActions) {
+                return (
+                  <div className="mb-5">
+                    {sectionHeader('After Your Treatment Plan')}
+                    <div className="bg-white rounded-2xl px-4 py-3.5 shadow-sm border border-gray-100">
+                      <p className="text-xs font-bold text-text-primary mb-1">Retest pH + chlorine in {quickDays} days</p>
+                      <p className="text-xs text-text-muted leading-relaxed">No need for a full strip — just confirm the treatment worked. Then run a complete panel retest in {fullDays} days.</p>
+                    </div>
+                  </div>
+                )
+              }
+
+              return (
+                <div className="mb-5">
+                  {sectionHeader('Your Plan This Week')}
+                  <div className="rounded-2xl overflow-hidden shadow-sm" style={{border:'1.5px solid #D0E2ED'}}>
+                    {/* Step 1 — quick check */}
+                    <div className="bg-white px-4 py-3.5 border-b border-gray-100">
+                      <div className="flex items-center gap-2.5 mb-1.5">
+                        <div className="w-5 h-5 rounded-full flex items-center justify-center shrink-0 text-[10px] font-bold" style={{background:'rgba(0,120,184,0.10)',color:'#0078B8'}}>1</div>
+                        <p className="text-xs font-bold text-text-primary">Quick check in {quickDays} days</p>
+                      </div>
+                      <p className="text-xs text-text-muted leading-relaxed mb-2">Test pH and free chlorine only — no need for a full strip yet. Save those for your 7-day retest.</p>
+                      {fc !== null && <p className="text-[11px] leading-snug mb-0.5" style={{color:'#0078B8'}}>→ If FC drops below 1 ppm: add {fcDose} liquid chlorine in the evening</p>}
+                      {ph !== null && <p className="text-[11px] leading-snug" style={{color:'#0078B8'}}>→ If pH climbs above 7.6: add {acidDose} muriatic acid</p>}
+                    </div>
+                    {/* Step 2 — full retest */}
+                    <div className="bg-white px-4 py-3.5">
+                      <div className="flex items-center gap-2.5 mb-1">
+                        <div className="w-5 h-5 rounded-full flex items-center justify-center shrink-0 text-[10px] font-bold" style={{background:'rgba(0,150,122,0.10)',color:'#00967A'}}>2</div>
+                        <p className="text-xs font-bold text-text-primary">Full panel retest in {fullDays} days</p>
+                      </div>
+                      <p className="text-xs text-text-muted leading-relaxed">Test all parameters and log the results to keep your health score current. If chemistry stays stable, no need to test more often than this.</p>
+                    </div>
+                  </div>
+                </div>
+              )
+            })()}
+
             {/* ── WATER REPORT ────────────────────────────────────────────── */}
             {(() => {
               const t = lastTest
@@ -1091,6 +1155,7 @@ export default function DashboardPage() {
                       filter:    { bg:'rgba(79,70,229,0.12)',  color:'#4F46E5', accent:'#4F46E5' },
                       skimmer:   { bg:'rgba(6,182,212,0.13)',  color:'#0891B2', accent:'#0891B2' },
                       cartridge: { bg:'rgba(139,92,246,0.12)', color:'#7C3AED', accent:'#7C3AED' },
+                      enzyme:    { bg:'rgba(16,185,129,0.12)', color:'#059669', accent:'#059669' },
                     }
                     const cs = catStyles[tip.category as keyof typeof catStyles] ?? { bg:'rgba(0,120,184,0.12)', color:'#0078B8', accent:'#0078B8' }
                     const icons: Record<string, React.ReactElement> = {
@@ -1102,6 +1167,7 @@ export default function DashboardPage() {
                       filter:    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={cs.color} strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>,
                       skimmer:   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={cs.color} strokeWidth="2" strokeLinecap="round"><path d="M3 6h18M3 12h18M3 18h18"/><path d="M7 3v18M17 3v18"/></svg>,
                       cartridge: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={cs.color} strokeWidth="2" strokeLinecap="round"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="7" x2="16" y2="7"/><line x1="8" y1="11" x2="16" y2="11"/><line x1="8" y1="15" x2="16" y2="15"/></svg>,
+                      enzyme:    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={cs.color} strokeWidth="2" strokeLinecap="round"><path d="M12 2a5 5 0 0 1 5 5c0 5-5 8-5 11"/><path d="M12 2a5 5 0 0 0-5 5c0 5 5 8 5 11"/><line x1="5" y1="22" x2="19" y2="22"/></svg>,
                     }
                     return (
                       <div key={i} className="flex items-stretch bg-white" style={{borderTop: i > 0 ? '1.5px solid #E8F0F6' : 'none'}}>
