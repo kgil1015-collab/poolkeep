@@ -774,70 +774,6 @@ export default function DashboardPage() {
               )
             })()}
 
-            {/* ── THIS WEEK ───────────────────────────────────────────────── */}
-            {(() => {
-              const recs = liveRecs ?? lastTest.recommendations
-              const hasActions = recs.action.length > 0
-              const month = new Date().getMonth()
-              const isPeakSeason = month >= 4 && month <= 8
-              const quickDays = isPeakSeason ? '2–3' : '4–5'
-              const fullDays  = isPeakSeason ? '7'   : '10–14'
-              const v = (pool?.volume_gallons ?? 10000) / 10000
-              const fc = lastTest.free_chlorine
-              const ph = lastTest.ph
-              function fmtLiq(floz: number): string {
-                if (floz >= 128) return `${(floz / 128).toFixed(1)} gal`
-                return `${Math.round(floz)} fl oz`
-              }
-              const fcDose = fmtLiq(Math.round(v * 13))          // top-up if FC drops low
-              const acidDose = fmtLiq(Math.round(v * 13))        // if pH climbs to 7.8
-
-              const sectionHeader = (label: string) => (
-                <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:10}}>
-                  <div style={{width:14,height:1.5,background:'#00CCA3',borderRadius:2,flexShrink:0}} />
-                  <p style={{fontSize:10,fontWeight:500,letterSpacing:'0.16em',color:'#6A9AB0',textTransform:'uppercase' as const,fontFamily:"'Space Grotesk',sans-serif"}}>{label}</p>
-                </div>
-              )
-
-              if (hasActions) {
-                return (
-                  <div className="mb-5">
-                    {sectionHeader('After Your Treatment Plan')}
-                    <div className="bg-white rounded-2xl px-4 py-3.5 shadow-sm border border-gray-100">
-                      <p className="text-xs font-bold text-text-primary mb-1">Retest pH + chlorine in {quickDays} days</p>
-                      <p className="text-xs text-text-muted leading-relaxed">No need for a full strip — just confirm the treatment worked. Then run a complete panel retest in {fullDays} days.</p>
-                    </div>
-                  </div>
-                )
-              }
-
-              return (
-                <div className="mb-5">
-                  {sectionHeader('Your Plan This Week')}
-                  <div className="rounded-2xl overflow-hidden shadow-sm" style={{border:'1.5px solid #D0E2ED'}}>
-                    {/* Step 1 — quick check */}
-                    <div className="bg-white px-4 py-3.5 border-b border-gray-100">
-                      <div className="flex items-center gap-2.5 mb-1.5">
-                        <div className="w-5 h-5 rounded-full flex items-center justify-center shrink-0 text-[10px] font-bold" style={{background:'rgba(0,120,184,0.10)',color:'#0078B8'}}>1</div>
-                        <p className="text-xs font-bold text-text-primary">Quick check in {quickDays} days</p>
-                      </div>
-                      <p className="text-xs text-text-muted leading-relaxed mb-2">Test pH and free chlorine only — no need for a full strip yet. Save those for your 7-day retest.</p>
-                      {fc !== null && <p className="text-[11px] leading-snug mb-0.5" style={{color:'#0078B8'}}>→ If FC drops below 1 ppm: add {fcDose} liquid chlorine in the evening</p>}
-                      {ph !== null && <p className="text-[11px] leading-snug" style={{color:'#0078B8'}}>→ If pH climbs above 7.6: add {acidDose} muriatic acid</p>}
-                    </div>
-                    {/* Step 2 — full retest */}
-                    <div className="bg-white px-4 py-3.5">
-                      <div className="flex items-center gap-2.5 mb-1">
-                        <div className="w-5 h-5 rounded-full flex items-center justify-center shrink-0 text-[10px] font-bold" style={{background:'rgba(0,150,122,0.10)',color:'#00967A'}}>2</div>
-                        <p className="text-xs font-bold text-text-primary">Full panel retest in {fullDays} days</p>
-                      </div>
-                      <p className="text-xs text-text-muted leading-relaxed">Test all parameters and log the results to keep your health score current. If chemistry stays stable, no need to test more often than this.</p>
-                    </div>
-                  </div>
-                </div>
-              )
-            })()}
-
             {/* ── WATER REPORT ────────────────────────────────────────────── */}
             {(() => {
               const t = lastTest
@@ -923,6 +859,73 @@ export default function DashboardPage() {
                         </div>
                       )
                     })}
+                  </div>
+                </div>
+              )
+            })()}
+
+            {/* ── THIS WEEK ───────────────────────────────────────────────── */}
+            {(() => {
+              const recs = liveRecs ?? lastTest.recommendations
+              const hasActions = recs.action.length > 0
+              const month = new Date().getMonth()
+              const isPeakSeason = month >= 4 && month <= 8
+              const quickDays = isPeakSeason ? '2–3' : '4–5'
+              const fullDays  = isPeakSeason ? '7'   : '10–14'
+              const v = (pool?.volume_gallons ?? 10000) / 10000
+              const fc = lastTest.free_chlorine
+              const ph = lastTest.ph
+              function fmtLiq(floz: number): string {
+                if (floz >= 128) return `${(floz / 128).toFixed(1)} gal`
+                return `${Math.round(floz)} fl oz`
+              }
+              const fcDose = fmtLiq(Math.round(v * 13))
+              const acidDose = fmtLiq(Math.round(v * 13))
+              const hdr = (label: string) => (
+                <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:10}}>
+                  <div style={{width:14,height:1.5,background:'#00CCA3',borderRadius:2,flexShrink:0}} />
+                  <p style={{fontSize:10,fontWeight:500,letterSpacing:'0.16em',color:'#6A9AB0',textTransform:'uppercase' as const,fontFamily:"'Space Grotesk',sans-serif"}}>{label}</p>
+                </div>
+              )
+              if (hasActions) return (
+                <div className="mb-5">
+                  {hdr('After Your Treatment Plan')}
+                  <div className="rounded-2xl px-4 py-3.5 shadow-sm" style={{background:'#F2F8FB',border:'1.5px solid #C8DDE8'}}>
+                    <p className="text-sm font-bold mb-1" style={{color:'#1A3A4A'}}>Retest pH + chlorine in {quickDays} days</p>
+                    <p className="text-xs leading-relaxed" style={{color:'#3D5566'}}>No need for a full strip — just confirm the treatment worked. Then a complete panel retest in {fullDays} days.</p>
+                  </div>
+                </div>
+              )
+              return (
+                <div className="mb-5">
+                  {hdr('Your Plan This Week')}
+                  <div className="rounded-2xl overflow-hidden shadow-sm" style={{border:'1.5px solid #C8DDE8'}}>
+                    <div className="px-4 py-4 border-b border-gray-100" style={{background:'#F2F8FB'}}>
+                      <div className="flex items-center gap-2.5 mb-2">
+                        <div className="w-6 h-6 rounded-full flex items-center justify-center shrink-0 text-[11px] font-bold text-white" style={{background:'#0078B8'}}>1</div>
+                        <p className="text-sm font-bold" style={{color:'#1A3A4A'}}>Quick check in {quickDays} days</p>
+                      </div>
+                      <p className="text-xs leading-relaxed mb-2.5" style={{color:'#3D5566'}}>Test pH and free chlorine only — save your full strips for the 7-day retest.</p>
+                      {fc !== null && (
+                        <div className="flex items-start gap-2 mb-1">
+                          <span className="text-xs font-bold shrink-0 mt-0.5" style={{color:'#0078B8'}}>→</span>
+                          <p className="text-xs font-semibold" style={{color:'#1A3A4A'}}>FC drops below 1 ppm: add <span style={{color:'#0078B8'}}>{fcDose} liquid chlorine</span> (evening)</p>
+                        </div>
+                      )}
+                      {ph !== null && (
+                        <div className="flex items-start gap-2">
+                          <span className="text-xs font-bold shrink-0 mt-0.5" style={{color:'#0078B8'}}>→</span>
+                          <p className="text-xs font-semibold" style={{color:'#1A3A4A'}}>pH above 7.6: add <span style={{color:'#0078B8'}}>{acidDose} muriatic acid</span></p>
+                        </div>
+                      )}
+                    </div>
+                    <div className="px-4 py-4" style={{background:'#F8FBFD'}}>
+                      <div className="flex items-center gap-2.5 mb-2">
+                        <div className="w-6 h-6 rounded-full flex items-center justify-center shrink-0 text-[11px] font-bold text-white" style={{background:'#00967A'}}>2</div>
+                        <p className="text-sm font-bold" style={{color:'#1A3A4A'}}>Full panel retest in {fullDays} days</p>
+                      </div>
+                      <p className="text-xs leading-relaxed" style={{color:'#3D5566'}}>Test all parameters and log results to keep your health score current. No need to test more often if chemistry is stable.</p>
+                    </div>
                   </div>
                 </div>
               )
