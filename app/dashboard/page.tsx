@@ -837,7 +837,7 @@ export default function DashboardPage() {
                               <>
                                 <div className="relative mb-1.5" style={{height:8, borderRadius:4, background:'#E8F0F6'}}>
                                   {/* Ideal zone */}
-                                  <div style={{position:'absolute',top:0,bottom:0,left:`${goodLoPct}%`,width:`${goodHiPct-goodLoPct}%`,background:'rgba(29,184,105,0.30)',borderRadius:4}} />
+                                  <div style={{position:'absolute',top:0,bottom:0,left:`${goodLoPct}%`,width:`${goodHiPct-goodLoPct}%`,background:'rgba(139,92,246,0.22)',borderRadius:4}} />
                                   {/* Value marker */}
                                   {valPct !== null && (
                                     <div style={{position:'absolute',top:'50%',left:`${valPct}%`,transform:'translate(-50%,-50%)',width:14,height:14,borderRadius:'50%',background:dot,border:'2.5px solid white',boxShadow:`0 1px 5px ${dot}70`,zIndex:2}} />
