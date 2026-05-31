@@ -171,6 +171,25 @@ export default function LogTestPage() {
     setValues(v => ({ ...v, [key]: val }))
   }
 
+  // Smart pH formatter: lets users skip the decimal point
+  // "7" → "7.0", "78" → "7.8", "74" → "7.4", "7.4" → "7.4"
+  function formatPH(raw: string): string {
+    const trimmed = raw.trim()
+    if (trimmed === '') return trimmed
+    // Already has a decimal — leave it alone
+    if (trimmed.includes('.')) return trimmed
+    const num = parseFloat(trimmed)
+    if (isNaN(num)) return trimmed
+    // Two-digit whole number where inserting a decimal makes a valid pH (e.g. 78 → 7.8)
+    if (trimmed.length === 2 && num > 14) {
+      const formatted = trimmed[0] + '.' + trimmed[1]
+      const parsed = parseFloat(formatted)
+      if (parsed >= 0 && parsed <= 14) return formatted
+    }
+    // Single digit or already valid — return as decimal
+    return num.toFixed(1)
+  }
+
   async function handleSubmit() {
     setError('')
     const parse = (key: string, fn: (v: string) => number) => {
@@ -329,7 +348,10 @@ export default function LogTestPage() {
                     inputMode="decimal"
                     value={val}
                     onChange={e => set(p.key, e.target.value)}
-                    onBlur={e => set(p.key, e.target.value)}
+                    onBlur={e => {
+                      const formatted = p.key === 'ph' ? formatPH(e.target.value) : e.target.value
+                      set(p.key, formatted)
+                    }}
                     placeholder={p.placeholder}
                     autoComplete="off"
                     autoCorrect="off"
