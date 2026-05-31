@@ -96,8 +96,9 @@ function getWelcome(firstName: string, lastTest: TestResult | null) {
     urgency: 0,
   }
   if (daysSince === 0) {
-    const hasActions  = lastTest.recommendations.action.length > 0
-    const monitorCount = lastTest.recommendations.monitor.length
+    // Exclude calcium — it's shown in the Water Report only, not in action cards
+    const hasActions   = lastTest.recommendations.action.filter(r => r.param !== 'calcium').length > 0
+    const monitorCount = lastTest.recommendations.monitor.filter(r => r.param !== 'calcium').length
     if (hasActions) return {
       salutation: `${timeGreeting}, ${firstName}!`,
       headline: 'Pool needs attention today',
@@ -124,7 +125,7 @@ function getWelcome(firstName: string, lastTest: TestResult | null) {
     }
   }
   if (daysSince === 1) {
-    const hasActions = lastTest.recommendations.action.length > 0
+    const hasActions = lastTest.recommendations.action.filter(r => r.param !== 'calcium').length > 0
     if (hasActions) return {
       salutation: `${timeGreeting}, ${firstName}!`,
       headline: "Your pool still needs attention",
