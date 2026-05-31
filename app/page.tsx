@@ -5,8 +5,10 @@ import { createClient } from '@supabase/supabase-js'
 // hitting the DB on every page view.
 export const revalidate = 3600
 
-const FOUNDING_TOTAL = 50    // Total founding spots available — keeps urgency high from day one
-const FOUNDING_FLOOR = 3     // Never show fewer than this — avoid showing "0 left"
+const FOUNDING_TOTAL = 200   // Total founding spots available
+const FOUNDING_FLOOR = 12    // Never show fewer than this — avoid showing "0 left"
+const FOUNDING_PHASE1_SHOWN = 157   // Fixed display until real sales reach threshold
+const FOUNDING_PHASE1_THRESHOLD = 50 // Switch to real count once this many members sign up
 
 async function getSpotsLeft(): Promise<number> {
   try {
@@ -17,10 +19,14 @@ async function getSpotsLeft(): Promise<number> {
     const { count } = await supabase
       .from('profiles')
       .select('*', { count: 'exact', head: true })
+      .eq('plan', 'founding')
     const taken = count ?? 0
+    if (taken < FOUNDING_PHASE1_THRESHOLD) {
+      return FOUNDING_PHASE1_SHOWN  // fixed display in early days
+    }
     return Math.max(FOUNDING_FLOOR, FOUNDING_TOTAL - taken)
   } catch {
-    return 147 // safe fallback if DB is unreachable
+    return FOUNDING_PHASE1_SHOWN // safe fallback if DB is unreachable
   }
 }
 

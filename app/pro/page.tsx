@@ -37,7 +37,8 @@ const PRICE_MONTHLY = process.env.NEXT_PUBLIC_STRIPE_PRICE_MONTHLY ?? ''
 const PRICE_ANNUAL = process.env.NEXT_PUBLIC_STRIPE_PRICE_ANNUAL ?? ''
 const PRICE_FOUNDING = process.env.NEXT_PUBLIC_STRIPE_PRICE_FOUNDING ?? ''
 
-const FOUNDING_SPOTS_SHOWN = 200
+// Spots label intentionally vague on this page — landing page manages the counter
+
 
 export default function ProPage() {
   const router = useRouter()
@@ -306,7 +307,7 @@ export default function ProPage() {
                   <div className="flex items-start justify-between gap-3 mb-3">
                     <div className="flex-1">
                       <span className="text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full inline-block mb-2" style={{background:'rgba(0,224,176,0.2)',color:'#00E0B0'}}>
-                        Founding Member · {FOUNDING_SPOTS_SHOWN} spots only
+                        Founding Member · Limited spots
                       </span>
                       <p className="font-bold text-sm text-white mb-0.5">Rate locked for life</p>
                       <p className="text-xs" style={{color:'rgba(255,255,255,0.55)'}}>$60 one-time · then $4.99/mo forever</p>
