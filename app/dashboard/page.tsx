@@ -46,8 +46,9 @@ function timeAgo(iso: string) {
 
 function scoreLabel(score: number) {
   if (score >= 90) return 'Excellent condition'
-  if (score >= 75) return 'Good condition'
-  if (score >= 55) return 'Needs attention'
+  if (score >= 82) return 'Good condition'
+  if (score >= 68) return 'A few things to watch'
+  if (score >= 50) return 'Needs attention'
   return 'Action required'
 }
 
@@ -94,11 +95,33 @@ function getWelcome(firstName: string, lastTest: TestResult | null) {
     subline: 'Your pool is all set — check back in a day or two',
     urgency: 0,
   }
-  if (daysSince === 0) return {
-    salutation: `${timeGreeting}, ${firstName}!`,
-    headline: 'Pool looking good',
-    subline: 'Tested today — keep up the great work',
-    urgency: 0,
+  if (daysSince === 0) {
+    const hasActions  = lastTest.recommendations.action.length > 0
+    const monitorCount = lastTest.recommendations.monitor.length
+    if (hasActions) return {
+      salutation: `${timeGreeting}, ${firstName}!`,
+      headline: 'Pool needs attention today',
+      subline: 'Your latest test flagged some items — check the treatment plan below.',
+      urgency: 1,
+    }
+    if (monitorCount >= 2) return {
+      salutation: `${timeGreeting}, ${firstName}!`,
+      headline: 'A few things to keep an eye on',
+      subline: `${monitorCount} parameters are slightly off — nothing urgent, but worth monitoring this week.`,
+      urgency: 0,
+    }
+    if (monitorCount === 1) return {
+      salutation: `${timeGreeting}, ${firstName}!`,
+      headline: 'Pool looking good',
+      subline: 'One parameter to watch — see the water report below.',
+      urgency: 0,
+    }
+    return {
+      salutation: `${timeGreeting}, ${firstName}!`,
+      headline: 'Pool looking great',
+      subline: 'Tested today — everything in range. Keep up the great work.',
+      urgency: 0,
+    }
   }
   if (daysSince === 1) {
     const hasActions = lastTest.recommendations.action.length > 0
