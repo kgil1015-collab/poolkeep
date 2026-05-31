@@ -53,7 +53,7 @@ function scoreLabel(score: number) {
   return 'Action required'
 }
 
-function buildReportText(poolName: string, test: TestResult): string {
+function buildReportText(poolName: string, test: TestResult, isSalt: boolean): string {
   const score = computeScore(test.recommendations)
   const lines: string[] = []
   lines.push(`POOL REPORT — ${poolName}`)
@@ -61,7 +61,8 @@ function buildReportText(poolName: string, test: TestResult): string {
   lines.push(`Health Score: ${score}/100 (${scoreLabel(score)})`)
   lines.push('')
   lines.push('READINGS')
-  READINGS.forEach(p => {
+  const activeReadings = isSalt ? READINGS : READINGS.filter(r => r.key !== 'salt')
+  activeReadings.forEach(p => {
     const val = test[p.key as keyof TestResult]
     if (typeof val === 'number') {
       lines.push(`  ${p.label}: ${p.fmt(val)}  (Ideal: ${p.ideal})`)
@@ -98,7 +99,7 @@ function buildReportText(poolName: string, test: TestResult): string {
   return lines.join('\n')
 }
 
-function buildSmsText(poolName: string, test: TestResult): string {
+function buildSmsText(poolName: string, test: TestResult, isSalt: boolean): string {
   const score = computeScore(test.recommendations)
   const parts = [`${poolName} pool report (score ${score}/100 — ${scoreLabel(score)})`]
   if (test.recommendations.action.length > 0) {
@@ -106,7 +107,8 @@ function buildSmsText(poolName: string, test: TestResult): string {
   } else {
     parts.push('All clear — no action needed')
   }
-  const readings = READINGS
+  const activeReadings = isSalt ? READINGS : READINGS.filter(r => r.key !== 'salt')
+  const readings = activeReadings
     .filter(p => test[p.key as keyof TestResult] !== null)
     .map(p => `${p.label} ${(p.fmt as (v: number) => string)(test[p.key as keyof TestResult] as number)}`)
     .join(', ')
@@ -118,7 +120,7 @@ function buildSmsText(poolName: string, test: TestResult): string {
 export default function SharePage() {
   const router = useRouter()
   const [test, setTest] = useState<TestResult | null>(null)
-  const [pool, setPool] = useState<{ name: string } | null>(null)
+  const [pool, setPool] = useState<{ name: string; type: string } | null>(null)
   const [loading, setLoading] = useState(true)
   const [copied, setCopied] = useState(false)
   const printRef = useRef<HTMLDivElement>(null)
@@ -127,7 +129,7 @@ export default function SharePage() {
     const supabase = createClient()
     supabase.auth.getUser().then(async ({ data }) => {
       if (!data.user) { router.push('/login'); return }
-      const { data: pools } = await supabase.from('pools').select('id,name').order('created_at', { ascending: true })
+      const { data: pools } = await supabase.from('pools').select('id,name,type').order('created_at', { ascending: true })
       if (!pools || pools.length === 0) { router.push('/setup/pool'); return }
       // Use the same active pool the dashboard uses
       const savedId = typeof window !== 'undefined' ? localStorage.getItem('poolkeep_active_pool') : null
@@ -147,19 +149,19 @@ export default function SharePage() {
   function handleEmail() {
     if (!test || !pool) return
     const subject = encodeURIComponent(`Pool Report — ${pool.name} — ${formatDate(test.created_at)}`)
-    const body = encodeURIComponent(buildReportText(pool.name, test))
+    const body = encodeURIComponent(buildReportText(pool.name, test, isSalt))
     window.open(`mailto:?subject=${subject}&body=${body}`)
   }
 
   function handleSms() {
     if (!test || !pool) return
-    const body = encodeURIComponent(buildSmsText(pool.name, test))
+    const body = encodeURIComponent(buildSmsText(pool.name, test, isSalt))
     window.open(`sms:?body=${body}`)
   }
 
   async function handleNativeShare() {
     if (!test || !pool) return
-    const text = buildReportText(pool.name, test)
+    const text = buildReportText(pool.name, test, isSalt)
     if (navigator.share) {
       await navigator.share({
         title: `Pool Report — ${pool.name}`,
@@ -170,7 +172,7 @@ export default function SharePage() {
 
   async function handleCopy() {
     if (!test || !pool) return
-    await navigator.clipboard.writeText(buildReportText(pool.name, test))
+    await navigator.clipboard.writeText(buildReportText(pool.name, test, isSalt))
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
   }
@@ -206,6 +208,8 @@ export default function SharePage() {
 
   const canNativeShare = typeof navigator !== 'undefined' && !!navigator.share
   const isMobile = typeof navigator !== 'undefined' && /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent)
+  const isSalt = pool?.type === 'saltwater' || pool?.type === 'salt'
+  const activeReadings = isSalt ? READINGS : READINGS.filter(r => r.key !== 'salt')
 
   return (
     <>
@@ -283,7 +287,7 @@ export default function SharePage() {
                 <div className="px-5 py-4 border-b border-gray-100">
                   <p className="text-[10px] font-bold uppercase tracking-widest text-text-muted mb-3">Readings</p>
                   <div className="space-y-2">
-                    {READINGS.map(p => {
+                    {activeReadings.map(p => {
                       const val = test[p.key as keyof TestResult]
                       const hasVal = typeof val === 'number'
                       const isAction = test.recommendations.action.some(r => r.title.toLowerCase().includes(p.label.split(' ')[0].toLowerCase()))
