@@ -890,6 +890,8 @@ export default function DashboardPage() {
               const v = (pool?.volume_gallons ?? 10000) / 10000
               const fc = lastTest.free_chlorine
               const ph = lastTest.ph
+              const ta = lastTest.total_alkalinity
+              const taAtHighEnd = ta !== null && ta >= 110  // at or near top of ideal 80–120
               function fmtLiq(floz: number): string {
                 if (floz >= 128) return `${(floz / 128).toFixed(1)} gal`
                 return `${Math.round(floz)} fl oz`
@@ -928,9 +930,15 @@ export default function DashboardPage() {
                         </div>
                       )}
                       {ph !== null && (
-                        <div className="flex items-start gap-2">
+                        <div className="flex items-start gap-2 mb-1">
                           <span className="text-xs font-bold shrink-0 mt-0.5" style={{color:'#0078B8'}}>→</span>
-                          <p className="text-xs font-semibold" style={{color:'#1A3A4A'}}>pH above 7.6: add <span style={{color:'#0078B8'}}>{acidDose} muriatic acid</span></p>
+                          <p className="text-xs font-semibold" style={{color:'#1A3A4A'}}>pH above 7.6: add <span style={{color:'#0078B8'}}>{acidDose} muriatic acid</span>{taAtHighEnd ? ' — this will also nudge TA down' : ''}</p>
+                        </div>
+                      )}
+                      {taAtHighEnd && (
+                        <div className="flex items-start gap-2">
+                          <span className="text-xs font-bold shrink-0 mt-0.5" style={{color:'#8B5CF6'}}>→</span>
+                          <p className="text-xs font-semibold" style={{color:'#1A3A4A'}}>TA is at the high end ({ta} ppm) — watch it alongside pH. One acid dose handles both.</p>
                         </div>
                       )}
                     </div>
