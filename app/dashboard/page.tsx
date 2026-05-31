@@ -802,10 +802,20 @@ export default function DashboardPage() {
               }
               return (
                 <div className="mb-5">
-                  <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:10}}>
+                  <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:6}}>
                     <div style={{width:3,height:18,background:'#00CCA3',borderRadius:2,flexShrink:0}} />
                     <p style={{fontSize:13,fontWeight:700,letterSpacing:'0.04em',color:'#1A3A4A',flex:1,fontFamily:"'Space Grotesk',sans-serif"}}>Water Report</p>
                     <p style={{fontSize:12,fontWeight:600,color:'#2A5570'}}>{new Date(t.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric'})}</p>
+                  </div>
+                  <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:10}}>
+                    <div style={{display:'flex',alignItems:'center',gap:4}}>
+                      <div style={{width:18,height:6,borderRadius:3,background:'rgba(139,92,246,0.22)',flexShrink:0}} />
+                      <span style={{fontSize:10,color:'#8AAABB'}}>ideal range</span>
+                    </div>
+                    <div style={{display:'flex',alignItems:'center',gap:4}}>
+                      <div style={{width:8,height:8,borderRadius:'50%',background:'#1A3A4A',flexShrink:0}} />
+                      <span style={{fontSize:10,color:'#8AAABB'}}>your reading</span>
+                    </div>
                   </div>
                   <div className="bg-white rounded-2xl shadow-sm overflow-hidden" style={{border:'1.5px solid #E0EBF3'}}>
                     {REPORT_PARAMS.map((p, i) => {
