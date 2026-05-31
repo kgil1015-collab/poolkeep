@@ -877,11 +877,11 @@ export default function DashboardPage() {
                   <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:10}}>
                     <div style={{display:'flex',alignItems:'center',gap:4}}>
                       <div style={{width:18,height:6,borderRadius:3,background:'rgba(139,92,246,0.22)',flexShrink:0}} />
-                      <span style={{fontSize:10,color:'#8AAABB'}}>ideal range</span>
+                      <span style={{fontSize:10,color:'#4A7A9A',fontWeight:500}}>ideal range</span>
                     </div>
                     <div style={{display:'flex',alignItems:'center',gap:4}}>
                       <div style={{width:8,height:8,borderRadius:'50%',background:'#1A3A4A',flexShrink:0}} />
-                      <span style={{fontSize:10,color:'#8AAABB'}}>your reading</span>
+                      <span style={{fontSize:10,color:'#4A7A9A',fontWeight:500}}>your reading</span>
                     </div>
                   </div>
                   <div className="bg-white rounded-2xl shadow-sm overflow-hidden" style={{border:'1.5px solid #E0EBF3'}}>
