@@ -101,10 +101,10 @@ function getWelcome(firstName: string, lastTest: TestResult | null) {
     urgency: 0,
   }
   if (daysSince === 1) return {
-    salutation: `Hey ${firstName}, welcome back!`,
-    headline: 'Ready to log another test?',
-    subline: 'Tested yesterday — a quick check today keeps things balanced',
-    urgency: 1,
+    salutation: `${timeGreeting}, ${firstName}!`,
+    headline: 'Nothing to do today',
+    subline: 'Tested yesterday — your pool is stable. See you in a day or two 👋',
+    urgency: 0,
   }
   if (daysSince <= 3) return {
     salutation: `Hey ${firstName}, welcome back!`,
