@@ -322,9 +322,9 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        <p className="text-white/65 text-sm mb-0.5">{welcome.salutation}</p>
+        <p className="text-white/70 text-sm mb-0.5">{welcome.salutation}</p>
         <h1 className="text-white text-2xl font-bold mb-1" style={{fontFamily:"'Oswald',sans-serif",letterSpacing:'-.01em'}}>{welcome.headline}</h1>
-        <p className="text-white/50 text-sm mb-4 leading-snug">{welcome.subline}</p>
+        <p className="text-white/65 text-sm mb-4 leading-snug">{welcome.subline}</p>
 
         {/* Pool switcher */}
         <div className="mb-6">
@@ -394,10 +394,10 @@ export default function DashboardPage() {
             : 0
           const testedCount = 5 - unknownCount
 
-          // Water fill geometry: circle cx=76 cy=76 r=56 → spans y 20→132 (dia=112)
+          // Water fill geometry: circle cx=80 cy=80 r=58 → spans y 22→138 (dia=116)
           // translateY shifts the water block down; CSS transition makes it rise
-          const fillH = score !== null ? Math.round(112 * displayScore / 100) : 0
-          const offsetY = 112 - fillH
+          const fillH = score !== null ? Math.round(116 * displayScore / 100) : 0
+          const offsetY = 116 - fillH
 
           // Colour shifts teal when pool is excellent
           const excellent = score !== null && score >= 90
@@ -407,23 +407,25 @@ export default function DashboardPage() {
 
           return (
             <div className="flex flex-col items-center pb-5">
-              <p className="text-white/40 text-[10px] font-bold uppercase tracking-widest mb-3">Health Score</p>
-              <div className="relative flex items-center justify-center" style={{width:152, height:152}}>
-                <svg width="152" height="152" viewBox="0 0 152 152" style={{position:'absolute',top:0,left:0}}>
+              <p className="text-white/70 text-[11px] font-bold uppercase tracking-widest mb-3">Health Score</p>
+              <div className="relative flex items-center justify-center" style={{width:160, height:160}}>
+                <svg width="160" height="160" viewBox="0 0 160 160" style={{position:'absolute',top:0,left:0}}>
                   <defs>
                     <clipPath id="scoreCircleClip">
-                      <circle cx="76" cy="76" r="55"/>
+                      <circle cx="80" cy="80" r="58"/>
                     </clipPath>
                   </defs>
 
+                  {/* Outer glow ring */}
+                  <circle cx="80" cy="80" r="62" fill="none" stroke="rgba(0,160,230,0.18)" strokeWidth="8"/>
                   {/* Dark navy pool base */}
-                  <circle cx="76" cy="76" r="56" fill="rgba(0,20,45,0.80)" stroke="rgba(0,120,184,0.40)" strokeWidth="2.5"/>
+                  <circle cx="80" cy="80" r="59" fill="rgba(0,20,45,0.85)" stroke="rgba(0,170,240,0.65)" strokeWidth="3"/>
 
                   {/* Water fill — all clipped to circle */}
                   {score !== null && (
                     <g clipPath="url(#scoreCircleClip)">
                       {/* Bulk water — rises from bottom */}
-                      <rect x="20" y="20" width="112" height="112" fill={waterDeep}
+                      <rect x="22" y="22" width="116" height="116" fill={waterDeep}
                         style={{transform:`translateY(${offsetY}px)`, transition:'transform 1.5s cubic-bezier(0.4,0,0.2,1)'}}
                       />
                       {/* Wave surface — front layer, scrolls left */}
@@ -446,7 +448,7 @@ export default function DashboardPage() {
                   )}
 
                   {/* Rim ring — drawn on top so it always looks crisp */}
-                  <circle cx="76" cy="76" r="56" fill="none" stroke="rgba(0,120,184,0.45)" strokeWidth="2.5"/>
+                  <circle cx="80" cy="80" r="59" fill="none" stroke="rgba(0,170,240,0.65)" strokeWidth="3"/>
                 </svg>
 
                 {/* Score number floats above the water */}
@@ -465,9 +467,9 @@ export default function DashboardPage() {
                 </div>
               </div>
 
-              <div className="flex items-center gap-1.5 mt-3">
-                <div className="w-2 h-2 rounded-full" style={{background: color, boxShadow:`0 0 6px ${glow}`}} />
-                <span className="text-sm font-semibold" style={{color}}>
+              <div className="flex items-center gap-2 mt-4">
+                <div className="w-2.5 h-2.5 rounded-full" style={{background: color, boxShadow:`0 0 8px ${glow}, 0 0 16px ${glow}`}} />
+                <span className="text-base font-bold" style={{color, textShadow:`0 0 20px ${glow}`}}>
                   {score !== null ? scoreLabel(score) : 'Log your first test'}
                 </span>
               </div>
@@ -502,7 +504,7 @@ export default function DashboardPage() {
         {!lastTest ? (
           <div className="space-y-4">
             {/* Welcome card */}
-            <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100">
+            <div className="bg-white rounded-2xl overflow-hidden shadow-md border border-gray-200">
               <div className="h-1 w-full" style={{background:'linear-gradient(90deg,#00E0B0 0%,#0078B8 60%,#005580 100%)'}} />
               <div className="px-5 pt-5 pb-6">
                 <p className="text-[10px] font-bold uppercase tracking-widest text-text-muted mb-1">Welcome to PoolKeep</p>
@@ -546,7 +548,7 @@ export default function DashboardPage() {
             </div>
 
             {/* What you'll see */}
-            <div className="bg-white rounded-2xl px-5 py-4 shadow-sm border border-gray-100">
+            <div className="bg-white rounded-2xl px-5 py-4 shadow-md border border-gray-200">
               <p className="text-[10px] font-bold uppercase tracking-widest text-text-muted mb-3">After your first test you'll see</p>
               <div className="space-y-3">
                 {[
@@ -566,7 +568,7 @@ export default function DashboardPage() {
             </div>
 
             {/* How to test your water */}
-            <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100">
+            <div className="bg-white rounded-2xl overflow-hidden shadow-md border border-gray-200">
               <div className="h-1 w-full" style={{background:'linear-gradient(90deg,#0078B8,#00E0B0)'}} />
               <div className="px-5 pt-4 pb-5">
                 <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:14}}>
@@ -683,7 +685,7 @@ export default function DashboardPage() {
                 const hasUnknowns = unknownNonSalt > 0
                 const testedBars = 5 - unknownNonSalt
                 return (
-                  <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex items-start gap-3 mb-2">
+                  <div className="bg-white rounded-2xl p-4 shadow-md border border-gray-200 flex items-start gap-3 mb-2">
                     <div className="w-10 h-10 rounded-full flex items-center justify-center shrink-0 mt-0.5" style={{background: hasUnknowns ? 'rgba(0,150,122,0.10)' : 'rgba(29,184,105,0.12)'}}>
                       {hasUnknowns
                         ? (
@@ -746,7 +748,7 @@ export default function DashboardPage() {
                         : rec.title
 
                       return (
-                        <div key={i} className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                        <div key={i} className="bg-white rounded-2xl shadow-md border border-gray-200 overflow-hidden">
                           {/* Urgency left border strip */}
                           <div className="flex">
                             <div className="w-1 shrink-0 rounded-l-2xl" style={{background: borderColor}} />
@@ -990,7 +992,7 @@ export default function DashboardPage() {
 
                               return (
                                 <React.Fragment key={step.step}>
-                                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mb-3">
+                                <div className="bg-white rounded-2xl shadow-md border border-gray-200 overflow-hidden mb-3">
                                   {/* Compact always-visible header */}
                                   <div className="px-4 pt-3.5 pb-3 flex items-start gap-3">
                                     <div className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 font-bold text-sm text-white mt-0.5" style={{background: stepColor, fontFamily:"'Oswald',sans-serif"}}>
@@ -1232,7 +1234,7 @@ export default function DashboardPage() {
                 </div>
                 <div className="space-y-3">
                   {(liveRecs ?? lastTest.recommendations).unknown.map((a, i) => (
-                    <div key={i} className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 opacity-80">
+                    <div key={i} className="bg-white rounded-2xl p-4 shadow-md border border-gray-200 opacity-80">
                       <div className="flex items-start gap-3">
                         <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 mt-0.5" style={{background:'rgba(74,106,124,0.12)'}}>
                           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4A6A7C" strokeWidth="2.2" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
@@ -1254,7 +1256,7 @@ export default function DashboardPage() {
         )}
 
         {/* Reminder settings */}
-        <div className="bg-white rounded-2xl px-4 py-4 shadow-sm border border-gray-100 mt-4 mb-2">
+        <div className="bg-white rounded-2xl px-4 py-4 shadow-md border border-gray-200 mt-4 mb-2">
           <div className="flex items-center gap-2.5 mb-3">
             <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style={{background:'rgba(0,120,184,0.08)'}}>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0078B8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
