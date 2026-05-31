@@ -59,7 +59,7 @@ function computeScore(recs: TestResult['recommendations']): number {
 
 function statusAccent(score: number | null) {
   if (score === null) return { color: '#3AB5E6', overlay: 'none', glow: 'rgba(58,181,230,0.25)' }
-  if (score >= 90) return { color: '#00E0B0', overlay: 'radial-gradient(ellipse at 50% 80%, rgba(0,224,176,0.18) 0%, transparent 65%)', glow: 'rgba(0,224,176,0.40)' }
+  if (score >= 90) return { color: '#29B8E8', overlay: 'radial-gradient(ellipse at 50% 80%, rgba(41,184,232,0.18) 0%, transparent 65%)', glow: 'rgba(41,184,232,0.40)' }
   if (score >= 75) return { color: '#29B8E8', overlay: 'radial-gradient(ellipse at 50% 80%, rgba(41,184,232,0.15) 0%, transparent 65%)', glow: 'rgba(41,184,232,0.40)' }
   if (score >= 55) return { color: '#5BC8F5', overlay: 'radial-gradient(ellipse at 50% 80%, rgba(91,200,245,0.15) 0%, transparent 65%)', glow: 'rgba(91,200,245,0.35)' }
   return { color: '#A8D8EA', overlay: 'radial-gradient(ellipse at 50% 80%, rgba(168,216,234,0.15) 0%, transparent 65%)', glow: 'rgba(168,216,234,0.30)' }
@@ -401,9 +401,9 @@ export default function DashboardPage() {
 
           // Colour shifts teal when pool is excellent
           const excellent = score !== null && score >= 90
-          const waterDeep = excellent ? 'rgba(0,180,140,0.50)' : 'rgba(0,80,150,0.50)'
-          const waveFront = excellent ? 'rgba(0,224,176,0.72)' : 'rgba(0,168,240,0.72)'
-          const waveBack  = excellent ? 'rgba(0,196,160,0.42)' : 'rgba(0,140,210,0.42)'
+          const waterDeep = excellent ? 'rgba(0,90,160,0.55)' : 'rgba(0,80,150,0.50)'
+          const waveFront = excellent ? 'rgba(0,190,255,0.75)' : 'rgba(0,168,240,0.72)'
+          const waveBack  = excellent ? 'rgba(0,150,220,0.45)' : 'rgba(0,140,210,0.42)'
 
           return (
             <div className="flex flex-col items-center pb-5">
@@ -455,7 +455,7 @@ export default function DashboardPage() {
                     key={score}
                     className="text-white font-bold leading-none"
                     style={{
-                      fontSize:68, fontFamily:"'Oswald',sans-serif", letterSpacing:'-3px',
+                      fontSize:80, fontFamily:"'Oswald',sans-serif", letterSpacing:'-3px',
                       textShadow:'0 2px 20px rgba(0,0,0,0.6)',
                       animation: score !== null ? 'scoreSpring 0.75s cubic-bezier(0.34,1.56,0.64,1) forwards' : 'none',
                     }}
@@ -570,8 +570,8 @@ export default function DashboardPage() {
               <div className="h-1 w-full" style={{background:'linear-gradient(90deg,#0078B8,#00E0B0)'}} />
               <div className="px-5 pt-4 pb-5">
                 <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:14}}>
-                  <div style={{width:14,height:1.5,background:'#00CCA3',borderRadius:2,flexShrink:0}} />
-                  <p style={{fontSize:10,fontWeight:500,letterSpacing:'0.16em',color:'#6A9AB0',textTransform:'uppercase',fontFamily:"'Space Grotesk',sans-serif"}}>How to Test Your Water</p>
+                  <div style={{width:3,height:16,background:'#00CCA3',borderRadius:2,flexShrink:0}} />
+                  <p style={{fontSize:11,fontWeight:700,letterSpacing:'0.12em',color:'#2A5570',textTransform:'uppercase',fontFamily:"'Space Grotesk',sans-serif"}}>How to Test Your Water</p>
                 </div>
 
                 <div className="space-y-5">
@@ -883,8 +883,8 @@ export default function DashboardPage() {
               const acidDose = fmtLiq(Math.round(v * 13))
               const hdr = (label: string) => (
                 <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:10}}>
-                  <div style={{width:14,height:1.5,background:'#00CCA3',borderRadius:2,flexShrink:0}} />
-                  <p style={{fontSize:10,fontWeight:500,letterSpacing:'0.16em',color:'#6A9AB0',textTransform:'uppercase' as const,fontFamily:"'Space Grotesk',sans-serif"}}>{label}</p>
+                  <div style={{width:3,height:16,background:'#00CCA3',borderRadius:2,flexShrink:0}} />
+                  <p style={{fontSize:11,fontWeight:700,letterSpacing:'0.12em',color:'#2A5570',textTransform:'uppercase' as const,fontFamily:"'Space Grotesk',sans-serif"}}>{label}</p>
                 </div>
               )
               if (hasActions) return (
@@ -935,8 +935,8 @@ export default function DashboardPage() {
             {((liveRecs ?? lastTest.recommendations).treatment_plan?.length ?? 0) > 0 ? (
               <>
                 <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:12}}>
-                  <div style={{width:14,height:1.5,background:'#00CCA3',borderRadius:2,flexShrink:0}} />
-                  <p style={{fontSize:10,fontWeight:500,letterSpacing:'0.16em',color:'#6A9AB0',textTransform:'uppercase',fontFamily:"'Space Grotesk',sans-serif"}}>Treatment Plan</p>
+                  <div style={{width:3,height:16,background:'#00CCA3',borderRadius:2,flexShrink:0}} />
+                  <p style={{fontSize:11,fontWeight:700,letterSpacing:'0.12em',color:'#2A5570',textTransform:'uppercase',fontFamily:"'Space Grotesk',sans-serif"}}>Treatment Plan</p>
                   <span className="text-[10px] text-text-faint">exact doses, in order</span>
                 </div>
                 {(() => {
@@ -1144,8 +1144,8 @@ export default function DashboardPage() {
             {((liveRecs ?? lastTest.recommendations).maintenance?.length ?? 0) > 0 && (
               <>
                 <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:12}}>
-                  <div style={{width:14,height:1.5,background:'#00CCA3',borderRadius:2,flexShrink:0}} />
-                  <p style={{fontSize:10,fontWeight:500,letterSpacing:'0.16em',color:'#6A9AB0',textTransform:'uppercase',fontFamily:"'Space Grotesk',sans-serif"}}>Your Pool — Ongoing Guide</p>
+                  <div style={{width:3,height:16,background:'#00CCA3',borderRadius:2,flexShrink:0}} />
+                  <p style={{fontSize:11,fontWeight:700,letterSpacing:'0.12em',color:'#2A5570',textTransform:'uppercase',fontFamily:"'Space Grotesk',sans-serif"}}>Your Pool — Ongoing Guide</p>
                 </div>
                 <div className="rounded-2xl overflow-hidden mb-6" style={{boxShadow:'0 2px 12px rgba(0,45,68,0.10)', border:'1.5px solid #D0E2ED'}}>
                   {((liveRecs ?? lastTest.recommendations).maintenance ?? []).map((tip, i) => {
@@ -1203,8 +1203,8 @@ export default function DashboardPage() {
               return goodItems.length > 0 ? (
               <div className="mb-5">
                 <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:10}}>
-                  <div style={{width:14,height:1.5,background:'#00CCA3',borderRadius:2,flexShrink:0}} />
-                  <p style={{fontSize:10,fontWeight:500,letterSpacing:'0.16em',color:'#6A9AB0',textTransform:'uppercase',fontFamily:"'Space Grotesk',sans-serif"}}>Looking Good</p>
+                  <div style={{width:3,height:16,background:'#00CCA3',borderRadius:2,flexShrink:0}} />
+                  <p style={{fontSize:11,fontWeight:700,letterSpacing:'0.12em',color:'#2A5570',textTransform:'uppercase',fontFamily:"'Space Grotesk',sans-serif"}}>Looking Good</p>
                 </div>
                 <div className="space-y-2">
                   {goodItems.map((a, i) => (
@@ -1227,8 +1227,8 @@ export default function DashboardPage() {
             {(liveRecs ?? lastTest.recommendations).unknown && (liveRecs ?? lastTest.recommendations).unknown.length > 0 && (
               <>
                 <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:12}}>
-                  <div style={{width:14,height:1.5,background:'#00CCA3',borderRadius:2,flexShrink:0}} />
-                  <p style={{fontSize:10,fontWeight:500,letterSpacing:'0.16em',color:'#6A9AB0',textTransform:'uppercase',fontFamily:"'Space Grotesk',sans-serif"}}>Not Tested</p>
+                  <div style={{width:3,height:16,background:'#00CCA3',borderRadius:2,flexShrink:0}} />
+                  <p style={{fontSize:11,fontWeight:700,letterSpacing:'0.12em',color:'#2A5570',textTransform:'uppercase',fontFamily:"'Space Grotesk',sans-serif"}}>Not Tested</p>
                 </div>
                 <div className="space-y-3">
                   {(liveRecs ?? lastTest.recommendations).unknown.map((a, i) => (
