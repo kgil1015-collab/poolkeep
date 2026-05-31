@@ -937,7 +937,7 @@ export default function DashboardPage() {
                   <span className="text-[10px] text-text-faint">exact doses, in order</span>
                 </div>
                 {(() => {
-                  const steps = (liveRecs ?? lastTest.recommendations).treatment_plan.filter((s: TreatmentStep) => s.param !== 'calcium')
+                  const steps = ((liveRecs ?? lastTest.recommendations).treatment_plan ?? []).filter((s: TreatmentStep) => s.param !== 'calcium')
                   const WHEN_ORDER = ['today', 'in-1-2-days', 'this-week', 'plan-ahead'] as const
                   const WHEN_LABELS: Record<string, { label: string; sublabel: string; color: string; bg: string }> = {
                     'today':       { label: 'Do Today',     sublabel: 'Start here',              color: '#DC2626', bg: 'rgba(220,38,38,0.07)' },
