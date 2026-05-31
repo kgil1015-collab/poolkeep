@@ -876,7 +876,7 @@ export default function DashboardPage() {
                   </div>
                   <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:10}}>
                     <div style={{display:'flex',alignItems:'center',gap:4}}>
-                      <div style={{width:18,height:6,borderRadius:3,background:'rgba(139,92,246,0.22)',flexShrink:0}} />
+                      <div style={{width:18,height:6,borderRadius:3,background:'rgba(139,92,246,0.55)',flexShrink:0}} />
                       <span style={{fontSize:10,color:'#4A7A9A',fontWeight:500}}>ideal range</span>
                     </div>
                     <div style={{display:'flex',alignItems:'center',gap:4}}>
