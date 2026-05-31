@@ -55,10 +55,10 @@ function scoreLabel(score: number) {
 // Compute score from stored recommendations so it always reflects the current
 // formula, even for tests logged before the formula was updated.
 function computeScore(recs: TestResult['recommendations']): number {
-  const actionCount = recs.action.length
-  const monitorCount = recs.monitor.length
-  const unknownCount = recs.unknown.filter(u => u.param !== 'salt').length
-  return Math.max(10, 100 - actionCount * 18 - monitorCount * 6 - unknownCount * 8)
+  const actionCount  = recs.action.filter(r => r.param !== 'calcium').length
+  const monitorCount = recs.monitor.filter(r => r.param !== 'calcium').length
+  const unknownCount = recs.unknown.filter(u => u.param !== 'salt' && u.param !== 'calcium').length
+  return Math.max(10, 100 - actionCount * 20 - monitorCount * 10 - unknownCount * 6)
 }
 
 function statusAccent(score: number | null) {
@@ -89,11 +89,33 @@ function getWelcome(firstName: string, lastTest: TestResult | null) {
   const todayDay   = new Date(now2.getFullYear(),     now2.getMonth(),     now2.getDate())
   const daysSince  = Math.round((todayDay.getTime() - testDay.getTime()) / 86400000)
 
-  if (hoursSince < 6) return {
-    salutation: `${timeGreeting}, ${firstName}!`,
-    headline: 'Fresh test logged ✓',
-    subline: 'Your pool is all set — check back in a day or two',
-    urgency: 0,
+  if (hoursSince < 6) {
+    const hasActions   = lastTest.recommendations.action.filter(r => r.param !== 'calcium').length > 0
+    const monitorCount = lastTest.recommendations.monitor.filter(r => r.param !== 'calcium').length
+    if (hasActions) return {
+      salutation: `${timeGreeting}, ${firstName}!`,
+      headline: 'Test logged — action needed',
+      subline: 'Check the treatment plan below and work through the steps.',
+      urgency: 1,
+    }
+    if (monitorCount >= 2) return {
+      salutation: `${timeGreeting}, ${firstName}!`,
+      headline: 'Test logged — a few things to watch',
+      subline: 'See the water report and weekly plan below.',
+      urgency: 0,
+    }
+    if (monitorCount === 1) return {
+      salutation: `${timeGreeting}, ${firstName}!`,
+      headline: 'Fresh test logged ✓',
+      subline: 'One parameter to keep an eye on — see the water report below.',
+      urgency: 0,
+    }
+    return {
+      salutation: `${timeGreeting}, ${firstName}!`,
+      headline: 'Fresh test logged ✓',
+      subline: 'Your pool is all set — check back in a day or two.',
+      urgency: 0,
+    }
   }
   if (daysSince === 0) {
     // Exclude calcium — it's shown in the Water Report only, not in action cards
