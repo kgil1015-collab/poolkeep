@@ -35,9 +35,12 @@ function timeAgo(iso: string) {
   const diffMin = Math.floor((now.getTime() - d.getTime()) / 60000)
   const timeStr = d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
   if (diffMin < 60) return `${diffMin}m ago`
-  const diffDays = Math.floor(diffMin / 1440)
-  if (diffDays === 0) return `Today at ${timeStr}`
-  if (diffDays === 1) return `Yesterday at ${timeStr}`
+  // Compare local calendar dates, not elapsed hours
+  const dDay   = new Date(d.getFullYear(),   d.getMonth(),   d.getDate())
+  const nowDay = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+  const calDiff = Math.round((nowDay.getTime() - dDay.getTime()) / 86400000)
+  if (calDiff === 0) return `Today at ${timeStr}`
+  if (calDiff === 1) return `Yesterday at ${timeStr}`
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ` at ${timeStr}`
 }
 
@@ -76,8 +79,14 @@ function getWelcome(firstName: string, lastTest: TestResult | null) {
     urgency: 0,
   }
 
-  const hoursSince = Math.floor((Date.now() - new Date(lastTest.created_at).getTime()) / 3600000)
-  const daysSince  = Math.floor(hoursSince / 24)
+  const testDate   = new Date(lastTest.created_at)
+  const hoursSince = Math.floor((Date.now() - testDate.getTime()) / 3600000)
+  // Use local calendar days, not elapsed hours, so a test at 11pm last night
+  // correctly shows as "yesterday" the next morning
+  const now2       = new Date()
+  const testDay    = new Date(testDate.getFullYear(), testDate.getMonth(), testDate.getDate())
+  const todayDay   = new Date(now2.getFullYear(),     now2.getMonth(),     now2.getDate())
+  const daysSince  = Math.round((todayDay.getTime() - testDay.getTime()) / 86400000)
 
   if (hoursSince < 6) return {
     salutation: `${timeGreeting}, ${firstName}!`,
