@@ -100,11 +100,20 @@ function getWelcome(firstName: string, lastTest: TestResult | null) {
     subline: 'Tested today — keep up the great work',
     urgency: 0,
   }
-  if (daysSince === 1) return {
-    salutation: `${timeGreeting}, ${firstName}!`,
-    headline: 'Nothing to do today',
-    subline: 'Tested yesterday — your pool is stable. See you in a day or two 👋',
-    urgency: 0,
+  if (daysSince === 1) {
+    const hasActions = lastTest.recommendations.action.length > 0
+    if (hasActions) return {
+      salutation: `${timeGreeting}, ${firstName}!`,
+      headline: "Your pool still needs attention",
+      subline: "Yesterday's test flagged some items — work through the treatment plan to get back on track.",
+      urgency: 1,
+    }
+    return {
+      salutation: `${timeGreeting}, ${firstName}!`,
+      headline: 'Nothing to do today',
+      subline: 'Tested yesterday — your pool is stable. See you in a day or two 👋',
+      urgency: 0,
+    }
   }
   if (daysSince <= 3) return {
     salutation: `Hey ${firstName}, welcome back!`,
