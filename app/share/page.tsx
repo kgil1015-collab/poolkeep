@@ -27,10 +27,10 @@ type TestResult = {
 // Compute score from recommendations so the share page always matches the dashboard,
 // regardless of what health_score value was stored in the database.
 function computeScore(recs: TestResult['recommendations']): number {
-  const actionCount = recs.action.length
-  const monitorCount = recs.monitor.length
-  const unknownCount = recs.unknown.filter(u => u.param !== 'salt').length
-  return Math.max(10, 100 - actionCount * 18 - monitorCount * 6 - unknownCount * 8)
+  const actionCount  = recs.action.filter(r => r.param !== 'calcium').length
+  const monitorCount = recs.monitor.filter(r => r.param !== 'calcium').length
+  const unknownCount = recs.unknown.filter(u => u.param !== 'salt' && u.param !== 'calcium').length
+  return Math.max(10, 100 - actionCount * 20 - monitorCount * 10 - unknownCount * 6)
 }
 
 const READINGS = [
