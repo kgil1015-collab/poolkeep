@@ -781,7 +781,7 @@ export default function DashboardPage() {
                 <div className="mb-5">
                   <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:10}}>
                     <div style={{width:14,height:1.5,background:'#00CCA3',borderRadius:2,flexShrink:0}} />
-                    <p style={{fontSize:10,fontWeight:500,letterSpacing:'0.16em',color:'#6A9AB0',textTransform:'uppercase',fontFamily:"'Space Grotesk',sans-serif"}}>What Needs Attention</p>
+                    <p style={{fontSize:11,fontWeight:700,letterSpacing:'0.12em',color:'#2A5570',textTransform:'uppercase',fontFamily:"'Space Grotesk',sans-serif"}}>What Needs Attention</p>
                   </div>
                   <div className="space-y-2.5">
                     {actionItems.map((rec, i) => {
