@@ -31,7 +31,7 @@ export type TreatmentStep = {
 }
 
 export type MaintenanceTip = {
-  category: 'testing' | 'chlorine' | 'shock' | 'brushing' | 'seasonal' | 'filter'
+  category: 'testing' | 'chlorine' | 'shock' | 'brushing' | 'seasonal' | 'filter' | 'skimmer' | 'cartridge'
   title: string
   body: string
 }
@@ -624,10 +624,11 @@ function generateMaintenance(test: TestInput, isSalt: boolean): MaintenanceTip[]
       body: 'Without enough stabilizer, UV destroys chlorine within hours on a sunny day. Test every 1–2 days and add chlorine more frequently until CYA reaches 30–50 ppm.',
     })
   } else {
+    const cyaElevated = test.cya !== null && test.cya > 50
     tips.push({
       category: 'chlorine',
-      title: 'Add chlorine when it drops below 1 ppm',
-      body: 'Check twice a week. Add liquid chlorine or granular shock when readings dip below 1 ppm. Always add in the evening — UV sunlight rapidly destroys chlorine added during the day, sometimes before it even finishes circulating.\n\nLiquid chlorine (sodium hypochlorite, 10–12.5%): fast-acting within minutes, adds zero calcium hardness and zero CYA. Best if you need quick results or if calcium is already elevated. Retest in 1–4 hours.\n\nGranular shock (cal-hypo 65%): takes 30–60 min to fully dissolve. Affordable and widely available. Pre-dissolve in a bucket of water first. Retest the next morning. Note: cal-hypo adds roughly 5–7 ppm calcium per pound per 10,000 gallons — in hard water areas, repeated use gradually raises calcium over the season.',
+      title: 'Weekly chlorine routine',
+      body: `Check chlorine twice a week. When it dips below 1 ppm, top it up in the evening — UV destroys chlorine added during the day.\n\nLiquid chlorine (sodium hypochlorite, 10–12.5%): pour around the perimeter, retest in 1–4 hours. Fast, clean, adds zero calcium or CYA.\n\n${cyaElevated ? 'Avoid trichlor tabs right now — CYA is already elevated and tabs add more with every use.' : 'Slow-dissolve trichlor tabs in a floating dispenser (\"pool bobber\"): 2–3 tabs per 10,000 gallons, refill weekly. Convenient for routine maintenance. Note: tabs add a small amount of CYA with each use — check CYA monthly.'}\n\nAlways add in the PM. Never toss tabs directly in the skimmer — concentrated chlorine can damage the pump.`,
     })
   }
 
@@ -645,6 +646,18 @@ function generateMaintenance(test: TestInput, isSalt: boolean): MaintenanceTip[]
     category: 'brushing',
     title: 'Brush weekly — algae starts on surfaces, not in the water',
     body: 'Brush walls, floor, steps, and shaded corners once a week. Algae and biofilm establish on surfaces before they are visible in the water — brushing breaks it loose so chlorine can reach it.',
+  })
+
+  tips.push({
+    category: 'skimmer',
+    title: 'Empty the skimmer basket weekly',
+    body: 'Check and empty the skimmer basket at least once a week — more often after storms or heavy leaf fall. A clogged skimmer chokes water flow to the pump, reduces filtration, and makes everything downstream less effective. Takes 30 seconds and makes a bigger difference than most chemical adjustments.',
+  })
+
+  tips.push({
+    category: 'cartridge',
+    title: 'Rinse your filter cartridge every 2–4 weeks',
+    body: 'This is one of the most overlooked maintenance tasks — and one of the highest-impact ones. A dirty cartridge doesn\'t just reduce flow, it actively recirculates debris and oils back into the pool, causing cloudiness that no amount of chemicals will fix.\n\nRinse with a garden hose (top to bottom between the pleats) every 2–4 weeks during swim season. Deep clean with cartridge cleaner solution every 1–2 months. Replace when pleats are torn, crushed, or no longer hold their shape — typically every 1–3 seasons depending on use.\n\nIf your pool water is persistently cloudy despite correct chemistry, a dirty or worn cartridge is almost always the reason.',
   })
 
   tips.push({

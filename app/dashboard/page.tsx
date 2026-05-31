@@ -1083,21 +1083,25 @@ export default function DashboardPage() {
                 <div className="rounded-2xl overflow-hidden mb-6" style={{boxShadow:'0 2px 12px rgba(0,45,68,0.10)', border:'1.5px solid #D0E2ED'}}>
                   {(liveRecs ?? lastTest.recommendations).maintenance.map((tip, i) => {
                     const catStyles: Record<string, { bg: string; color: string; accent: string }> = {
-                      testing:  { bg:'rgba(0,150,122,0.13)',  color:'#00967A', accent:'#00967A' },
-                      chlorine: { bg:'rgba(0,120,184,0.13)',  color:'#0078B8', accent:'#0078B8' },
-                      shock:    { bg:'rgba(220,38,38,0.11)',  color:'#DC2626', accent:'#DC2626' },
-                      brushing: { bg:'rgba(29,184,105,0.13)', color:'#1DB869', accent:'#1DB869' },
-                      seasonal: { bg:'rgba(217,119,6,0.13)',  color:'#D97706', accent:'#D97706' },
-                      filter:   { bg:'rgba(79,70,229,0.12)',  color:'#4F46E5', accent:'#4F46E5' },
+                      testing:   { bg:'rgba(0,150,122,0.13)',  color:'#00967A', accent:'#00967A' },
+                      chlorine:  { bg:'rgba(0,120,184,0.13)',  color:'#0078B8', accent:'#0078B8' },
+                      shock:     { bg:'rgba(220,38,38,0.11)',  color:'#DC2626', accent:'#DC2626' },
+                      brushing:  { bg:'rgba(29,184,105,0.13)', color:'#1DB869', accent:'#1DB869' },
+                      seasonal:  { bg:'rgba(217,119,6,0.13)',  color:'#D97706', accent:'#D97706' },
+                      filter:    { bg:'rgba(79,70,229,0.12)',  color:'#4F46E5', accent:'#4F46E5' },
+                      skimmer:   { bg:'rgba(6,182,212,0.13)',  color:'#0891B2', accent:'#0891B2' },
+                      cartridge: { bg:'rgba(139,92,246,0.12)', color:'#7C3AED', accent:'#7C3AED' },
                     }
                     const cs = catStyles[tip.category as keyof typeof catStyles] ?? { bg:'rgba(0,120,184,0.12)', color:'#0078B8', accent:'#0078B8' }
                     const icons: Record<string, React.ReactElement> = {
-                      testing:  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={cs.color} strokeWidth="2" strokeLinecap="round"><path d="M9 3v11l-3 3h12l-3-3V3"/><line x1="9" y1="3" x2="15" y2="3"/></svg>,
-                      chlorine: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={cs.color} strokeWidth="2" strokeLinecap="round"><path d="M12 2C6 9 4 13 4 16a8 8 0 0 0 16 0c0-3-2-7-8-14z"/></svg>,
-                      shock:    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={cs.color} strokeWidth="2" strokeLinecap="round"><polyline points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>,
-                      brushing: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={cs.color} strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><path d="M8 12h8M12 8v8"/></svg>,
-                      seasonal: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={cs.color} strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>,
-                      filter:   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={cs.color} strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>,
+                      testing:   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={cs.color} strokeWidth="2" strokeLinecap="round"><path d="M9 3v11l-3 3h12l-3-3V3"/><line x1="9" y1="3" x2="15" y2="3"/></svg>,
+                      chlorine:  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={cs.color} strokeWidth="2" strokeLinecap="round"><path d="M12 2C6 9 4 13 4 16a8 8 0 0 0 16 0c0-3-2-7-8-14z"/></svg>,
+                      shock:     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={cs.color} strokeWidth="2" strokeLinecap="round"><polyline points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>,
+                      brushing:  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={cs.color} strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><path d="M8 12h8M12 8v8"/></svg>,
+                      seasonal:  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={cs.color} strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>,
+                      filter:    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={cs.color} strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>,
+                      skimmer:   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={cs.color} strokeWidth="2" strokeLinecap="round"><path d="M3 6h18M3 12h18M3 18h18"/><path d="M7 3v18M17 3v18"/></svg>,
+                      cartridge: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={cs.color} strokeWidth="2" strokeLinecap="round"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="7" x2="16" y2="7"/><line x1="8" y1="11" x2="16" y2="11"/><line x1="8" y1="15" x2="16" y2="15"/></svg>,
                     }
                     return (
                       <div key={i} className="flex items-stretch bg-white" style={{borderTop: i > 0 ? '1.5px solid #E8F0F6' : 'none'}}>
