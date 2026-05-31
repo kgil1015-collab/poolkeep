@@ -801,9 +801,9 @@ export default function DashboardPage() {
               return (
                 <div className="mb-5">
                   <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:10}}>
-                    <div style={{width:14,height:1.5,background:'#00CCA3',borderRadius:2,flexShrink:0}} />
-                    <p style={{fontSize:10,fontWeight:500,letterSpacing:'0.16em',color:'#6A9AB0',textTransform:'uppercase',fontFamily:"'Space Grotesk',sans-serif",flex:1}}>Water Report</p>
-                    <p className="text-[10px] text-text-muted">{new Date(t.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric'})}</p>
+                    <div style={{width:3,height:18,background:'#00CCA3',borderRadius:2,flexShrink:0}} />
+                    <p style={{fontSize:13,fontWeight:700,letterSpacing:'0.04em',color:'#1A3A4A',flex:1,fontFamily:"'Space Grotesk',sans-serif"}}>Water Report</p>
+                    <p style={{fontSize:12,fontWeight:600,color:'#2A5570'}}>{new Date(t.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric'})}</p>
                   </div>
                   <div className="bg-white rounded-2xl shadow-sm overflow-hidden" style={{border:'1.5px solid #E0EBF3'}}>
                     {REPORT_PARAMS.map((p, i) => {
