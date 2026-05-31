@@ -929,7 +929,7 @@ export default function DashboardPage() {
             })()}
 
             {/* Treatment plan — timeline grouped */}
-            {(liveRecs ?? lastTest.recommendations).treatment_plan && (liveRecs ?? lastTest.recommendations).treatment_plan.length > 0 ? (
+            {((liveRecs ?? lastTest.recommendations).treatment_plan?.length ?? 0) > 0 ? (
               <>
                 <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:12}}>
                   <div style={{width:14,height:1.5,background:'#00CCA3',borderRadius:2,flexShrink:0}} />
@@ -1138,14 +1138,14 @@ export default function DashboardPage() {
             ) : null}
 
             {/* Ongoing maintenance guide */}
-            {(liveRecs ?? lastTest.recommendations).maintenance && (liveRecs ?? lastTest.recommendations).maintenance.length > 0 && (
+            {((liveRecs ?? lastTest.recommendations).maintenance?.length ?? 0) > 0 && (
               <>
                 <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:12}}>
                   <div style={{width:14,height:1.5,background:'#00CCA3',borderRadius:2,flexShrink:0}} />
                   <p style={{fontSize:10,fontWeight:500,letterSpacing:'0.16em',color:'#6A9AB0',textTransform:'uppercase',fontFamily:"'Space Grotesk',sans-serif"}}>Your Pool — Ongoing Guide</p>
                 </div>
                 <div className="rounded-2xl overflow-hidden mb-6" style={{boxShadow:'0 2px 12px rgba(0,45,68,0.10)', border:'1.5px solid #D0E2ED'}}>
-                  {(liveRecs ?? lastTest.recommendations).maintenance.map((tip, i) => {
+                  {((liveRecs ?? lastTest.recommendations).maintenance ?? []).map((tip, i) => {
                     const catStyles: Record<string, { bg: string; color: string; accent: string }> = {
                       testing:   { bg:'rgba(0,150,122,0.13)',  color:'#00967A', accent:'#00967A' },
                       chlorine:  { bg:'rgba(0,120,184,0.13)',  color:'#0078B8', accent:'#0078B8' },
