@@ -5,7 +5,8 @@ import WaveDivider from '@/app/components/WaveDivider'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 
-import type { TreatmentStep, MaintenanceTip } from '@/lib/recommendations'
+import type { TreatmentStep, MaintenanceTip, TestInput } from '@/lib/recommendations'
+import { calculateRecommendations } from '@/lib/recommendations'
 
 type User = { email: string; user_metadata: { full_name?: string } }
 
@@ -136,8 +137,8 @@ const IconDashboard = ({ size = 20 }: { size?: number }) => (
 export default function DashboardPage() {
   const router = useRouter()
   const [user, setUser] = useState<User | null>(null)
-  const [pool, setPool] = useState<{ id: string; name: string; remind_after_days: number | null } | null>(null)
-  const [allPools, setAllPools] = useState<{ id: string; name: string; remind_after_days: number | null }[]>([])
+  const [pool, setPool] = useState<{ id: string; name: string; remind_after_days: number | null; volume_gallons: number; type: string } | null>(null)
+  const [allPools, setAllPools] = useState<{ id: string; name: string; remind_after_days: number | null; volume_gallons: number; type: string }[]>([])
   const [showPicker, setShowPicker] = useState(false)
   const [isPro, setIsPro] = useState(false)
   const [lastTest, setLastTest] = useState<TestResult | null>(null)
@@ -149,6 +150,8 @@ export default function DashboardPage() {
   const [expandedSteps, setExpandedSteps] = useState<Set<number>>(new Set())
   // Animated score for the water-fill health indicator (0 → actual score)
   const [displayScore, setDisplayScore] = useState(0)
+  // Live-recalculated recommendations using current pool volume/type
+  const [liveRecs, setLiveRecs] = useState<TestResult['recommendations'] | null>(null)
 
   useEffect(() => {
     if (sessionStorage.getItem('poolkeep_just_logged')) {
@@ -170,7 +173,7 @@ export default function DashboardPage() {
       setUser(data.user as User)
       const [{ data: profile }, { data: pools }] = await Promise.all([
         supabase.from('profiles').select('subscription_status').eq('id', data.user.id).maybeSingle(),
-        supabase.from('pools').select('id,name,remind_after_days').order('created_at', { ascending: true }),
+        supabase.from('pools').select('id,name,remind_after_days,volume_gallons,type').order('created_at', { ascending: true }),
       ])
       const pro = profile?.subscription_status === 'active' || profile?.subscription_status === 'trialing'
       setIsPro(pro)
@@ -187,14 +190,32 @@ export default function DashboardPage() {
     })
   }, [router])
 
+  // Recalculate recommendations live whenever pool settings or test data changes
+  // This ensures chemical doses always reflect the current pool volume + type,
+  // even if the pool was edited after the test was logged.
+  useEffect(() => {
+    if (!lastTest || !pool) { setLiveRecs(null); return }
+    const testInput: TestInput = {
+      ph: lastTest.ph,
+      free_chlorine: lastTest.free_chlorine,
+      total_alkalinity: lastTest.total_alkalinity,
+      cya: lastTest.cya,
+      calcium_hardness: lastTest.calcium_hardness,
+      salt: lastTest.salt,
+    }
+    const result = calculateRecommendations(testInput, pool.volume_gallons, pool.type)
+    setLiveRecs(result as TestResult['recommendations'])
+  }, [lastTest, pool])
+
   // Animate water level rising whenever the test result changes
   useEffect(() => {
     if (!lastTest) { setDisplayScore(0); return }
-    const score = computeScore(lastTest.recommendations)
+    const recs = liveRecs ?? lastTest.recommendations
+    const score = computeScore(recs)
     setDisplayScore(0)
     const t = setTimeout(() => setDisplayScore(score), 120)
     return () => clearTimeout(t)
-  }, [lastTest])
+  }, [lastTest, liveRecs])
 
   async function handleSignOut() {
     const supabase = createClient()
@@ -202,7 +223,7 @@ export default function DashboardPage() {
     router.push('/')
   }
 
-  async function switchPool(p: { id: string; name: string; remind_after_days: number | null }) {
+  async function switchPool(p: { id: string; name: string; remind_after_days: number | null; volume_gallons: number; type: string }) {
     setPool(p)
     setRemindDays(p.remind_after_days ?? null)
     setLastTest(null)
@@ -265,7 +286,7 @@ export default function DashboardPage() {
       <div className="bg-pool-deep px-5 pt-5 pb-6 relative overflow-hidden">
         {/* Dynamic status overlay */}
         {lastTest && (
-          <div className="absolute inset-0 pointer-events-none" style={{background: statusAccent(computeScore(lastTest.recommendations)).overlay}} />
+          <div className="absolute inset-0 pointer-events-none" style={{background: statusAccent(computeScore((liveRecs ?? lastTest.recommendations))).overlay}} />
         )}
         {/* Light-through-water shimmer */}
         <div
@@ -366,10 +387,10 @@ export default function DashboardPage() {
 
         {/* Health score — water fill: rises from bottom like a pool */}
         {(() => {
-          const score = lastTest ? computeScore(lastTest.recommendations) : null
+          const score = lastTest ? computeScore((liveRecs ?? lastTest.recommendations)) : null
           const { color, glow } = statusAccent(score)
           const unknownCount = lastTest
-            ? lastTest.recommendations.unknown.filter(u => u.param !== 'salt').length
+            ? (liveRecs ?? lastTest.recommendations).unknown.filter(u => u.param !== 'salt').length
             : 0
           const testedCount = 5 - unknownCount
 
@@ -530,7 +551,7 @@ export default function DashboardPage() {
               <div className="space-y-3">
                 {[
                   { icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0078B8" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>, title: 'Health score 0–100', desc: 'Instant read on your pool condition' },
-                  { icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0078B8" strokeWidth="2" strokeLinecap="round"><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18"/></svg>, title: 'Exact chemical doses', desc: 'Calculated for your pool size' },
+                  { icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0078B8" strokeWidth="2" strokeLinecap="round"><path d="M9 3H5a2 2 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18"/></svg>, title: 'Exact chemical doses', desc: 'Calculated for your pool size' },
                   { icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0078B8" strokeWidth="2" strokeLinecap="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>, title: 'Step-by-step treatment plan', desc: 'In the right order, with safety tips' },
                 ].map((f, i) => (
                   <div key={i} className="flex items-start gap-3">
@@ -543,12 +564,106 @@ export default function DashboardPage() {
                 ))}
               </div>
             </div>
+
+            {/* How to test your water */}
+            <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100">
+              <div className="h-1 w-full" style={{background:'linear-gradient(90deg,#0078B8,#00E0B0)'}} />
+              <div className="px-5 pt-4 pb-5">
+                <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:14}}>
+                  <div style={{width:14,height:1.5,background:'#00CCA3',borderRadius:2,flexShrink:0}} />
+                  <p style={{fontSize:10,fontWeight:500,letterSpacing:'0.16em',color:'#6A9AB0',textTransform:'uppercase',fontFamily:"'Space Grotesk',sans-serif"}}>How to Test Your Water</p>
+                </div>
+
+                <div className="space-y-5">
+
+                  {/* Step 1 — Collect the sample */}
+                  <div className="flex items-start gap-3">
+                    <div className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0 mt-0.5" style={{background:'rgba(0,120,184,0.09)'}}>
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0078B8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M12 2C6 9 4 13 4 16a8 8 0 0 0 16 0c0-3-2-7-8-14z"/>
+                      </svg>
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm font-bold text-text-primary mb-1">Collect the sample correctly</p>
+                      <p className="text-xs text-text-muted leading-relaxed">Use a clean cup or small container. Reach your arm elbow-deep (about 12–18 inches) with your hand facing away from the return jets, and fill the cup at that depth. Then bring it up and dip your test strip into the cup — this gives you a controlled, consistent sample every time and makes reading the strip much easier than balancing at the pool edge.</p>
+                      <div className="mt-2 px-3 py-2 rounded-xl flex items-start gap-2" style={{background:'rgba(0,120,184,0.05)',border:'1px solid rgba(0,120,184,0.12)'}}>
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#4A7A9A" strokeWidth="2.2" strokeLinecap="round" className="shrink-0 mt-0.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                        <p className="text-[11px] leading-snug" style={{color:'#4A7A9A'}}>Avoid sampling near the skimmer, jets, or the water surface — those spots are not representative of the pool overall. And test in the morning before the sun has been on the water long, when chlorine reads most accurately.</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="h-px bg-gray-50" />
+
+                  {/* Step 2 — Use the strip */}
+                  <div className="flex items-start gap-3">
+                    <div className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0 mt-0.5" style={{background:'rgba(0,150,122,0.09)'}}>
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#00967A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M9 3v11l-3 3h12l-3-3V3"/><line x1="9" y1="3" x2="15" y2="3"/>
+                      </svg>
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm font-bold text-text-primary mb-1">How to use a test strip</p>
+                      <ol className="space-y-1.5">
+                        {[
+                          'Dip the strip in the water for 2 seconds — no swirling.',
+                          'Remove it and hold it level (pad-side up). Do not shake off the water.',
+                          'Wait exactly 15 seconds before reading — not less, not more.',
+                          'Compare each pad to the color chart in good natural light. Artificial light shifts the colors.',
+                          'Read from bottom to top of the strip — pH last, since it bleeds into adjacent pads.',
+                        ].map((s, i) => (
+                          <li key={i} className="flex items-start gap-2">
+                            <span className="w-4 h-4 rounded-full flex items-center justify-center shrink-0 text-[9px] font-bold text-white mt-0.5" style={{background:'#00967A',minWidth:16}}>{i+1}</span>
+                            <p className="text-xs text-text-muted leading-relaxed">{s}</p>
+                          </li>
+                        ))}
+                      </ol>
+                    </div>
+                  </div>
+
+                  <div className="h-px bg-gray-50" />
+
+                  {/* Step 3 — Preferred strips */}
+                  <div className="flex items-start gap-3">
+                    <div className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0 mt-0.5" style={{background:'rgba(217,119,6,0.09)'}}>
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#D97706" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                      </svg>
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm font-bold text-text-primary mb-1">Recommended test strips</p>
+                      <p className="text-xs text-text-muted leading-relaxed mb-2.5">Not all strips are equal. The ones below test 6–7 parameters and have consistent dye chemistry that holds up in heat and humidity.</p>
+                      <div className="space-y-2">
+                        {[
+                          { name: 'AquaChek Select 7-in-1', note: 'Best overall — tests FC, TC, pH, TA, CH, CYA, and bromine. Color-coded pads are easy to read.' },
+                          { name: 'HTH 6-Way Test Strips', note: 'Widely available at Walmart and Home Depot. Reliable for the basics and a solid everyday choice.' },
+                          { name: 'Taylor TechniStrip', note: 'Professional-grade. Better dye stability in high heat — a good pick for Arizona summers.' },
+                        ].map((strip, i) => (
+                          <div key={i} className="flex items-start gap-2.5 px-3 py-2.5 rounded-xl" style={{background:'#F8FBFD',border:'1px solid #E0EBF3'}}>
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#00967A" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 mt-0.5"><polyline points="20 6 9 17 4 12"/></svg>
+                            <div>
+                              <p className="text-xs font-bold" style={{color:'#1A3A4A'}}>{strip.name}</p>
+                              <p className="text-[11px] text-text-muted leading-snug mt-0.5">{strip.note}</p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="mt-3 px-3 py-2 rounded-xl flex items-start gap-2" style={{background:'rgba(245,166,35,0.07)',border:'1px solid rgba(217,119,6,0.15)'}}>
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#D97706" strokeWidth="2.2" strokeLinecap="round" className="shrink-0 mt-0.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                        <p className="text-[11px] leading-snug" style={{color:'#92600A'}}>CYA (cyanuric acid) cannot be accurately measured by any test strip — the turbidity-method drop test is required. For all other parameters, fresh strips stored away from heat and humidity give reliable results.</p>
+                      </div>
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+            </div>
           </div>
         ) : (
           <>
             {/* ACTION NEEDED — icon cards */}
             {(() => {
-              const actionItems = [...lastTest.recommendations.action, ...lastTest.recommendations.monitor]
+              const actionItems = [...(liveRecs ?? lastTest.recommendations).action, ...(liveRecs ?? lastTest.recommendations).monitor]
                 .filter(rec => rec.param !== 'calcium') // calcium shown in Water Report instead
               // Sort: chlorine (most urgent safety issue) always first
               const chlorineFirst = (x: {param: string}) => x.param === 'chlorine' ? -1 : 0
@@ -564,7 +679,7 @@ export default function DashboardPage() {
               const defaultMeta = { bg:'rgba(245,166,35,0.15)', color:'#B97A00', icon:<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg> }
 
               if (actionItems.length === 0) {
-                const unknownNonSalt = lastTest.recommendations.unknown.filter(u => u.param !== 'salt').length
+                const unknownNonSalt = (liveRecs ?? lastTest.recommendations).unknown.filter(u => u.param !== 'salt').length
                 const hasUnknowns = unknownNonSalt > 0
                 const testedBars = 5 - unknownNonSalt
                 return (
@@ -598,11 +713,14 @@ export default function DashboardPage() {
 
               return (
                 <div className="mb-5">
-                  <p className="text-xs font-bold uppercase tracking-widest mb-2.5" style={{color:'#1A3A4A'}}>What Needs Attention</p>
+                  <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:10}}>
+                    <div style={{width:14,height:1.5,background:'#00CCA3',borderRadius:2,flexShrink:0}} />
+                    <p style={{fontSize:10,fontWeight:500,letterSpacing:'0.16em',color:'#6A9AB0',textTransform:'uppercase',fontFamily:"'Space Grotesk',sans-serif"}}>What Needs Attention</p>
+                  </div>
                   <div className="space-y-2.5">
                     {actionItems.map((rec, i) => {
                       const meta = paramMeta[rec.param as keyof typeof paramMeta] ?? defaultMeta
-                      const isMonitor = lastTest.recommendations.monitor.some(m => m.title === rec.title)
+                      const isMonitor = (liveRecs ?? lastTest.recommendations).monitor.some(m => m.title === rec.title)
                       const isUrgentAction = !isMonitor
                       const borderColor = isUrgentAction ? meta.color : '#D97706'
                       const isCriticalChlorine = rec.param === 'chlorine' && (lastTest.free_chlorine ?? 99) < 0.5
@@ -682,8 +800,9 @@ export default function DashboardPage() {
               }
               return (
                 <div className="mb-5">
-                  <div className="flex items-center justify-between mb-2.5">
-                    <p className="text-xs font-bold uppercase tracking-widest" style={{color:'#1A3A4A'}}>Water Report</p>
+                  <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:10}}>
+                    <div style={{width:14,height:1.5,background:'#00CCA3',borderRadius:2,flexShrink:0}} />
+                    <p style={{fontSize:10,fontWeight:500,letterSpacing:'0.16em',color:'#6A9AB0',textTransform:'uppercase',fontFamily:"'Space Grotesk',sans-serif",flex:1}}>Water Report</p>
                     <p className="text-[10px] text-text-muted">{new Date(t.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric'})}</p>
                   </div>
                   <div className="bg-white rounded-2xl shadow-sm overflow-hidden" style={{border:'1.5px solid #E0EBF3'}}>
@@ -746,14 +865,15 @@ export default function DashboardPage() {
             })()}
 
             {/* Treatment plan — timeline grouped */}
-            {lastTest.recommendations.treatment_plan && lastTest.recommendations.treatment_plan.length > 0 ? (
+            {(liveRecs ?? lastTest.recommendations).treatment_plan && (liveRecs ?? lastTest.recommendations).treatment_plan.length > 0 ? (
               <>
-                <div className="flex items-center gap-2 mb-3">
-                  <p className="text-xs font-bold uppercase tracking-widest" style={{color:'#1A3A4A'}}>Treatment Plan</p>
-                  <span className="text-[10px] text-text-muted">— exact doses, in order</span>
+                <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:12}}>
+                  <div style={{width:14,height:1.5,background:'#00CCA3',borderRadius:2,flexShrink:0}} />
+                  <p style={{fontSize:10,fontWeight:500,letterSpacing:'0.16em',color:'#6A9AB0',textTransform:'uppercase',fontFamily:"'Space Grotesk',sans-serif"}}>Treatment Plan</p>
+                  <span className="text-[10px] text-text-faint">exact doses, in order</span>
                 </div>
                 {(() => {
-                  const steps = lastTest.recommendations.treatment_plan.filter((s: TreatmentStep) => s.param !== 'calcium')
+                  const steps = (liveRecs ?? lastTest.recommendations).treatment_plan.filter((s: TreatmentStep) => s.param !== 'calcium')
                   const WHEN_ORDER = ['today', 'in-1-2-days', 'this-week', 'plan-ahead'] as const
                   const WHEN_LABELS: Record<string, { label: string; sublabel: string; color: string; bg: string }> = {
                     'today':       { label: 'Do Today',     sublabel: 'Start here',              color: '#DC2626', bg: 'rgba(220,38,38,0.07)' },
@@ -954,11 +1074,14 @@ export default function DashboardPage() {
             ) : null}
 
             {/* Ongoing maintenance guide */}
-            {lastTest.recommendations.maintenance && lastTest.recommendations.maintenance.length > 0 && (
+            {(liveRecs ?? lastTest.recommendations).maintenance && (liveRecs ?? lastTest.recommendations).maintenance.length > 0 && (
               <>
-                <p className="text-xs font-bold uppercase tracking-widest mb-3" style={{color:'#1A3A4A'}}>Your Pool — Ongoing Guide</p>
+                <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:12}}>
+                  <div style={{width:14,height:1.5,background:'#00CCA3',borderRadius:2,flexShrink:0}} />
+                  <p style={{fontSize:10,fontWeight:500,letterSpacing:'0.16em',color:'#6A9AB0',textTransform:'uppercase',fontFamily:"'Space Grotesk',sans-serif"}}>Your Pool — Ongoing Guide</p>
+                </div>
                 <div className="rounded-2xl overflow-hidden mb-6" style={{boxShadow:'0 2px 12px rgba(0,45,68,0.10)', border:'1.5px solid #D0E2ED'}}>
-                  {lastTest.recommendations.maintenance.map((tip, i) => {
+                  {(liveRecs ?? lastTest.recommendations).maintenance.map((tip, i) => {
                     const catStyles: Record<string, { bg: string; color: string; accent: string }> = {
                       testing:  { bg:'rgba(0,150,122,0.13)',  color:'#00967A', accent:'#00967A' },
                       chlorine: { bg:'rgba(0,120,184,0.13)',  color:'#0078B8', accent:'#0078B8' },
@@ -1001,12 +1124,15 @@ export default function DashboardPage() {
               // Filter out pH from 'good' when FC is critically low and pH > 7.2 —
               // in that scenario pH needs to be lowered before shocking, not celebrated.
               const phNeedsShockPrep = (lastTest.free_chlorine ?? 99) < 0.5 && (lastTest.ph ?? 0) > 7.2
-              const goodItems = lastTest.recommendations.good.filter(g =>
+              const goodItems = (liveRecs ?? lastTest.recommendations).good.filter(g =>
                 !(g.param === 'ph' && phNeedsShockPrep) && g.param !== 'calcium'
               )
               return goodItems.length > 0 ? (
               <div className="mb-5">
-                <p className="text-xs font-bold uppercase tracking-widest mb-2.5" style={{color:'#1A3A4A'}}>Looking Good</p>
+                <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:10}}>
+                  <div style={{width:14,height:1.5,background:'#00CCA3',borderRadius:2,flexShrink:0}} />
+                  <p style={{fontSize:10,fontWeight:500,letterSpacing:'0.16em',color:'#6A9AB0',textTransform:'uppercase',fontFamily:"'Space Grotesk',sans-serif"}}>Looking Good</p>
+                </div>
                 <div className="space-y-2">
                   {goodItems.map((a, i) => (
                     <div key={i} className="bg-white rounded-2xl px-4 py-3 flex items-center gap-3" style={{boxShadow:'0 2px 8px rgba(0,45,68,0.08)', border:'1.5px solid #D0EDD8'}}>
@@ -1025,11 +1151,14 @@ export default function DashboardPage() {
             })()}
 
             {/* Not tested */}
-            {lastTest.recommendations.unknown && lastTest.recommendations.unknown.length > 0 && (
+            {(liveRecs ?? lastTest.recommendations).unknown && (liveRecs ?? lastTest.recommendations).unknown.length > 0 && (
               <>
-                <p className="text-xs font-bold uppercase tracking-widest mb-3" style={{color:'#1A3A4A'}}>Not Tested</p>
+                <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:12}}>
+                  <div style={{width:14,height:1.5,background:'#00CCA3',borderRadius:2,flexShrink:0}} />
+                  <p style={{fontSize:10,fontWeight:500,letterSpacing:'0.16em',color:'#6A9AB0',textTransform:'uppercase',fontFamily:"'Space Grotesk',sans-serif"}}>Not Tested</p>
+                </div>
                 <div className="space-y-3">
-                  {lastTest.recommendations.unknown.map((a, i) => (
+                  {(liveRecs ?? lastTest.recommendations).unknown.map((a, i) => (
                     <div key={i} className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 opacity-80">
                       <div className="flex items-start gap-3">
                         <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 mt-0.5" style={{background:'rgba(74,106,124,0.12)'}}>

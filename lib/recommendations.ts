@@ -129,11 +129,13 @@ function buildTreatmentPlan(test: TestInput, v: number, isSalt: boolean): Treatm
     if (needsAcid) shockHandledPH = true
     if (taHigh)    shockHandledTA = true
 
-    const taDose    = taHigh ? Math.round(v * 26 * ((ta! - 120) / 10)) : 0
+    // For the shock context, always use a pH-targeted dose — do NOT try to fix
+    // all of TA in one shot during a chlorine emergency. High TA adds buffering,
+    // so use the full pH-lowering dose (v*26) rather than the scaled phOnlyDose.
     const phOnlyDose = ph !== null && ph > 7.2
       ? Math.round(v * 13 * ((ph - 7.2) / 0.6))
       : Math.round(v * 8)
-    const acidDose  = taHigh ? taDose : phOnlyDose
+    const acidDose = taHigh ? Math.round(v * 26) : phOnlyDose
 
     const phEfficiency = ph !== null
       ? ph <= 7.0 ? '73%' : ph <= 7.2 ? '66%' : ph <= 7.5 ? '49%' : ph <= 7.8 ? '33%' : '21%'
@@ -240,24 +242,33 @@ function buildTreatmentPlan(test: TestInput, v: number, isSalt: boolean): Treatm
         lookFor: `Retest next day. Target ${R.ta.monLow}–${R.ta.monHigh} ppm.`,
       })
     } else if (ta > R.ta.actionHigh && !shockHandledTA) {
-      const dose = Math.round(v * 26 * ((ta - R.ta.monHigh) / 10))
       const phAlsoHigh = ph !== null && ph > 7.6
       if (phAlsoHigh) taHandledPH = true
+
+      // Use a pH-targeted dose per cycle — NEVER try to fix high TA in one shot.
+      // The correct approach is the "aeration method": acid drops pH, aeration
+      // off-gasses CO₂ and raises pH back, each full cycle lowers TA ~10–20 ppm.
+      // Trying to dump enough acid to fix all TA at once would crash pH below 7.0
+      // and potentially damage surfaces and equipment.
+      const phVal = ph ?? 7.9
+      const dose = phAlsoHigh
+        ? Math.round(v * (phVal > 7.8 ? 26 : 13))   // standard pH-lowering dose
+        : Math.round(v * 20)                           // conservative first dose when pH is in range
+      const cyclesEst = Math.ceil((ta - R.ta.monHigh) / 15)  // ~15 ppm per aeration cycle
+
       raw.push({
         order: 1,
         urgency: 'soon',
         param: 'alkalinity',
-        title: phAlsoHigh ? 'Lower alkalinity and pH' : 'Lower total alkalinity',
+        title: phAlsoHigh ? 'Lower alkalinity and pH — repeat cycle method' : 'Lower total alkalinity — aeration cycle method',
         chemical: 'Muriatic Acid (or Dry Acid · pH Down)',
         amount: acidAmount(dose),
         why: phAlsoHigh
-          ? `Alkalinity at ${ta} ppm is too high, and your pH at ${ph} is elevated as well — one acid treatment handles both.${isSalt ? ' Salt generators naturally raise pH over time; bringing alkalinity into the tighter 80–100 ppm salt pool range helps moderate future pH swings.' : ''}`
-          : `Alkalinity at ${ta} ppm is too high. High TA makes pH stubbornly resistant to adjustment and promotes scale buildup.${isSalt ? ' For salt pools, the target is 80–100 ppm (tighter than chlorine pools) — this helps counteract the pH rise that salt generators naturally produce.' : ''}`,
-        how: phAlsoHigh
-          ? 'Add muriatic acid to the deep end in the evening with the pump running. Pour slowly. Wear gloves and eye protection. Since pH also needs to come down, skip aeration — let pH settle naturally.'
-          : 'Add muriatic acid to the deep end in the evening with the pump running. Pour slowly. Wear gloves and eye protection. After 2 hours, angle a return jet toward the surface to release CO₂ and raise pH back naturally without reversing the TA reduction. Run 2–4 hours.',
-        lookFor: `Retest both TA and pH the next day. Target TA ${R.ta.monLow}–${R.ta.monHigh} ppm.`,
-        note: `ABOUT DRY ACID PRODUCTS\n\nThe dry acid dose shown assumes standard 93% sodium bisulfate. Many store-brand "pH Down" products contain only 30–35% sodium bisulfate — at that concentration you need 2–3× the listed amount. Check the label for the percentage before using.`,
+          ? `Here is the good news: this is very manageable, it just takes a little patience. Alkalinity at ${ta} ppm is high — and with pH at ${ph} on top of it, the water is extra resistant to change. The most common mistake pool owners make in this situation is dumping in a huge amount of acid trying to fix everything at once. That is how you end up with crashed pH, etched plaster, and a bigger problem than you started with.\n\nThe right move is small, repeated cycles: add a reasonable acid dose, let pH settle, aerate to raise it back, then do it again. Each full cycle quietly chips away at TA by 10–20 ppm — and you never put your pool at risk in the process.${isSalt ? ' Your salt generator actually helps here — it naturally pushes pH back up between cycles, which speeds up the whole process.' : ''}\n\nOne more thing worth checking: if your TA reading came from a test strip, get a drop-test or pool store confirmation before you start. Test strips can read TA 30–60 ppm high — what looks like 240 ppm on a strip might actually be 160–180 ppm on a drop test. That changes how many cycles you need.`
+          : `Alkalinity at ${ta} ppm is too high. High TA makes pH stubborn — it resists going up or down, which is frustrating when you are trying to balance the pool. The aeration method (small acid dose + aeration, repeated) is the safe, proven way to bring it down without crashing pH.\n\nIf your reading came from a test strip, it is worth getting a drop-test confirmation — strips can overestimate TA by 30–60 ppm.`,
+        how: `Here is exactly what to do — one cycle at a time.\n\nStep 1 — Add muriatic acid (${acidAmount(dose)}) to the deep end in the evening with the pump running. Pour it slowly in a thin stream along the wall — do not dump it in one spot. Wear gloves and eye protection.\n\nStep 2 — Wait 30–60 minutes for it to circulate fully. Then check pH — it should have dropped toward 7.2–7.4, which is what you want.\n\nStep 3 — Aim a return jet toward the water surface and run it for 2–4 hours. This off-gasses CO₂ from the water, which naturally raises pH back toward 7.6–7.8. Every time it rises back up and you add acid again, TA drops another 10–20 ppm in the background. That is how the chemistry works.\n\nRepeat — Each time pH climbs back to ${phAlsoHigh ? (phVal > 7.8 ? '7.8' : '7.6') : '7.6'}+, add the same dose and aerate again. At ${ta} ppm, plan for roughly ${cyclesEst}–${cyclesEst + 2} cycles spread over ${cyclesEst}–${cyclesEst + 2} weeks. You do not need to do them back-to-back — just add acid the next time pH climbs and you are out maintaining the pool anyway.`,
+        lookFor: `After each acid addition: retest pH about 1 hour later. Retest TA the following morning. You are looking for pH to settle in the 7.2–7.4 range after each dose, then rise back toward 7.6–7.8 after aeration. TA should tick down 10–20 ppm per complete cycle. Target TA ${R.ta.monLow}–${R.ta.monHigh} ppm.\n\nIf pH crashes below 7.0 after adding acid, you added too much. Raise it back with a small dose of soda ash and go lighter next cycle. Staying patient and keeping doses small is how you get this right.`,
+        note: `WHY THE DOSE IS INTENTIONALLY SMALL\n\nWith TA at ${ta} ppm, your pool water has strong buffering — it resists pH change more than normal. The temptation is to add a lot of acid to force it down faster, but that is how you end up with crashed pH below 7.0, which is corrosive to surfaces and equipment and harder to fix than where you started.\n\nThe dose shown here is what you add per cycle — not the total amount to fix everything. Add it, let pH settle, aerate to bring pH back up, then repeat. Each cycle lowers TA 10–20 ppm in the background while pH stays in a safe range the whole time. Your pool stays swimmable throughout, and you are never putting the surfaces at risk.\n\nABOUT DRY ACID (pH Down)\n\nThe dry acid equivalent shown assumes 93% sodium bisulfate. Many store-brand "pH Down" products are only 30–35% — at that concentration you need 2–3× the listed amount. Check the label before using.${isSalt ? '\n\nSalt pool bonus: Your SWG naturally pushes pH upward over time, which actually speeds up the aeration step between cycles. Less manual aeration needed — the generator does some of the work for you.' : ''}`,
       })
     } else if (ta > R.ta.monHigh) {
       raw.push({
@@ -743,8 +754,9 @@ export function calculateRecommendations(
     const dose = ((R.ta.monLow - test.total_alkalinity) / 10) * 1.5 * v
     recs.push({ status: 'monitor', param: 'alkalinity', title: 'Alkalinity slightly low', desc: `Alkalinity at ${test.total_alkalinity} ppm. A small baking soda dose will stabilize it.`, tags: [`Alkalinity Increaser (Baking Soda) · ${oz(dose, 'lbs')}`, 'Monitor weekly'] })
   } else if (test.total_alkalinity > R.ta.actionHigh) {
-    const dose = Math.round(v * 26 * ((test.total_alkalinity - R.ta.monHigh) / 10))
-    recs.push({ status: 'action', param: 'alkalinity', title: 'Lower total alkalinity', desc: `Alkalinity at ${test.total_alkalinity} ppm — too high. Add muriatic acid to the deep end, then aim a return jet toward the surface and run 2–4 hours to raise pH back naturally.${isSalt ? ' Target 80–100 ppm for salt pools.' : ''}`, tags: [] })
+    // Show a per-cycle starting dose, not a total TA-fix dose
+    const taStartDose = Math.round(v * 26)
+    recs.push({ status: 'action', param: 'alkalinity', title: 'Lower total alkalinity', desc: `Alkalinity at ${test.total_alkalinity} ppm — too high. Use the aeration cycle method: add ${acidAmount(taStartDose)} muriatic acid, run pump, then aim a return jet at the surface for 2–4 hours to raise pH back naturally. Repeat each time pH climbs back up. Each cycle lowers TA 10–20 ppm.${isSalt ? ' Target 80–100 ppm for salt pools.' : ''}`, tags: [`Starting dose: ${acidAmount(taStartDose)} per cycle`, 'Repeat cycle method — see treatment plan'] })
   } else if (test.total_alkalinity > R.ta.monHigh) {
     recs.push({ status: 'monitor', param: 'alkalinity', title: isSalt ? 'Alkalinity above salt pool target' : 'Alkalinity slightly high', desc: `Alkalinity at ${test.total_alkalinity} ppm. Monitor weekly — it will drift down naturally. ${isSalt ? 'Target 80–100 ppm for salt pools.' : ''}`, tags: ['Monitor weekly'] })
   } else {

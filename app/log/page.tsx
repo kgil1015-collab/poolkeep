@@ -130,6 +130,7 @@ export default function LogTestPage() {
   const [testCount, setTestCount] = useState(0)
   const [isPro, setIsPro] = useState(false)
   const [isSaltPool, setIsSaltPool] = useState(false)
+  const [poolTypeKnown, setPoolTypeKnown] = useState(false) // true when DB has explicit salt/chlorine type
 
   useEffect(() => {
     const supabase = createClient()
@@ -146,10 +147,14 @@ export default function LogTestPage() {
       const active = (savedId && pools.find(p => p.id === savedId)) || pools[0]
       localStorage.setItem('poolkeep_active_pool', active.id)
       setPool(active)
-      // Salt pool detection: DB type wins, localStorage toggle can also enable it
+      // Salt pool detection: DB type is authoritative when explicitly set.
+      // Only fall back to localStorage toggle when pool type is unknown.
       const saltKey = `poolkeep_salt_pool_${active.id}`
       const dbIsSalt = active.type === 'saltwater' || active.type === 'salt'
-      const localIsSalt = localStorage.getItem(saltKey) === 'true'
+      const dbIsChlorine = active.type === 'inground' || active.type === 'above_ground' || active.type === 'spa'
+      const typeKnown = dbIsSalt || dbIsChlorine
+      const localIsSalt = !typeKnown && localStorage.getItem(saltKey) === 'true'
+      setPoolTypeKnown(typeKnown)
       setIsSaltPool(dbIsSalt || localIsSalt)
       if (!pro) {
         const { count } = await supabase
@@ -263,24 +268,26 @@ export default function LogTestPage() {
 
         {error && <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl px-4 py-3 mb-4">{error}</div>}
 
-        {/* Salt pool toggle */}
-        <div className="flex items-center justify-between bg-white rounded-2xl px-4 py-3 mb-3 shadow-md" style={{border:'2px solid #A8C4D4'}}>
-          <div>
-            <p className="text-xs font-bold uppercase tracking-widest" style={{color:'#1A3A4A'}}>Salt Pool?</p>
-            <p className="text-[10px] text-text-muted">Shows salt field and adjusts recommendations</p>
+        {/* Salt pool toggle — only shown when pool type wasn't set during setup */}
+        {!poolTypeKnown && (
+          <div className="flex items-center justify-between bg-white rounded-2xl px-4 py-3 mb-3 shadow-md" style={{border:'2px solid #A8C4D4'}}>
+            <div>
+              <p className="text-xs font-bold uppercase tracking-widest" style={{color:'#1A3A4A'}}>Salt Pool?</p>
+              <p className="text-[10px] text-text-muted">Shows salt field and adjusts recommendations</p>
+            </div>
+            <button
+              onClick={() => {
+                const next = !isSaltPool
+                setIsSaltPool(next)
+                if (pool) localStorage.setItem(`poolkeep_salt_pool_${pool.id}`, String(next))
+              }}
+              className="relative w-12 h-6 rounded-full transition-colors shrink-0"
+              style={{background: isSaltPool ? '#0078B8' : '#A8C4D4'}}
+            >
+              <span className="absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-all" style={{left: isSaltPool ? '26px' : '4px'}} />
+            </button>
           </div>
-          <button
-            onClick={() => {
-              const next = !isSaltPool
-              setIsSaltPool(next)
-              if (pool) localStorage.setItem(`poolkeep_salt_pool_${pool.id}`, String(next))
-            }}
-            className="relative w-12 h-6 rounded-full transition-colors shrink-0"
-            style={{background: isSaltPool ? '#0078B8' : '#A8C4D4'}}
-          >
-            <span className="absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-all" style={{left: isSaltPool ? '26px' : '4px'}} />
-          </button>
-        </div>
+        )}
 
         <div className="space-y-3 mb-6">
           {PARAMS.filter(p => p.key !== 'salt' || isSaltPool).map((p, i) => {

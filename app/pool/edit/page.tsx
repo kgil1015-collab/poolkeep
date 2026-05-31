@@ -29,8 +29,8 @@ export default function EditPoolPage() {
   const router = useRouter()
   const [poolId, setPoolId]             = useState<string | null>(null)
   const [poolName, setPoolName]         = useState('')
-  const [sanitizer, setSanitizer]       = useState('chlorine')  // 'salt' | 'chlorine'
-  const [structure, setStructure]       = useState('inground')  // 'inground' | 'above_ground' | 'spa'
+  const [sanitizer, setSanitizer]       = useState('')  // 'salt' | 'chlorine'
+  const [structure, setStructure]       = useState('')  // 'inground' | 'above_ground' | 'spa'
   const [volumeGallons, setVolumeGallons] = useState<number | null>(null)
   const [customVolume, setCustomVolume] = useState('')
   const [loading, setLoading]           = useState(true)
@@ -55,13 +55,16 @@ export default function EditPoolPage() {
       setPoolName(pool.name ?? '')
 
       // Decode stored type back into sanitizer + structure
-      const storedType: string = pool.type ?? 'inground'
+      const storedType: string = pool.type ?? ''
       if (storedType === 'saltwater' || storedType === 'salt') {
         setSanitizer('salt')
-        setStructure('inground')   // default shape for salt pools
-      } else {
+        setStructure('')   // structure not stored for salt pools — require user to confirm
+      } else if (storedType === 'inground' || storedType === 'above_ground' || storedType === 'spa') {
         setSanitizer('chlorine')
         setStructure(storedType)
+      } else {
+        setSanitizer('')
+        setStructure('')
       }
 
       const matchedSize = SIZES.find(s => s.value === pool.volume_gallons)
@@ -78,6 +81,8 @@ export default function EditPoolPage() {
     setError('')
     const volume = volumeGallons ?? parseInt(customVolume)
     if (!poolName.trim()) { setError('Please enter a pool name.'); return }
+    if (!sanitizer) { setError('Please select a sanitizer type.'); return }
+    if (sanitizer !== 'salt' && !structure) { setError('Please select a pool shape.'); return }
     if (!volume || volume < 500) { setError('Please select or enter a valid pool size.'); return }
 
     // Re-encode to stored type
