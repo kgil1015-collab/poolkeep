@@ -785,8 +785,30 @@ export default function DashboardPage() {
             <Card>
               {REPORT_PARAMS.map((p, i) => {
                 const raw = lastTest[p.key as keyof TestResult] as number | null
-                const status = getParamStatus(raw, p.goodLo, p.goodHi, p.warnLo, p.warnHi)
-                const pct    = clampPct(raw, p.displayMin, p.displayMax)
+                // Map report key → recs param name
+                const recParam: Record<string, string> = {
+                  free_chlorine:    'chlorine',
+                  total_alkalinity: 'alkalinity',
+                  ph:               'ph',
+                  cya:              'cya',
+                  calcium_hardness: 'calcium',
+                }
+                const rp = recParam[p.key]
+                // Drive status from the recommendations engine so Water Report
+                // and Looking Good / Treatment Plan always agree
+                let status: ParamStatus
+                if (raw === null) {
+                  status = 'unknown'
+                } else if (recs.action.some(r => r.param === rp)) {
+                  status = 'critical'
+                } else if (recs.monitor.some(r => r.param === rp)) {
+                  status = 'warning'
+                } else if (recs.good.some(r => r.param === rp)) {
+                  status = 'ok'
+                } else {
+                  status = getParamStatus(raw, p.goodLo, p.goodHi, p.warnLo, p.warnHi)
+                }
+                const pct = clampPct(raw, p.displayMin, p.displayMax)
                 return (
                   <React.Fragment key={p.key}>
                     {i > 0 && <Divider />}
