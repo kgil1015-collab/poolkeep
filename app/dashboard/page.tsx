@@ -605,8 +605,8 @@ export default function DashboardPage() {
                 <SectionLabel>Treatment Plan — Do Today</SectionLabel>
 
                 {treatmentSteps.map((step, i) => {
-                  const isUrgent = step.when === 'today' || !step.when
-                  const stepColor = isUrgent ? th.red : th.amber
+                  const isMonitorStep = recs.monitor.some(m => m.param === step.param)
+                  const stepColor = isMonitorStep ? th.amber : th.red
                   const isExpanded = expandedSteps.has(step.step)
                   const toggleExpand = () => setExpandedSteps(prev => {
                     const next = new Set(prev)
