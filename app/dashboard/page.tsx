@@ -605,12 +605,7 @@ export default function DashboardPage() {
                 <SectionLabel>Treatment Plan — Do Today</SectionLabel>
 
                 {treatmentSteps.map((step, i) => {
-                  // Treatment plan uses short param names ('alkalinity', 'chlorine')
-                  // while monitor recs use long names ('total_alkalinity', 'free_chlorine')
-                  const normalise = (p: string) =>
-                    p === 'alkalinity' ? 'total_alkalinity' : p === 'chlorine' ? 'free_chlorine' : p
-                  const isMonitorStep = recs.monitor.some(m => m.param === normalise(step.param))
-                  const stepColor = isMonitorStep ? th.amber : th.red
+                  const stepColor = step.urgency === 'routine' ? th.amber : th.red
                   const isExpanded = expandedSteps.has(step.step)
                   const toggleExpand = () => setExpandedSteps(prev => {
                     const next = new Set(prev)
