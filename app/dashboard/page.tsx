@@ -231,6 +231,7 @@ export default function DashboardPage() {
   const [whyOpen, setWhyOpen]               = useState(false)
   const [notLoggedOpen, setNotLoggedOpen]   = useState(false)
   const [liveRecs, setLiveRecs]             = useState<TestResult['recommendations'] | null>(null)
+  const [displayScore, setDisplayScore]     = useState(0)
 
   useEffect(() => {
     if (sessionStorage.getItem('poolkeep_just_logged')) {
@@ -287,6 +288,15 @@ export default function DashboardPage() {
     const result = calculateRecommendations(input, pool.volume_gallons, pool.type)
     setLiveRecs(result as TestResult['recommendations'])
   }, [lastTest, pool])
+
+  useEffect(() => {
+    if (!lastTest) { setDisplayScore(0); return }
+    const recs = liveRecs ?? lastTest.recommendations
+    const score = computeScore(recs)
+    setDisplayScore(0)
+    const t = setTimeout(() => setDisplayScore(score), 120)
+    return () => clearTimeout(t)
+  }, [lastTest, liveRecs])
 
   async function handleSignOut() {
     const supabase = createClient()
@@ -463,7 +473,7 @@ export default function DashboardPage() {
           )}
         </div>
 
-        {/* Status summary */}
+        {/* Status summary + health score */}
         <div style={{ textAlign: 'center', position: 'relative' }}>
           {lastTest ? (
             <>
@@ -485,11 +495,68 @@ export default function DashboardPage() {
                   log more →
                 </span>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'center', gap: 6, flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', justifyContent: 'center', gap: 6, flexWrap: 'wrap', marginBottom: 20 }}>
                 {headerPills.map((pill, i) => (
                   <StatusBadge key={i} label={pill.label} color={pill.color} />
                 ))}
               </div>
+
+              {/* Water-fill health score circle */}
+              {(() => {
+                const excellent = score !== null && score >= 90
+                const waterDeep = excellent ? 'rgba(0,90,160,0.55)' : 'rgba(0,80,150,0.50)'
+                const waveFront = excellent ? 'rgba(0,190,255,0.75)' : 'rgba(0,168,240,0.72)'
+                const waveBack  = excellent ? 'rgba(0,150,220,0.45)' : 'rgba(0,140,210,0.42)'
+                const fillH  = score !== null ? Math.round(116 * displayScore / 100) : 0
+                const offsetY = 116 - fillH
+                const glowColor = score !== null && score >= 75 ? 'rgba(41,184,232,0.40)' : score !== null && score >= 50 ? 'rgba(91,200,245,0.35)' : 'rgba(168,216,234,0.30)'
+                const dotColor  = score !== null && score >= 75 ? '#29B8E8' : score !== null && score >= 50 ? '#5BC8F5' : '#A8D8EA'
+                return (
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', paddingBottom: 20 }}>
+                    <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.15em', marginBottom: 12 }}>Health Score</p>
+                    <div style={{ position: 'relative', width: 160, height: 160 }}>
+                      <svg width="160" height="160" viewBox="0 0 160 160" style={{ position: 'absolute', top: 0, left: 0 }}>
+                        <defs>
+                          <clipPath id="scoreClip2"><circle cx="80" cy="80" r="58"/></clipPath>
+                        </defs>
+                        <circle cx="80" cy="80" r="62" fill="none" stroke="rgba(0,160,230,0.18)" strokeWidth="8"/>
+                        <circle cx="80" cy="80" r="59" fill="rgba(0,20,45,0.85)" stroke="rgba(0,170,240,0.65)" strokeWidth="3"/>
+                        {score !== null && (
+                          <g clipPath="url(#scoreClip2)">
+                            <rect x="22" y="22" width="116" height="116" fill={waterDeep}
+                              style={{ transform: `translateY(${offsetY}px)`, transition: 'transform 1.5s cubic-bezier(0.4,0,0.2,1)' }}
+                            />
+                            <g style={{ transform: `translateY(${offsetY}px)`, transition: 'transform 1.5s cubic-bezier(0.4,0,0.2,1)' }}>
+                              <path d="M-92,20 Q-64,13 -36,20 Q-8,27 20,20 Q48,13 76,20 Q104,27 132,20 Q160,13 188,20 Q216,27 244,20 Q272,13 300,20 L300,33 L-92,33 Z"
+                                fill={waveFront} style={{ animation: 'waveSurface 3s linear infinite' }} />
+                            </g>
+                            <g style={{ transform: `translateY(${offsetY + 5}px)`, transition: 'transform 1.5s cubic-bezier(0.4,0,0.2,1)' }}>
+                              <path d="M-92,20 Q-64,27 -36,20 Q-8,13 20,20 Q48,27 76,20 Q104,13 132,20 Q160,27 188,20 Q216,13 244,20 L244,33 L-92,33 Z"
+                                fill={waveBack} style={{ animation: 'waveSurface 4.5s linear infinite reverse' }} />
+                            </g>
+                          </g>
+                        )}
+                        <circle cx="80" cy="80" r="59" fill="none" stroke="rgba(0,170,240,0.65)" strokeWidth="3"/>
+                      </svg>
+                      <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <p style={{
+                          fontSize: 80, fontWeight: 700, color: 'white', lineHeight: 1,
+                          fontFamily: "'Oswald',sans-serif", letterSpacing: '-3px',
+                          textShadow: '0 2px 20px rgba(0,0,0,0.6)',
+                        }}>
+                          {score ?? '—'}
+                        </p>
+                      </div>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 12 }}>
+                      <div style={{ width: 10, height: 10, borderRadius: '50%', background: dotColor, boxShadow: `0 0 8px ${glowColor}, 0 0 16px ${glowColor}` }} />
+                      <span style={{ fontSize: 16, fontWeight: 700, color: dotColor, textShadow: `0 0 20px ${glowColor}` }}>
+                        {score !== null ? scoreLabel(score) : 'Log your first test'}
+                      </span>
+                    </div>
+                  </div>
+                )
+              })()}
             </>
           ) : (
             <>
