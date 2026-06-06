@@ -92,7 +92,7 @@ const SALT_RANGES = {
 }
 
 const CHLORINE_RANGES = {
-  cya:  { actionLow: 20, monLow: 30, monHigh: 75,  actionHigh: 100 },
+  cya:  { actionLow: 20, monLow: 30, monHigh: 50,  actionHigh: 100 },
   ta:   { actionLow: 60, monLow: 80, monHigh: 120, actionHigh: 140 },
   ca:   { actionLow: 150, monLow: 200, monHigh: 400, actionHigh: 600 },
 }
