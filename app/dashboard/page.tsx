@@ -638,28 +638,29 @@ export default function DashboardPage() {
 
                       {/* Dose box */}
                       {chemLines.length > 0 && (
-                        <div style={{ background: th.blueLight, margin: '0 18px 12px', borderRadius: 10, padding: '10px 12px' }}>
-                          <div style={{ fontSize: 12, fontWeight: 700, color: th.blue, marginBottom: 6 }}>
-                            DOSE{isMultiChem ? ' — IN ORDER' : ''}
-                          </div>
-                          {isMultiChem ? (
-                            chemLines.map((chem: string, ci: number) => (
-                              <div key={ci} style={{ marginBottom: ci < chemLines.length - 1 ? 8 : 0 }}>
+                        isMultiChem ? (
+                          <div style={{ margin: '0 18px 12px', display: 'flex', flexDirection: 'column', gap: 6 }}>
+                            {chemLines.map((chem: string, ci: number) => (
+                              <div key={ci} style={{ background: th.blueLight, borderRadius: 10, padding: '10px 12px' }}>
+                                <div style={{ fontSize: 11, fontWeight: 700, color: th.blue, marginBottom: 4 }}>
+                                  DOSE — STEP {ci + 1} OF {chemLines.length}
+                                </div>
                                 <div style={{ fontSize: 14, color: th.textPrimary, fontWeight: 600 }}>{chem}</div>
                                 {amountLines[ci] && (
                                   <div style={{ fontSize: 13, color: th.textSecondary }}>{amountLines[ci]}</div>
                                 )}
                               </div>
-                            ))
-                          ) : (
-                            <div>
-                              <div style={{ fontSize: 14, color: th.textPrimary, fontWeight: 600 }}>{chemLines[0]}</div>
-                              {amountLines[0] && (
-                                <div style={{ fontSize: 13, color: th.textSecondary }}>{amountLines[0]}</div>
-                              )}
-                            </div>
-                          )}
-                        </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div style={{ background: th.blueLight, margin: '0 18px 12px', borderRadius: 10, padding: '10px 12px' }}>
+                            <div style={{ fontSize: 12, fontWeight: 700, color: th.blue, marginBottom: 6 }}>DOSE</div>
+                            <div style={{ fontSize: 14, color: th.textPrimary, fontWeight: 600 }}>{chemLines[0]}</div>
+                            {amountLines[0] && (
+                              <div style={{ fontSize: 13, color: th.textSecondary }}>{amountLines[0]}</div>
+                            )}
+                          </div>
+                        )
                       )}
 
                       {/* Wait-after note */}
