@@ -630,7 +630,7 @@ export default function DashboardPage() {
                           {step.how && (() => {
                             const paras = step.how.split('\n\n').map((s: string) => s.trim()).filter(Boolean)
                             const last = paras[paras.length - 1].replace(/^Step \d+\s*[—–-]\s*/, '')
-                            const cut = last.length <= 280 ? last : last.slice(0, 280).replace(/\s+\S+$/, '') + '…'
+                            const cut = last.length <= 350 ? last : last.slice(0, 350).replace(/\s+\S+$/, '') + '…'
                             return <div style={{ fontSize: 13, color: th.textSecondary, marginTop: 4, lineHeight: 1.5 }}>{cut}</div>
                           })()}
                         </div>
@@ -641,15 +641,22 @@ export default function DashboardPage() {
                         isMultiChem ? (
                           <div style={{ margin: '0 18px 12px', display: 'flex', flexDirection: 'column', gap: 6 }}>
                             {chemLines.map((chem: string, ci: number) => (
-                              <div key={ci} style={{ background: th.blueLight, borderRadius: 10, padding: '10px 12px' }}>
-                                <div style={{ fontSize: 11, fontWeight: 700, color: th.blue, marginBottom: 4 }}>
-                                  DOSE — STEP {ci + 1} OF {chemLines.length}
+                              <React.Fragment key={ci}>
+                                <div style={{ background: th.blueLight, borderRadius: 10, padding: '10px 12px' }}>
+                                  <div style={{ fontSize: 11, fontWeight: 700, color: th.blue, marginBottom: 4 }}>
+                                    DOSE — STEP {ci + 1} OF {chemLines.length}
+                                  </div>
+                                  <div style={{ fontSize: 14, color: th.textPrimary, fontWeight: 600 }}>{chem}</div>
+                                  {amountLines[ci] && (
+                                    <div style={{ fontSize: 13, color: th.textSecondary }}>{amountLines[ci]}</div>
+                                  )}
                                 </div>
-                                <div style={{ fontSize: 14, color: th.textPrimary, fontWeight: 600 }}>{chem}</div>
-                                {amountLines[ci] && (
-                                  <div style={{ fontSize: 13, color: th.textSecondary }}>{amountLines[ci]}</div>
+                                {ci < chemLines.length - 1 && (
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '2px 4px', fontSize: 12, color: th.teal, fontWeight: 600 }}>
+                                    <span>⏱</span> Wait 30–60 min for acid to circulate before adding chlorine
+                                  </div>
                                 )}
-                              </div>
+                              </React.Fragment>
                             ))}
                           </div>
                         ) : (
