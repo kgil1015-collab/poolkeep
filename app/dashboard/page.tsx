@@ -630,7 +630,7 @@ export default function DashboardPage() {
                           {step.how && (() => {
                             const paras = step.how.split('\n\n').map((s: string) => s.trim()).filter(Boolean)
                             const last = paras[paras.length - 1].replace(/^Step \d+\s*[—–-]\s*/, '')
-                            const cut = last.length <= 200 ? last : last.slice(0, 200).replace(/\s+\S+$/, '') + '…'
+                            const cut = last.length <= 280 ? last : last.slice(0, 280).replace(/\s+\S+$/, '') + '…'
                             return <div style={{ fontSize: 13, color: th.textSecondary, marginTop: 4, lineHeight: 1.5 }}>{cut}</div>
                           })()}
                         </div>
@@ -640,7 +640,7 @@ export default function DashboardPage() {
                       {chemLines.length > 0 && (
                         <div style={{ background: th.blueLight, margin: '0 18px 12px', borderRadius: 10, padding: '10px 12px' }}>
                           <div style={{ fontSize: 12, fontWeight: 700, color: th.blue, marginBottom: 6 }}>
-                            DOSE{isMultiChem ? ' — PICK ONE' : ''}
+                            DOSE{isMultiChem ? ' — IN ORDER' : ''}
                           </div>
                           {isMultiChem ? (
                             chemLines.map((chem: string, ci: number) => (
