@@ -442,6 +442,8 @@ export default function DashboardPage() {
             )}
           </button>
           {showPicker && (
+            <>
+              <div onClick={() => setShowPicker(false)} style={{ position: 'fixed', inset: 0, zIndex: 29 }} />
             <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, marginTop: 6, background: '#fff', borderRadius: 16, boxShadow: '0 8px 32px rgba(0,0,0,0.18)', overflow: 'hidden', zIndex: 30 }}>
               {allPools.map(p => (
                 <button
@@ -470,6 +472,7 @@ export default function DashboardPage() {
                 )}
               </button>
             </div>
+            </>
           )}
         </div>
 
