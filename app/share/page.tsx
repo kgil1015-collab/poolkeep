@@ -295,8 +295,13 @@ export default function SharePage() {
                     {activeReadings.map(p => {
                       const val = test[p.key as keyof TestResult]
                       const hasVal = typeof val === 'number'
-                      const isAction = test.recommendations.action.some(r => r.title.toLowerCase().includes(p.label.split(' ')[0].toLowerCase()))
-                      const isMonitor = !isAction && test.recommendations.monitor.some(r => r.title.toLowerCase().includes(p.label.split(' ')[0].toLowerCase()))
+                      // Map reading key → recommendation param name
+                      const paramKey = p.key === 'free_chlorine' ? 'chlorine'
+                        : p.key === 'total_alkalinity' ? 'alkalinity'
+                        : p.key === 'calcium_hardness' ? 'calcium'
+                        : p.key
+                      const isAction = test.recommendations.action.some(r => r.param === paramKey)
+                      const isMonitor = !isAction && test.recommendations.monitor.some(r => r.param === paramKey)
                       const isGood = !isAction && !isMonitor && hasVal
                       const statusColor = !hasVal ? '#C5D8E4' : isAction ? '#E5304A' : isMonitor ? '#F5A623' : '#1DB869'
                       const statusLabel = !hasVal ? 'Not tested' : isAction ? 'Action needed' : isMonitor ? 'Monitor' : 'Good'
