@@ -471,20 +471,6 @@ function buildTreatmentPlan(test: TestInput, v: number, isSalt: boolean): Treatm
           ? `CYA TEST STRIP ACCURACY\n\nCYA is measured by a turbidity (cloudiness) method — you mix pool water with a reagent and look for a black dot to disappear. Test strips that estimate CYA by color are significantly less reliable and can read 20–40 ppm higher than actual. Before draining any water, get a drop-test confirmation (Taylor K-2006 or a pool store lab test).\n\nThe most common cause of high CYA in salt pools is using dichlor shock for manual treatments. Each dichlor dose adds CYA, and it accumulates with no way to remove it except dilution. For manual additions in a salt pool, always use liquid chlorine (sodium hypochlorite) — it adds neither CYA nor calcium.`
           : `CYA TEST STRIP ACCURACY\n\nCYA is measured by a turbidity (cloudiness) method — you mix pool water with a reagent and look for a black dot to disappear. Test strips that estimate CYA by color are significantly less reliable and can read 20–40 ppm higher than actual. Before draining any water, get a drop-test confirmation (Taylor K-2006 or a pool store lab test).\n\nThe most common cause of chronically high CYA is regular use of slow-dissolve trichlor tabs. Each tablet adds CYA alongside chlorine, and it accumulates all season. Switching to liquid chlorine stops the accumulation immediately.`,
       })
-    } else if (cya > R_cya.monHigh) {
-      raw.push({
-        order: 4,
-        urgency: 'routine',
-        param: 'cya',
-        title: isSalt ? 'CYA slightly above salt pool target' : 'Cyanuric Acid (CYA) slightly elevated — monitor',
-        chemical: null,
-        amount: null,
-        why: isSalt
-          ? `CYA at ${cya} ppm is slightly above the 70–80 ppm target for salt pools. At this level chlorine effectiveness is only mildly affected, but continuing to use dichlor shock will push it higher. Switch to liquid chlorine for any manual additions.`
-          : `CYA at ${cya} ppm is slightly above the ideal range but not yet causing problems. It will naturally dilute through splash-out, backwashing, and rain.`,
-        how: `No chemical needed. ${isSalt ? 'Avoid dichlor shock — use liquid chlorine for any manual additions.' : 'Hold off on adding more stabilizer or trichlor products until CYA drops below 60 ppm.'}`,
-        lookFor: `Retest monthly. If CYA climbs above ${R_cya.actionHigh} ppm, a partial drain will be needed.`,
-      })
     }
   }
 
