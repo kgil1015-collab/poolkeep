@@ -537,12 +537,7 @@ export default function DashboardPage() {
             <span style={{color:'#fff',fontSize:12,fontWeight:600}}>Action needed — {actionCount} parameter{actionCount>1?'s':''} out of range</span>
           </div>
         )
-        if (monitorCount > 0) return (
-          <div style={{background:'#7A4E00',padding:'8px 20px',display:'flex',alignItems:'center',gap:8}}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#FFCF4D" strokeWidth="2.5" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-            <span style={{color:'#FFCF4D',fontSize:12,fontWeight:600}}>Keep an eye on it — {monitorCount} parameter{monitorCount>1?'s':''} slightly off</span>
-          </div>
-        )
+        if (actionCount > 0) return null
         return (
           <div style={{background:'#083D1E',padding:'8px 20px',display:'flex',alignItems:'center',gap:8}}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1DB869" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
