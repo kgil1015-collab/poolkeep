@@ -840,11 +840,11 @@ export default function DashboardPage() {
                                 const warnLoPct = scalePct(p.warnLow)
                                 const warnHiPct = scalePct(p.warnHigh)
                                 const segments = [
-                                  { from: 0,          to: warnLoPct,           color: '#DC2626' },
-                                  { from: warnLoPct,  to: goodLoPct,           color: '#F0A500' },
-                                  { from: goodLoPct,  to: goodHiPct,           color: '#00CCA3' },
-                                  { from: goodHiPct,  to: warnHiPct,           color: '#F0A500' },
-                                  { from: warnHiPct,  to: 100,                 color: '#DC2626' },
+                                  { from: 0,          to: warnLoPct,           color: '#F4A0A0' },
+                                  { from: warnLoPct,  to: goodLoPct,           color: '#FCDDA0' },
+                                  { from: goodLoPct,  to: goodHiPct,           color: '#7DDFC7' },
+                                  { from: goodHiPct,  to: warnHiPct,           color: '#FCDDA0' },
+                                  { from: warnHiPct,  to: 100,                 color: '#F4A0A0' },
                                 ].filter(s => s.to > s.from)
                                 const gradient = segments.map(s => `${s.color} ${s.from}%, ${s.color} ${s.to}%`).join(', ')
                                 return (
@@ -1297,7 +1297,7 @@ export default function DashboardPage() {
                           <div style={{width:6,height:6,borderRadius:'50%',background:cs.dot,flexShrink:0}} />
                         </div>
                         <p style={{fontSize:12,fontWeight:700,color:'rgba(255,255,255,0.92)',lineHeight:1.35,marginBottom:5}}>{tip.title}</p>
-                        <p style={{fontSize:11,color:'rgba(255,255,255,0.50)',lineHeight:1.5,display:'-webkit-box',WebkitLineClamp:3,WebkitBoxOrient:'vertical' as const,overflow:'hidden'}}>{tip.body}</p>
+                        <p style={{fontSize:11,color:'rgba(255,255,255,0.50)',lineHeight:1.5}}>{tip.body}</p>
                       </div>
                     )
                   })}
