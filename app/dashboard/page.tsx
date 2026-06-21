@@ -781,7 +781,7 @@ export default function DashboardPage() {
                           <div key={p.key} style={{flex:1,background:'rgba(255,255,255,0.06)',borderRadius:8,padding:'7px 6px',border:`1.5px solid ${dot}`,overflow:'hidden',position:'relative'}}>
                             {/* colored top bar */}
                             <div style={{position:'absolute',top:0,left:0,right:0,height:3,background:dot,opacity:0.7}} />
-                            <div style={{fontSize:10,color:'rgba(255,255,255,0.8)',fontWeight:800,textTransform:'uppercase',letterSpacing:'.06em',marginBottom:3,marginTop:4}}>{p.short}</div>
+                            <div style={{fontSize:10,color:'#ffffff',fontWeight:800,textTransform:'uppercase',letterSpacing:'.06em',marginBottom:3,marginTop:4}}>{p.short}</div>
                             <div style={{fontSize:16,fontWeight:700,color: raw !== null ? dot : 'rgba(255,255,255,0.2)',lineHeight:1,fontFamily:"'DM Mono',monospace"}}>
                               {raw !== null ? (raw % 1 === 0 ? String(raw) : raw.toFixed(1)) : '—'}
                             </div>
@@ -792,14 +792,18 @@ export default function DashboardPage() {
                     </div>
 
                     {/* Legend */}
-                    <div style={{display:'flex',alignItems:'center',gap:10,padding:'4px 12px 8px'}}>
+                    <div style={{display:'flex',alignItems:'center',gap:12,padding:'4px 12px 8px'}}>
                       <div style={{display:'flex',alignItems:'center',gap:4}}>
                         <div style={{width:16,height:4,borderRadius:2,background:'rgba(56,130,214,0.5)'}} />
-                        <span style={{fontSize:9,color:'rgba(255,255,255,0.28)',fontWeight:600}}>ideal range</span>
+                        <span style={{fontSize:9,color:'rgba(255,255,255,0.45)',fontWeight:600}}>ideal range</span>
                       </div>
                       <div style={{display:'flex',alignItems:'center',gap:4}}>
-                        <div style={{width:8,height:8,borderRadius:'50%',background:'rgba(255,255,255,0.4)'}} />
-                        <span style={{fontSize:9,color:'rgba(255,255,255,0.28)',fontWeight:600}}>your reading</span>
+                        <div style={{width:8,height:8,borderRadius:'50%',background:'#00CCA3',border:'1.5px solid #0B1E35'}} />
+                        <span style={{fontSize:9,color:'rgba(255,255,255,0.45)',fontWeight:600}}>in range</span>
+                      </div>
+                      <div style={{display:'flex',alignItems:'center',gap:4}}>
+                        <div style={{width:8,height:8,borderRadius:'50%',background:'#F0A500',border:'1.5px solid #0B1E35'}} />
+                        <span style={{fontSize:9,color:'rgba(255,255,255,0.45)',fontWeight:600}}>out of range</span>
                       </div>
                     </div>
 
