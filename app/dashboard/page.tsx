@@ -740,11 +740,11 @@ export default function DashboardPage() {
               // a reading at the high end of ideal appears right-of-center,
               // low end appears left-of-center, outside ideal is clearly past the zone.
               const REPORT_PARAMS = [
-                { key:'ph',               label:'pH',               unit:'',    displayMin:6.8, displayMax:8.0,  goodLow:7.2,  goodHigh:7.6,  warnLow:7.0,  warnHigh:7.8,  rangeLabel:'7.2 – 7.6',    hardWater:false },
-                { key:'free_chlorine',    label:'Free Chlorine',    unit:'ppm', displayMin:0,   displayMax:5,    goodLow:1,    goodHigh:3,    warnLow:0.5,  warnHigh:5,    rangeLabel:'1 – 3 ppm',      hardWater:false },
-                { key:'total_alkalinity', label:'Total Alkalinity', unit:'ppm', displayMin:40,  displayMax:160,  goodLow:80,   goodHigh:120,  warnLow:60,   warnHigh:140,  rangeLabel:'80 – 120 ppm',   hardWater:false },
-                { key:'cya',              label:'Cyanuric Acid',    unit:'ppm', displayMin:10,  displayMax:70,   goodLow:30,   goodHigh:50,   warnLow:20,   warnHigh:80,   rangeLabel:'30 – 50 ppm',    hardWater:false },
-                { key:'calcium_hardness', label:'Water Hardness',   unit:'ppm', displayMin:0,   displayMax:600,  goodLow:200,  goodHigh:400,  warnLow:150,  warnHigh:600,  rangeLabel:'200 – 400 ppm',  hardWater:true  },
+                { key:'ph',               label:'pH',               short:'pH',   unit:'',    displayMin:6.8, displayMax:8.0,  goodLow:7.2,  goodHigh:7.6,  warnLow:7.0,  warnHigh:7.8,  rangeLabel:'7.2 – 7.6',    hardWater:false },
+                { key:'free_chlorine',    label:'Free Chlorine',    short:'FC',   unit:'ppm', displayMin:0,   displayMax:5,    goodLow:1,    goodHigh:3,    warnLow:0.5,  warnHigh:5,    rangeLabel:'1 – 3 ppm',      hardWater:false },
+                { key:'total_alkalinity', label:'Total Alkalinity', short:'TA',   unit:'ppm', displayMin:40,  displayMax:160,  goodLow:80,   goodHigh:120,  warnLow:60,   warnHigh:140,  rangeLabel:'80 – 120 ppm',   hardWater:false },
+                { key:'cya',              label:'Cyanuric Acid',    short:'CYA',  unit:'ppm', displayMin:10,  displayMax:70,   goodLow:30,   goodHigh:50,   warnLow:20,   warnHigh:80,   rangeLabel:'30 – 50 ppm',    hardWater:false },
+                { key:'calcium_hardness', label:'Water Hardness',   short:'CA',   unit:'ppm', displayMin:0,   displayMax:600,  goodLow:200,  goodHigh:400,  warnLow:150,  warnHigh:600,  rangeLabel:'200 – 400 ppm',  hardWater:true  },
               ]
               const pct = (v: number, lo: number, hi: number) => Math.min(100, Math.max(0, (v - lo) / (hi - lo) * 100))
               type RStatus = 'good'|'monitor'|'action'|'unknown'
@@ -778,12 +778,14 @@ export default function DashboardPage() {
                         const status = getStatus(raw, p.goodLow, p.goodHigh, p.warnLow, p.warnHigh)
                         const { dot } = SM[status]
                         return (
-                          <div key={p.key} style={{flex:1,background:'rgba(255,255,255,0.06)',borderRadius:8,padding:'7px 6px',border:`0.5px solid ${dot}50`}}>
-                            <div style={{fontSize:8,color:'rgba(255,255,255,0.35)',fontWeight:600,textTransform:'uppercase',letterSpacing:'.05em',marginBottom:2,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{p.label.split(' ')[0]}</div>
+                          <div key={p.key} style={{flex:1,background:'rgba(255,255,255,0.06)',borderRadius:8,padding:'7px 6px',border:`1.5px solid ${dot}`,overflow:'hidden',position:'relative'}}>
+                            {/* colored top bar */}
+                            <div style={{position:'absolute',top:0,left:0,right:0,height:3,background:dot,opacity:0.7}} />
+                            <div style={{fontSize:10,color:'rgba(255,255,255,0.8)',fontWeight:800,textTransform:'uppercase',letterSpacing:'.06em',marginBottom:3,marginTop:4}}>{p.short}</div>
                             <div style={{fontSize:16,fontWeight:700,color: raw !== null ? dot : 'rgba(255,255,255,0.2)',lineHeight:1,fontFamily:"'DM Mono',monospace"}}>
                               {raw !== null ? (raw % 1 === 0 ? String(raw) : raw.toFixed(1)) : '—'}
                             </div>
-                            <div style={{fontSize:7,fontWeight:700,marginTop:3,color:dot,lineHeight:1.2}}>{raw !== null ? SM[status].badge : 'Not tested'}</div>
+                            <div style={{fontSize:8,fontWeight:700,marginTop:3,color: raw !== null ? 'rgba(255,255,255,0.6)' : 'rgba(255,255,255,0.25)',lineHeight:1.2}}>{raw !== null ? SM[status].badge : '—'}</div>
                           </div>
                         )
                       })}
