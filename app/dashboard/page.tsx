@@ -348,7 +348,7 @@ export default function DashboardPage() {
     <div className="min-h-screen bg-surface flex flex-col" style={{maxWidth:480,margin:'0 auto'}}>
 
       {/* Header */}
-      <div className="bg-pool-deep px-5 pt-5 pb-6 relative overflow-hidden">
+      <div className="bg-pool-deep px-5 pt-5 pb-2 relative overflow-hidden">
         {/* Dynamic status overlay */}
         {lastTest && (
           <div className="absolute inset-0 pointer-events-none" style={{background: statusAccent(computeScore((liveRecs ?? lastTest.recommendations))).overlay}} />
@@ -387,12 +387,107 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        <p className="text-white/70 text-sm mb-0.5">{welcome.salutation}</p>
-        <h1 className="text-white text-2xl font-bold mb-1" style={{fontFamily:"'Oswald',sans-serif",letterSpacing:'-.01em'}}>{welcome.headline}</h1>
-        <p className="text-white/65 text-sm mb-4 leading-snug">{welcome.subline}</p>
+        <p className="text-white/60 text-xs mb-2">{welcome.salutation}</p>
+
+        {/* Compact score row */}
+        {(() => {
+          const score = lastTest ? computeScore((liveRecs ?? lastTest.recommendations)) : null
+          const unknownCount = lastTest
+            ? (liveRecs ?? lastTest.recommendations).unknown.filter(u => u.param !== 'salt').length
+            : 0
+          const testedCount = 5 - unknownCount
+          const { color } = statusAccent(score)
+
+          const fillH = score !== null ? Math.round(48 * displayScore / 100) : 0
+          const offsetY = 48 - fillH
+          const excellent = score !== null && score >= 90
+          const waterDeep = excellent ? 'rgba(0,90,160,0.55)' : 'rgba(0,80,150,0.50)'
+          const waveFront = excellent ? 'rgba(0,190,255,0.75)' : 'rgba(0,168,240,0.72)'
+          const waveBack  = excellent ? 'rgba(0,150,220,0.45)' : 'rgba(0,140,210,0.42)'
+
+          return (
+            <div className="flex items-center gap-3 pt-1 mb-3">
+              {/* Small water-fill score circle */}
+              <div className="relative flex items-center justify-center shrink-0" style={{width:64,height:64}}>
+                <svg width="64" height="64" viewBox="0 0 64 64" style={{position:'absolute',top:0,left:0}}>
+                  <defs>
+                    <clipPath id="smCircleClip"><circle cx="32" cy="32" r="26"/></clipPath>
+                  </defs>
+                  <circle cx="32" cy="32" r="30" fill="none" stroke="rgba(0,160,230,0.15)" strokeWidth="5"/>
+                  <circle cx="32" cy="32" r="27" fill="rgba(0,20,45,0.9)" stroke="rgba(0,170,240,0.55)" strokeWidth="2.5"/>
+                  {score !== null && (
+                    <g clipPath="url(#smCircleClip)">
+                      <rect x="6" y="6" width="52" height="52" fill={waterDeep}
+                        style={{transform:`translateY(${offsetY}px)`,transition:'transform 1.5s cubic-bezier(0.4,0,0.2,1)'}}
+                      />
+                      <g style={{transform:`translateY(${offsetY}px)`,transition:'transform 1.5s cubic-bezier(0.4,0,0.2,1)'}}>
+                        <path d="M-50,8 Q-35,3 -20,8 Q-5,13 10,8 Q25,3 40,8 Q55,13 70,8 Q85,3 100,8 Q115,13 130,8 L130,16 L-50,16 Z"
+                          fill={waveFront} style={{animation:'waveSurface 3s linear infinite'}}/>
+                      </g>
+                      <g style={{transform:`translateY(${offsetY+3}px)`,transition:'transform 1.5s cubic-bezier(0.4,0,0.2,1)'}}>
+                        <path d="M-50,8 Q-35,13 -20,8 Q-5,3 10,8 Q25,13 40,8 Q55,3 70,8 Q85,13 100,8 L100,16 L-50,16 Z"
+                          fill={waveBack} style={{animation:'waveSurface 4.5s linear infinite reverse'}}/>
+                      </g>
+                    </g>
+                  )}
+                  <circle cx="32" cy="32" r="27" fill="none" stroke="rgba(0,170,240,0.55)" strokeWidth="2.5"/>
+                </svg>
+                <div className="relative z-10">
+                  <span className="text-white font-bold leading-none"
+                    style={{fontSize: score !== null ? 28 : 16, fontFamily:"'Oswald',sans-serif",
+                      letterSpacing:'-1px', textShadow:'0 1px 8px rgba(0,0,0,0.6)'}}>
+                    {score ?? '—'}
+                  </span>
+                </div>
+              </div>
+
+              {/* Status text */}
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-1.5 mb-0.5">
+                  <div className="w-2 h-2 rounded-full shrink-0" style={{background: color}} />
+                  <span className="text-xs font-bold uppercase tracking-wide" style={{color}}>
+                    {score !== null ? scoreLabel(score) : 'No test yet'}
+                  </span>
+                </div>
+                <p className="text-white/90 font-bold leading-tight" style={{fontSize:15}}>{welcome.headline}</p>
+                <p className="text-white/45 leading-snug mt-0.5 line-clamp-2" style={{fontSize:11}}>{welcome.subline}</p>
+                {unknownCount > 0 && score !== null && (
+                  <button onClick={() => router.push('/log')} className="mt-1">
+                    <span style={{fontSize:11,color:'#00E0B0',textDecoration:'underline',textUnderlineOffset:2}}>
+                      Based on {testedCount}/5 — log more →
+                    </span>
+                  </button>
+                )}
+              </div>
+
+              {/* Log test CTA */}
+              <button
+                onClick={() => router.push('/log')}
+                className="shrink-0 hover:opacity-90 transition-opacity"
+                style={{background:'rgba(0,120,184,0.28)',border:'1.5px solid rgba(0,180,255,0.28)',
+                  borderRadius:14,padding:'9px 11px',display:'flex',flexDirection:'column',alignItems:'center',gap:4}}
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5BC8F5" strokeWidth="2.5" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                <span style={{fontSize:10,fontWeight:700,color:'#5BC8F5',whiteSpace:'nowrap'}}>Log test</span>
+              </button>
+            </div>
+          )
+        })()}
+
+        {/* Urgent log CTA — shown when pool hasn't been tested recently */}
+        {welcome.urgency >= 2 && (
+          <button
+            onClick={() => router.push('/log')}
+            className="w-full mb-3 py-2.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2 hover:opacity-90 transition-opacity"
+            style={{background:'rgba(255,255,255,0.12)', color:'white', border:'1.5px solid rgba(255,255,255,0.25)'}}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Log a Test Now
+          </button>
+        )}
 
         {/* Pool switcher */}
-        <div className="mb-6">
+        <div className="pb-3">
           <button
             onClick={() => setShowPicker(p => !p)}
             className="inline-flex items-center gap-2 bg-white/10 rounded-full px-3 py-1.5"
@@ -450,116 +545,32 @@ export default function DashboardPage() {
           )}
         </div>
 
-        {/* Health score — water fill: rises from bottom like a pool */}
-        {(() => {
-          const score = lastTest ? computeScore((liveRecs ?? lastTest.recommendations)) : null
-          const { color, glow } = statusAccent(score)
-          const unknownCount = lastTest
-            ? (liveRecs ?? lastTest.recommendations).unknown.filter(u => u.param !== 'salt').length
-            : 0
-          const testedCount = 5 - unknownCount
-
-          // Water fill geometry: circle cx=80 cy=80 r=58 → spans y 22→138 (dia=116)
-          // translateY shifts the water block down; CSS transition makes it rise
-          const fillH = score !== null ? Math.round(116 * displayScore / 100) : 0
-          const offsetY = 116 - fillH
-
-          // Colour shifts teal when pool is excellent
-          const excellent = score !== null && score >= 90
-          const waterDeep = excellent ? 'rgba(0,90,160,0.55)' : 'rgba(0,80,150,0.50)'
-          const waveFront = excellent ? 'rgba(0,190,255,0.75)' : 'rgba(0,168,240,0.72)'
-          const waveBack  = excellent ? 'rgba(0,150,220,0.45)' : 'rgba(0,140,210,0.42)'
-
-          return (
-            <div className="flex flex-col items-center pb-5">
-              <p className="text-white/70 text-[11px] font-bold uppercase tracking-widest mb-3">Health Score</p>
-              <div className="relative flex items-center justify-center" style={{width:160, height:160}}>
-                <svg width="160" height="160" viewBox="0 0 160 160" style={{position:'absolute',top:0,left:0}}>
-                  <defs>
-                    <clipPath id="scoreCircleClip">
-                      <circle cx="80" cy="80" r="58"/>
-                    </clipPath>
-                  </defs>
-
-                  {/* Outer glow ring */}
-                  <circle cx="80" cy="80" r="62" fill="none" stroke="rgba(0,160,230,0.18)" strokeWidth="8"/>
-                  {/* Dark navy pool base */}
-                  <circle cx="80" cy="80" r="59" fill="rgba(0,20,45,0.85)" stroke="rgba(0,170,240,0.65)" strokeWidth="3"/>
-
-                  {/* Water fill — all clipped to circle */}
-                  {score !== null && (
-                    <g clipPath="url(#scoreCircleClip)">
-                      {/* Bulk water — rises from bottom */}
-                      <rect x="22" y="22" width="116" height="116" fill={waterDeep}
-                        style={{transform:`translateY(${offsetY}px)`, transition:'transform 1.5s cubic-bezier(0.4,0,0.2,1)'}}
-                      />
-                      {/* Wave surface — front layer, scrolls left */}
-                      <g style={{transform:`translateY(${offsetY}px)`, transition:'transform 1.5s cubic-bezier(0.4,0,0.2,1)'}}>
-                        <path
-                          d="M-92,20 Q-64,13 -36,20 Q-8,27 20,20 Q48,13 76,20 Q104,27 132,20 Q160,13 188,20 Q216,27 244,20 Q272,13 300,20 L300,33 L-92,33 Z"
-                          fill={waveFront}
-                          style={{animation:'waveSurface 3s linear infinite'}}
-                        />
-                      </g>
-                      {/* Wave surface — back layer, scrolls right */}
-                      <g style={{transform:`translateY(${offsetY + 5}px)`, transition:'transform 1.5s cubic-bezier(0.4,0,0.2,1)'}}>
-                        <path
-                          d="M-92,20 Q-64,27 -36,20 Q-8,13 20,20 Q48,27 76,20 Q104,13 132,20 Q160,27 188,20 Q216,13 244,20 L244,33 L-92,33 Z"
-                          fill={waveBack}
-                          style={{animation:'waveSurface 4.5s linear infinite reverse'}}
-                        />
-                      </g>
-                    </g>
-                  )}
-
-                  {/* Rim ring — drawn on top so it always looks crisp */}
-                  <circle cx="80" cy="80" r="59" fill="none" stroke="rgba(0,170,240,0.65)" strokeWidth="3"/>
-                </svg>
-
-                {/* Score number floats above the water */}
-                <div className="relative z-10 flex flex-col items-center">
-                  <p
-                    key={score}
-                    className="text-white font-bold leading-none"
-                    style={{
-                      fontSize:80, fontFamily:"'Oswald',sans-serif", letterSpacing:'-3px',
-                      textShadow:'0 2px 20px rgba(0,0,0,0.6)',
-                      animation: score !== null ? 'scoreSpring 0.75s cubic-bezier(0.34,1.56,0.64,1) forwards' : 'none',
-                    }}
-                  >
-                    {score ?? '—'}
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-2 mt-4">
-                <div className="w-2.5 h-2.5 rounded-full" style={{background: color, boxShadow:`0 0 8px ${glow}, 0 0 16px ${glow}`}} />
-                <span className="text-base font-bold" style={{color, textShadow:`0 0 20px ${glow}`}}>
-                  {score !== null ? scoreLabel(score) : 'Log your first test'}
-                </span>
-              </div>
-              {unknownCount > 0 && score !== null && (
-                <button onClick={() => router.push('/log')} className="text-center mt-2 px-6 leading-snug hover:opacity-90 transition-opacity">
-                  <span className="text-xs" style={{color:'rgba(255,255,255,0.55)'}}>
-                    Based on {testedCount} of 5 parameters —{' '}
-                    <span style={{color:'#00E0B0', textDecoration:'underline', textUnderlineOffset:3}}>tap to log more →</span>
-                  </span>
-                </button>
-              )}
-              {welcome.urgency >= 2 && (
-                <button
-                  onClick={() => router.push('/log')}
-                  className="mt-4 px-7 py-3 rounded-full font-bold text-sm flex items-center gap-2 hover:opacity-90 transition-opacity"
-                  style={{background:'rgba(255,255,255,0.15)', color:'white', border:'1.5px solid rgba(255,255,255,0.3)', backdropFilter:'blur(4px)'}}
-                >
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                  Log a Test Now
-                </button>
-              )}
-            </div>
-          )
-        })()}
       </div>
+
+      {/* Status banner */}
+      {lastTest && (() => {
+        const recs = liveRecs ?? lastTest.recommendations
+        const actionCount = recs.action.filter(r => r.param !== 'calcium').length
+        const monitorCount = recs.monitor.filter(r => r.param !== 'calcium').length
+        if (actionCount > 0) return (
+          <div style={{background:'#B84018',padding:'8px 20px',display:'flex',alignItems:'center',gap:8}}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            <span style={{color:'#fff',fontSize:12,fontWeight:600}}>Action needed — {actionCount} parameter{actionCount>1?'s':''} out of range</span>
+          </div>
+        )
+        if (monitorCount > 0) return (
+          <div style={{background:'#7A4E00',padding:'8px 20px',display:'flex',alignItems:'center',gap:8}}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#FFCF4D" strokeWidth="2.5" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            <span style={{color:'#FFCF4D',fontSize:12,fontWeight:600}}>Keep an eye on it — {monitorCount} parameter{monitorCount>1?'s':''} slightly off</span>
+          </div>
+        )
+        return (
+          <div style={{background:'#083D1E',padding:'8px 20px',display:'flex',alignItems:'center',gap:8}}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1DB869" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            <span style={{color:'#1DB869',fontSize:12,fontWeight:600}}>Pool is looking great — all parameters in range</span>
+          </div>
+        )
+      })()}
 
       {/* Wave transition */}
       <WaveDivider />
