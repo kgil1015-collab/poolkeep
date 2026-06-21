@@ -660,7 +660,7 @@ function generateMaintenance(test: TestInput, isSalt: boolean): MaintenanceTip[]
     title: 'In heat above 85°F — chlorine demand doubles',
     body: isSalt
       ? 'Hot water increases chlorine demand significantly. Increase SWG output 10–15% and retest more frequently — salt generators can struggle to keep up.'
-      : 'Hot water burns through chlorine fast. Keep free chlorine at 2–3 ppm and retest every day or two until temperatures drop.',
+      : 'Hot water burns through chlorine fast. Keep free chlorine at 2–3 ppm and retest every day or two during high temperatures.',
   })
 
   tips.push({
