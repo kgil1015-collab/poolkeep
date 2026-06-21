@@ -996,11 +996,11 @@ export default function DashboardPage() {
                                                       {/* Option A — Liquid */}
                                                       <div className="rounded-lg px-2.5 py-2 mb-1.5" style={{background:'rgba(0,150,122,0.07)',border:'1px solid rgba(0,150,122,0.18)'}}>
                                                         <div className="flex items-center gap-1.5 mb-0.5">
-                                                          <span className="text-[9px] font-bold px-1.5 py-0.5 rounded" style={{background:'#00967A',color:'#fff'}}>A</span>
-                                                          <p className="text-xs font-bold" style={{color:'#00967A'}}>Liquid Chlorine</p>
+                                                          <span className="text-[9px] font-bold px-1.5 py-0.5 rounded" style={{background:'#5A7A8A',color:'#fff'}}>A</span>
+                                                          <p className="text-xs font-bold" style={{color:'#3A6080'}}>Liquid Chlorine</p>
                                                           <p className="text-xs font-semibold text-text-muted">{lineAmount}</p>
                                                         </div>
-                                                        <p className="text-[10px] italic" style={{color:'#00967A'}}>Retest in 1–4 hrs — swim when FC &lt; 5 ppm.</p>
+                                                        <p className="text-[10px] italic" style={{color:'#3A6080'}}>Retest in 1–4 hrs — swim when FC &lt; 5 ppm.</p>
                                                       </div>
                                                       {/* OR divider */}
                                                       <div className="flex items-center gap-2 my-1">
