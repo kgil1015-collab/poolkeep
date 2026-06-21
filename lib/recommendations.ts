@@ -640,7 +640,7 @@ function generateMaintenance(test: TestInput, isSalt: boolean): MaintenanceTip[]
   tips.push({
     category: 'skimmer',
     title: 'Empty the skimmer basket weekly',
-    body: 'A clogged skimmer reduces pump flow and filtration. Takes 30 seconds — more often after storms or heavy leaf fall.',
+    body: 'A clogged skimmer chokes pump flow and reduces filtration. Check it weekly and after storms or heavy leaf fall.',
   })
 
   tips.push({
@@ -659,8 +659,8 @@ function generateMaintenance(test: TestInput, isSalt: boolean): MaintenanceTip[]
     category: 'seasonal',
     title: 'In heat above 85°F — chlorine demand doubles',
     body: isSalt
-      ? 'Increase SWG output 10–15% and run the filter 10–12 hours during heat waves. Retest more frequently — salt generators can struggle to keep up.'
-      : 'Keep chlorine at 2–3 ppm and run the filter 10–12 hours per day during heat waves.',
+      ? 'Hot water increases chlorine demand significantly. Increase SWG output 10–15% and retest more frequently — salt generators can struggle to keep up.'
+      : 'Hot water burns through chlorine fast. Keep free chlorine at 2–3 ppm and retest every day or two until temperatures drop.',
   })
 
   tips.push({
