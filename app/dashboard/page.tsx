@@ -965,44 +965,83 @@ export default function DashboardPage() {
                                             amountLines.push('Point a return jet toward the water surface — run 2–4 hrs to off-gas CO₂ and raise pH back naturally')
                                           }
                                           return (
-                                          // Multi-chemical step — numbered sub-steps
+                                          // Multi-chemical step — numbered sub-steps, with OR divider for chlorine options
                                           <div className="bg-surface rounded-lg px-2.5 py-2 mb-2 space-y-2.5">
-                                            {chemLines.map((chem: string, ci: number) => {
-                                              const lineAmount = amountLines[ci] ?? ''
-                                              const isAcid = (chem.toLowerCase().includes('acid') || chem.toLowerCase().includes('reducer') || chem.toLowerCase().includes('ph down'))
-                                              const isLiquidChlor = chem.toLowerCase().includes('liquid chlorine')
-                                              const isGranularShock = chem.toLowerCase().includes('granular') || chem.toLowerCase().includes('shock')
-                                              const isChlorine = isLiquidChlor || isGranularShock || chem === 'Pool Shock'
-                                              const isAerate = chem.toLowerCase().includes('jet') || chem.toLowerCase().includes('aerate')
-                                              const stepColor = isAcid ? '#0078B8' : isAerate ? '#00967A' : '#00967A'
-                                              return (
-                                                <div key={ci} className="flex items-start gap-2">
-                                                  <span className="w-4 h-4 rounded-full flex items-center justify-center shrink-0 text-[9px] font-bold text-white mt-0.5" style={{background: stepColor, minWidth:16}}>{ci + 1}</span>
-                                                  <div>
-                                                    <p className="text-xs font-bold" style={{color: stepColor}}>{chem}</p>
-                                                    {lineAmount && <p className="text-xs font-semibold text-text-muted mt-0.5">{lineAmount}</p>}
-                                                    {isAcid && (
-                                                      <div className="flex items-center gap-1 mt-1">
-                                                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#0078B8" strokeWidth="2.5" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                                                        <p className="text-[10px] italic" style={{color:'#0078B8'}}>Wait 30–60 min before adding chlorine</p>
-                                                      </div>
-                                                    )}
-                                                    {isLiquidChlor && (
-                                                      <div className="flex items-start gap-1 mt-1">
-                                                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#00967A" strokeWidth="2.5" strokeLinecap="round" className="shrink-0 mt-px"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                                            {(() => {
+                                              // Count how many sequential "do ALL" steps come before the chlorine OR-pair
+                                              let numberedCount = 0
+                                              const elements: React.ReactNode[] = []
+                                              let i = 0
+                                              while (i < chemLines.length) {
+                                                const chem = chemLines[i]
+                                                const lineAmount = amountLines[i] ?? ''
+                                                const isLiquidChlor = chem.toLowerCase().includes('liquid chlorine')
+                                                const isGranularShock = chem.toLowerCase().includes('granular') || (chem.toLowerCase().includes('shock') && !chem.toLowerCase().includes('liquid'))
+                                                const isAcid = chem.toLowerCase().includes('acid') || chem.toLowerCase().includes('reducer') || chem.toLowerCase().includes('ph down')
+                                                const isAerate = chem.toLowerCase().includes('jet') || chem.toLowerCase().includes('aerate')
+
+                                                // Check if this AND the next line form a liquid/granular OR-pair
+                                                const nextChem = chemLines[i + 1] ?? ''
+                                                const nextIsGranular = nextChem.toLowerCase().includes('granular') || (nextChem.toLowerCase().includes('shock') && !nextChem.toLowerCase().includes('liquid'))
+                                                if (isLiquidChlor && nextIsGranular) {
+                                                  // Render as OR-pair — not numbered
+                                                  const nextAmount = amountLines[i + 1] ?? ''
+                                                  numberedCount++
+                                                  elements.push(
+                                                    <div key={`or-pair-${i}`}>
+                                                      <p className="text-[10px] font-bold uppercase tracking-widest mb-1.5" style={{color:'#5A7A8A'}}>Choose one:</p>
+                                                      {/* Option A — Liquid */}
+                                                      <div className="rounded-lg px-2.5 py-2 mb-1.5" style={{background:'rgba(0,150,122,0.07)',border:'1px solid rgba(0,150,122,0.18)'}}>
+                                                        <div className="flex items-center gap-1.5 mb-0.5">
+                                                          <span className="text-[9px] font-bold px-1.5 py-0.5 rounded" style={{background:'#00967A',color:'#fff'}}>A</span>
+                                                          <p className="text-xs font-bold" style={{color:'#00967A'}}>Liquid Chlorine</p>
+                                                          <p className="text-xs font-semibold text-text-muted">{lineAmount}</p>
+                                                        </div>
                                                         <p className="text-[10px] italic" style={{color:'#00967A'}}>Add in the evening. Retest in 1–4 hrs — swim when FC &lt; 5 ppm.</p>
                                                       </div>
-                                                    )}
-                                                    {isGranularShock && (
-                                                      <div className="flex items-start gap-1 mt-1">
-                                                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#00967A" strokeWidth="2.5" strokeLinecap="round" className="shrink-0 mt-px"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                                                        <p className="text-[10px] italic" style={{color:'#00967A'}}>Add in the evening. Pre-dissolve in a bucket first. Retest the next morning.</p>
+                                                      {/* OR divider */}
+                                                      <div className="flex items-center gap-2 my-1">
+                                                        <div className="flex-1 h-px" style={{background:'rgba(0,0,0,0.08)'}} />
+                                                        <span className="text-[10px] font-bold" style={{color:'#8AAABB'}}>OR</span>
+                                                        <div className="flex-1 h-px" style={{background:'rgba(0,0,0,0.08)'}} />
                                                       </div>
-                                                    )}
+                                                      {/* Option B — Granular */}
+                                                      <div className="rounded-lg px-2.5 py-2" style={{background:'rgba(0,150,122,0.07)',border:'1px solid rgba(0,150,122,0.18)'}}>
+                                                        <div className="flex items-center gap-1.5 mb-0.5">
+                                                          <span className="text-[9px] font-bold px-1.5 py-0.5 rounded" style={{background:'#5A7A8A',color:'#fff'}}>B</span>
+                                                          <p className="text-xs font-bold" style={{color:'#3A6080'}}>Granular Shock (cal-hypo)</p>
+                                                          <p className="text-xs font-semibold text-text-muted">{nextAmount}</p>
+                                                        </div>
+                                                        <p className="text-[10px] italic" style={{color:'#3A6080'}}>Add in the evening. Pre-dissolve in a bucket first. Retest the next morning.</p>
+                                                      </div>
+                                                    </div>
+                                                  )
+                                                  i += 2
+                                                  continue
+                                                }
+
+                                                // Regular numbered step
+                                                numberedCount++
+                                                const stepColor = isAcid ? '#0078B8' : isAerate ? '#00967A' : '#00967A'
+                                                elements.push(
+                                                  <div key={i} className="flex items-start gap-2">
+                                                    <span className="w-4 h-4 rounded-full flex items-center justify-center shrink-0 text-[9px] font-bold text-white mt-0.5" style={{background: stepColor, minWidth:16}}>{numberedCount}</span>
+                                                    <div>
+                                                      <p className="text-xs font-bold" style={{color: stepColor}}>{chem}</p>
+                                                      {lineAmount && <p className="text-xs font-semibold text-text-muted mt-0.5">{lineAmount}</p>}
+                                                      {isAcid && (
+                                                        <div className="flex items-center gap-1 mt-1">
+                                                          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#0078B8" strokeWidth="2.5" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                                                          <p className="text-[10px] italic" style={{color:'#0078B8'}}>Wait 30–60 min before adding chlorine</p>
+                                                        </div>
+                                                      )}
+                                                    </div>
                                                   </div>
-                                                </div>
-                                              )
-                                            })}
+                                                )
+                                                i++
+                                              }
+                                              return elements
+                                            })()}
                                           </div>
                                           )
                                         })() : (
