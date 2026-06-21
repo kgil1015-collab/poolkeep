@@ -587,38 +587,37 @@ function generateMaintenance(test: TestInput, isSalt: boolean): MaintenanceTip[]
   tips.push({
     category: 'testing',
     title: 'Test twice a week in warm weather',
-    body: 'Check pH and free chlorine at least twice a week during spring and summer. Once a week is usually enough in cooler months.',
+    body: 'Check pH and free chlorine at least twice a week in spring and summer. Once a week is enough in cooler months.',
   })
 
   if (isSalt) {
     tips.push({
       category: 'chlorine',
-      title: 'Adjust SWG output — don\'t just add chemicals',
-      body: 'When chlorine is low, the first response should always be increasing your salt generator output percentage, not reaching for chemicals. Salt pools are designed to be self-sustaining. Only use liquid chlorine as a backup if the SWG cannot keep up.',
+      title: 'Low chlorine? Increase SWG output first',
+      body: 'Raise your salt generator output percentage before reaching for chemicals. Only use liquid chlorine as a backup if the SWG can\'t keep up.',
     })
     tips.push({
       category: 'chlorine',
       title: 'Salt cell: inspect every 3 months for scale',
-      body: 'Calcium scale on the salt cell reduces chlorine output significantly. Every 3 months, inspect the cell — white deposits inside mean it needs cleaning with diluted muriatic acid (1 part acid to 10 parts water, 15–20 minute soak). Keep salt in the 2700–3400 ppm range and calcium below 350 ppm for longest cell life.',
+      body: 'White deposits inside the cell mean it needs cleaning with diluted muriatic acid (1:10, 15 min soak). Keep salt at 2700–3400 ppm and calcium below 350 ppm.',
     })
   } else if (test.cya !== null && test.cya > 60) {
     tips.push({
       category: 'chlorine',
       title: `Keep chlorine at 2–3 ppm while CYA is elevated (currently ${test.cya} ppm)`,
-      body: 'High CYA reduces how much chlorine is available to sanitize. Until CYA comes down, target the higher end of the range and do not let free chlorine drop below 2 ppm.',
+      body: 'High CYA reduces active chlorine. Don\'t let free chlorine drop below 2 ppm until CYA comes down naturally.',
     })
   } else if (test.cya !== null && test.cya < 30) {
     tips.push({
       category: 'chlorine',
       title: `Chlorine burns off fast — CYA is low (${test.cya} ppm)`,
-      body: 'Without enough stabilizer, UV destroys chlorine within hours on a sunny day. Test every 1–2 days and add chlorine more frequently until CYA reaches 30–50 ppm.',
+      body: 'Without enough stabilizer, UV destroys chlorine within hours on a sunny day. Test every 1–2 days until CYA reaches 30–50 ppm.',
     })
   } else {
-    const cyaElevated = test.cya !== null && test.cya > 50
     tips.push({
       category: 'chlorine',
-      title: 'Weekly chlorine routine',
-      body: `Check chlorine twice a week. When it dips below 1 ppm, top it up in the evening — UV destroys chlorine added during the day.\n\nLiquid chlorine (sodium hypochlorite, 10–12.5%): pour around the perimeter, retest in 1–4 hours. Fast, clean, adds zero calcium or CYA.\n\n${cyaElevated ? 'Avoid trichlor tabs right now — CYA is already elevated and tabs add more with every use.' : 'Slow-dissolve trichlor tabs in a floating dispenser (\"pool bobber\"): 2–3 tabs per 10,000 gallons, refill weekly. Convenient for routine maintenance. Note: tabs add a small amount of CYA with each use — check CYA monthly.'}\n\nAlways add in the PM. Never toss tabs directly in the skimmer — concentrated chlorine can damage the pump.`,
+      title: 'Add chlorine in the evening',
+      body: 'UV destroys chlorine added during the day. Top up at dusk, pour around the perimeter with the pump running, and retest the next morning.',
     })
   }
 
@@ -626,57 +625,57 @@ function generateMaintenance(test: TestInput, isSalt: boolean): MaintenanceTip[]
     category: 'shock',
     title: isSalt
       ? 'Boost SWG after heavy rain or parties'
-      : 'Test water after heavy rain or heavy swim days',
+      : 'Test before adding chemicals after heavy rain',
     body: isSalt
-      ? 'After heavy rain, large swimmer loads, or if water looks hazy — run your salt generator on boost/superchlorinate mode for 24 hours. If the pool is visibly cloudy or green, add liquid chlorine as a one-time treatment (do not use cal-hypo — it scales the cell).'
-      : 'After significant rainfall or a big swim day, log a test before reaching for chemicals. Rain dilutes and unbalances water differently every time — test first and let PoolKeep tell you exactly what it needs, if anything.',
+      ? 'Run boost/superchlorinate mode for 24 hours after heavy rain or a big swim day. Add liquid chlorine if visibly cloudy — not cal-hypo, which can scale the cell.'
+      : 'Rain dilutes and unbalances water differently every time. Log a test first — PoolKeep will tell you exactly what it needs, if anything.',
   })
 
   tips.push({
     category: 'brushing',
-    title: 'Brush weekly — algae starts on surfaces, not in the water',
-    body: 'Brush walls, floor, steps, and shaded corners once a week. Algae and biofilm establish on surfaces before they are visible in the water — brushing breaks it loose so chlorine can reach it.',
+    title: 'Brush weekly — algae starts on surfaces',
+    body: 'Brush walls, steps, and shaded corners once a week. Algae establishes on surfaces before it\'s visible — brushing exposes it to chlorine.',
   })
 
   tips.push({
     category: 'skimmer',
     title: 'Empty the skimmer basket weekly',
-    body: 'Check and empty the skimmer basket at least once a week — more often after storms or heavy leaf fall. A clogged skimmer chokes water flow to the pump, reduces filtration, and makes everything downstream less effective. Takes 30 seconds and makes a bigger difference than most chemical adjustments.',
+    body: 'A clogged skimmer reduces pump flow and filtration. Takes 30 seconds — more often after storms or heavy leaf fall.',
   })
 
   tips.push({
     category: 'cartridge',
     title: 'Rinse your filter cartridge every 2–4 weeks',
-    body: 'This is one of the most overlooked maintenance tasks — and one of the highest-impact ones. A dirty cartridge doesn\'t just reduce flow, it actively recirculates debris and oils back into the pool, causing cloudiness that no amount of chemicals will fix.\n\nRinse with a garden hose (top to bottom between the pleats) every 2–4 weeks during swim season. Deep clean with cartridge cleaner solution every 1–2 months. Replace when pleats are torn, crushed, or no longer hold their shape — typically every 1–3 seasons depending on use.\n\nIf your pool water is persistently cloudy despite correct chemistry, a dirty or worn cartridge is almost always the reason.',
+    body: 'Rinse top-to-bottom with a garden hose every 2–4 weeks. Deep clean monthly and replace every 1–3 seasons. A dirty cartridge is the #1 cause of persistent cloudiness.',
   })
 
   tips.push({
     category: 'enzyme',
-    title: 'Add a weekly maintenance dose — clarifier + phosphate remover + stain inhibitor',
-    body: 'A 3-in-1 weekly maintenance product does three things your chlorine cannot:\n\n• Clarifier — binds fine particles the filter misses, keeping water sparkling\n• Phosphate remover — strips the food source algae needs before it can grow\n• Stain & scale inhibitor — prevents metal staining and calcium deposits on surfaces\n\nNone of these affect pH, chlorine, alkalinity, or CYA — they work alongside your chemistry, not instead of it. Add one dose per week after logging your test, while the pump is running.\n\nLook for: Leslie\'s Perfect Weekly, Natural Chemistry Pool Perfect Plus, or any 3-in-1 weekly maintenance product. One capful per 10,000 gallons is typical.\n\nEspecially useful after heavy swim days, rain, or when the water looks slightly dull despite good chemistry numbers.',
+    title: 'Add a weekly maintenance dose',
+    body: 'A 3-in-1 product (clarifier + phosphate remover + stain inhibitor) keeps water sparkling and blocks algae food sources. Try Leslie\'s Perfect Weekly — one capful per 10,000 gal weekly.',
   })
 
   tips.push({
     category: 'seasonal',
-    title: 'In heat above 85°F — chlorine demand roughly doubles',
+    title: 'In heat above 85°F — chlorine demand doubles',
     body: isSalt
-      ? 'Hot water dramatically increases chlorine demand. In heat waves: increase SWG output by 10–15%, run the filter 10–12 hours per day, and retest more frequently. Salt generators can struggle to keep up in extreme heat — monitor closely.'
-      : 'Hot water accelerates chlorine consumption and algae growth. During heat waves: keep chlorine at 2–3 ppm, run the filter 10–12 hours per day, and consider shocking weekly even if the water looks clear.',
+      ? 'Increase SWG output 10–15% and run the filter 10–12 hours during heat waves. Retest more frequently — salt generators can struggle to keep up.'
+      : 'Keep chlorine at 2–3 ppm and run the filter 10–12 hours per day during heat waves.',
   })
 
   tips.push({
     category: 'filter',
     title: 'Run the filter 8–12 hours per day',
     body: isSalt
-      ? 'Circulation is critical for salt pools — the SWG only produces chlorine while the pump is running. In summer or during heat waves, run 10–12 hours. If your pool stays cloudy despite correct chemistry, run 24 hours until it clears.'
-      : 'Circulation is the foundation of clear water — chemicals cannot do their job without it. In summer, run closer to 12 hours. In cooler months, 6–8 hours is usually enough.',
+      ? 'The SWG only makes chlorine while the pump runs — aim for 10–12 hours in summer. Run 24 hours if water stays cloudy despite correct chemistry.'
+      : 'Chemicals can\'t work without circulation. Run 10–12 hours in summer, 6–8 hours in cooler months.',
   })
 
   if (isSalt) {
     tips.push({
       category: 'filter',
       title: 'Keep salt level 2700–3400 ppm year-round',
-      body: 'Salt level affects SWG efficiency more than most people realize. Below 2400 ppm the cell underperforms and may trigger a low-salt alarm. Above 3800 ppm it can corrode equipment and reduce efficiency. Test salt monthly and after significant rainfall or water addition.',
+      body: 'Below 2400 ppm the cell underperforms. Above 3800 ppm it can corrode equipment. Test monthly and after heavy rain.',
     })
   }
 
