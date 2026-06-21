@@ -799,7 +799,7 @@ export default function DashboardPage() {
                     {/* Legend */}
                     <div style={{display:'flex',alignItems:'center',gap:12,padding:'4px 12px 8px'}}>
                       <div style={{display:'flex',alignItems:'center',gap:4}}>
-                        <div style={{width:16,height:6,borderRadius:3,background:'rgba(0,204,163,0.35)'}} />
+                        <div style={{width:16,height:6,borderRadius:3,background:'rgba(0,170,240,0.55)'}} />
                         <span style={{fontSize:9,color:'rgba(255,255,255,0.45)',fontWeight:600}}>ideal range</span>
                       </div>
                       <div style={{display:'flex',alignItems:'center',gap:4}}>
@@ -831,8 +831,8 @@ export default function DashboardPage() {
                           </div>
                           {raw !== null ? (
                             <>
-                              <div style={{height:7,borderRadius:3.5,position:'relative',marginLeft:16,background:'rgba(255,255,255,0.1)',overflow:'visible'}}>
-                                <div style={{position:'absolute',top:0,bottom:0,left:`${goodLoPct}%`,width:`${goodHiPct-goodLoPct}%`,background:'rgba(0,204,163,0.35)',borderRadius:3.5}} />
+                              <div style={{height:7,borderRadius:3.5,position:'relative',marginLeft:16,background:'rgba(0,120,184,0.2)',overflow:'visible'}}>
+                                <div style={{position:'absolute',top:0,bottom:0,left:`${goodLoPct}%`,width:`${goodHiPct-goodLoPct}%`,background:'rgba(0,170,240,0.55)',borderRadius:3.5}} />
                                 {valPct !== null && (
                                   <div style={{position:'absolute',top:'50%',left:`${valPct}%`,transform:'translate(-50%,-50%)',width:17,height:17,borderRadius:'50%',background:'#fff',border:`3px solid ${dot}`,boxShadow:'0 2px 6px rgba(0,0,0,0.5)',zIndex:2}} />
                                 )}
