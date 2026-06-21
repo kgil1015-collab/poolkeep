@@ -415,8 +415,8 @@ export default function DashboardPage() {
           const testedCount = 5 - unknownCount
           const { color } = statusAccent(score)
 
-          const fillH = score !== null ? Math.round(48 * displayScore / 100) : 0
-          const offsetY = 48 - fillH
+          const fillH = score !== null ? Math.round(68 * displayScore / 100) : 0
+          const offsetY = 68 - fillH
           const excellent = score !== null && score >= 90
           const waterDeep = excellent ? 'rgba(0,90,160,0.55)' : 'rgba(0,80,150,0.50)'
           const waveFront = excellent ? 'rgba(0,190,255,0.75)' : 'rgba(0,168,240,0.72)'
@@ -424,17 +424,17 @@ export default function DashboardPage() {
 
           return (
             <div className="flex items-center gap-3 pt-1 mb-3">
-              {/* Small water-fill score circle */}
-              <div className="relative flex items-center justify-center shrink-0" style={{width:64,height:64}}>
-                <svg width="64" height="64" viewBox="0 0 64 64" style={{position:'absolute',top:0,left:0}}>
+              {/* Water-fill score circle */}
+              <div className="relative flex items-center justify-center shrink-0" style={{width:84,height:84}}>
+                <svg width="84" height="84" viewBox="0 0 84 84" style={{position:'absolute',top:0,left:0}}>
                   <defs>
-                    <clipPath id="smCircleClip"><circle cx="32" cy="32" r="26"/></clipPath>
+                    <clipPath id="smCircleClip"><circle cx="42" cy="42" r="34"/></clipPath>
                   </defs>
-                  <circle cx="32" cy="32" r="30" fill="none" stroke="rgba(0,160,230,0.15)" strokeWidth="5"/>
-                  <circle cx="32" cy="32" r="27" fill="rgba(0,20,45,0.9)" stroke="rgba(0,170,240,0.55)" strokeWidth="2.5"/>
+                  <circle cx="42" cy="42" r="39" fill="none" stroke="rgba(0,160,230,0.15)" strokeWidth="6"/>
+                  <circle cx="42" cy="42" r="35" fill="rgba(0,20,45,0.9)" stroke="rgba(0,170,240,0.55)" strokeWidth="2.5"/>
                   {score !== null && (
                     <g clipPath="url(#smCircleClip)">
-                      <rect x="6" y="6" width="52" height="52" fill={waterDeep}
+                      <rect x="8" y="8" width="68" height="68" fill={waterDeep}
                         style={{transform:`translateY(${offsetY}px)`,transition:'transform 1.5s cubic-bezier(0.4,0,0.2,1)'}}
                       />
                       <g style={{transform:`translateY(${offsetY}px)`,transition:'transform 1.5s cubic-bezier(0.4,0,0.2,1)'}}>
@@ -447,11 +447,11 @@ export default function DashboardPage() {
                       </g>
                     </g>
                   )}
-                  <circle cx="32" cy="32" r="27" fill="none" stroke="rgba(0,170,240,0.55)" strokeWidth="2.5"/>
+                  <circle cx="42" cy="42" r="35" fill="none" stroke="rgba(0,170,240,0.55)" strokeWidth="2.5"/>
                 </svg>
                 <div className="relative z-10">
                   <span className="text-white font-bold leading-none"
-                    style={{fontSize: score !== null ? 28 : 16, fontFamily:"'Oswald',sans-serif",
+                    style={{fontSize: score !== null ? 36 : 18, fontFamily:"'Oswald',sans-serif",
                       letterSpacing:'-1px', textShadow:'0 1px 8px rgba(0,0,0,0.6)'}}>
                     {score ?? '—'}
                   </span>
