@@ -401,10 +401,14 @@ function buildTreatmentPlan(test: TestInput, v: number, isSalt: boolean): Treatm
         urgency: 'soon',
         param: 'chlorine',
         title: 'Add chlorine',
-        chemical: 'Liquid Chlorine or Granular Shock',
-        amount: chlorineBothAmounts(dose),
+        chemical: 'Liquid Chlorine\nGranular Shock (cal-hypo)',
+        amount: (() => {
+          const dryOz = Math.max(1, Math.round(dose / 6.5))
+          const dryStr = dryOz < 16 ? `${dryOz} oz` : `${(dryOz / 16).toFixed(1)} lbs`
+          return `${liq(dose)}\n${dryStr}`
+        })(),
         why: `Free chlorine at ${fc} ppm is below the 1 ppm safe minimum. ${phOff ? `By completing the pH adjustment above first, you will get significantly more active sanitizer from the same amount of chlorine you add.` : `With pH in the ideal 7.2–7.6 range, the chlorine you add now will be working at close to full strength.`}`,
-        how: 'Add in the evening — UV sunlight destroys chlorine rapidly, and adding during the day means a significant portion is gone before it even finishes circulating. Pour around the perimeter with the pump running.\n\nLiquid chlorine: starts working within minutes. Retest in 1–4 hours.\nGranular shock (cal-hypo): takes 30–60 min to fully dissolve. Pre-dissolve in a bucket of water first — never pour dry granules directly on a vinyl liner. Retest the next morning.',
+        how: 'Add in the evening — UV destroys chlorine rapidly during the day. Pour around the perimeter with the pump running.\n\nLiquid chlorine: starts working within minutes. Retest in 1–4 hours.\nGranular shock (cal-hypo): pre-dissolve in a bucket of water first — never pour dry granules directly on a vinyl liner. Takes 30–60 min to fully dissolve. Retest the next morning.',
         lookFor: `Retest in 1–4 hours (liquid chlorine) or the next morning (granular). Target 1–3 ppm. If chlorine drops back to low levels within a day, test your CYA — without adequate stabilizer, UV can burn off most of your chlorine within just a few hours on a sunny day.`,
         note: (() => {
           const caIsHigh = ca !== null && ca > (isSalt ? SALT_RANGES.ca.monHigh : CHLORINE_RANGES.ca.monHigh)
@@ -636,10 +640,10 @@ function generateMaintenance(test: TestInput, isSalt: boolean): MaintenanceTip[]
     category: 'shock',
     title: isSalt
       ? 'Boost SWG after heavy rain or parties'
-      : 'Shock after heavy rain, parties, or if water looks off',
+      : 'Test water after heavy rain or heavy swim days',
     body: isSalt
       ? 'After heavy rain, large swimmer loads, or if water looks hazy — run your salt generator on boost/superchlorinate mode for 24 hours. If the pool is visibly cloudy or green, add liquid chlorine as a one-time treatment (do not use cal-hypo — it scales the cell).'
-      : 'Shock the pool after significant rainfall, after heavy swimmer loads, if chlorine reads 0, or if the water looks hazy. In peak summer heat, a weekly shock as prevention is a good habit.',
+      : 'After significant rainfall or a big swim day, log a test before reaching for chemicals. Rain dilutes and unbalances water differently every time — test first and let PoolKeep tell you exactly what it needs, if anything.',
   })
 
   tips.push({
