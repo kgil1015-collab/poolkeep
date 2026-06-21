@@ -404,7 +404,7 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        <p className="text-white/60 text-xs mb-2">{welcome.salutation}</p>
+        <p className="text-white/70 mb-2" style={{fontSize:14}}>{welcome.salutation}</p>
 
         {/* Compact score row */}
         {(() => {
@@ -460,8 +460,8 @@ export default function DashboardPage() {
 
               {/* Status text */}
               <div className="flex-1 min-w-0">
-                <p className="text-white/90 font-bold leading-tight" style={{fontSize:15}}>{welcome.headline}</p>
-                <p className="text-white/45 leading-snug mt-0.5 line-clamp-2" style={{fontSize:11}}>{welcome.subline}</p>
+                <p className="text-white/90 font-bold leading-tight" style={{fontSize:18}}>{welcome.headline}</p>
+                <p className="text-white/55 leading-snug mt-1 line-clamp-2" style={{fontSize:13}}>{welcome.subline}</p>
                 {unknownCount > 0 && score !== null && (() => {
                   if (!lastTest) return null
                   const td = new Date(lastTest.created_at)
@@ -797,14 +797,22 @@ export default function DashboardPage() {
                     </div>
 
                     {/* Legend */}
-                    <div style={{display:'flex',alignItems:'center',gap:12,padding:'4px 12px 8px'}}>
+                    <div style={{display:'flex',flexWrap:'wrap',alignItems:'center',gap:'6px 12px',padding:'4px 12px 8px'}}>
                       <div style={{display:'flex',alignItems:'center',gap:4}}>
                         <div style={{width:16,height:6,borderRadius:3,background:'rgba(0,170,240,0.55)'}} />
-                        <span style={{fontSize:9,color:'rgba(255,255,255,0.45)',fontWeight:600}}>ideal range</span>
+                        <span style={{fontSize:9,color:'rgba(255,255,255,0.45)',fontWeight:600}}>ideal</span>
                       </div>
                       <div style={{display:'flex',alignItems:'center',gap:4}}>
                         <div style={{width:12,height:12,borderRadius:'50%',background:'#fff',border:'2.5px solid #00CCA3'}} />
-                        <span style={{fontSize:9,color:'rgba(255,255,255,0.45)',fontWeight:600}}>your reading</span>
+                        <span style={{fontSize:9,color:'rgba(255,255,255,0.45)',fontWeight:600}}>in range</span>
+                      </div>
+                      <div style={{display:'flex',alignItems:'center',gap:4}}>
+                        <div style={{width:12,height:12,borderRadius:'50%',background:'#fff',border:'2.5px solid #5BC8F5'}} />
+                        <span style={{fontSize:9,color:'rgba(255,255,255,0.45)',fontWeight:600}}>monitor</span>
+                      </div>
+                      <div style={{display:'flex',alignItems:'center',gap:4}}>
+                        <div style={{width:12,height:12,borderRadius:'50%',background:'#fff',border:'2.5px solid #F0A500'}} />
+                        <span style={{fontSize:9,color:'rgba(255,255,255,0.45)',fontWeight:600}}>out of range</span>
                       </div>
                     </div>
 
