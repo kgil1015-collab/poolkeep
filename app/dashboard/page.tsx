@@ -984,12 +984,15 @@ export default function DashboardPage() {
                                                 const nextChem = chemLines[i + 1] ?? ''
                                                 const nextIsGranular = nextChem.toLowerCase().includes('granular') || (nextChem.toLowerCase().includes('shock') && !nextChem.toLowerCase().includes('liquid'))
                                                 if (isLiquidChlor && nextIsGranular) {
-                                                  // Render as OR-pair — not numbered
+                                                  // Render as step N with A/B OR-pair inside
                                                   const nextAmount = amountLines[i + 1] ?? ''
                                                   numberedCount++
                                                   elements.push(
                                                     <div key={`or-pair-${i}`}>
-                                                      <p className="text-[10px] font-bold uppercase tracking-widest mb-1.5" style={{color:'#5A7A8A'}}>Choose one:</p>
+                                                      <div className="flex items-center gap-2 mb-1.5">
+                                                        <span className="w-4 h-4 rounded-full flex items-center justify-center shrink-0 text-[9px] font-bold text-white" style={{background:'#00967A',minWidth:16}}>{numberedCount}</span>
+                                                        <p className="text-xs font-bold" style={{color:'#00967A'}}>Add chlorine — choose one:</p>
+                                                      </div>
                                                       {/* Option A — Liquid */}
                                                       <div className="rounded-lg px-2.5 py-2 mb-1.5" style={{background:'rgba(0,150,122,0.07)',border:'1px solid rgba(0,150,122,0.18)'}}>
                                                         <div className="flex items-center gap-1.5 mb-0.5">
