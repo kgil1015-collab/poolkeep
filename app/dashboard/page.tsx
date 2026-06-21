@@ -924,7 +924,10 @@ export default function DashboardPage() {
                             <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{background: group.meta.color}} />
                             <div className="flex-1">
                               <span className="text-xs font-bold uppercase tracking-widest" style={{color: group.meta.color}}>{group.meta.label}</span>
-                              <span className="text-[10px] text-text-faint ml-2">{group.meta.sublabel}</span>
+                              {group.when === 'today'
+                                ? <span className="text-[11px] font-bold ml-2" style={{color: group.meta.color}}>↓ Start here</span>
+                                : <span className="text-[10px] text-text-faint ml-2">{group.meta.sublabel}</span>
+                              }
                             </div>
                             {gi < groups.length - 1 && <div className="h-px flex-1 bg-gray-100" />}
                           </div>
