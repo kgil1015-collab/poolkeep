@@ -1190,8 +1190,8 @@ export default function DashboardPage() {
                     <div style={{height:5,background:'linear-gradient(90deg,#0078B8 0%,#5BC8F5 100%)'}} />
                     <div style={{background:'linear-gradient(160deg,#EAF5FF 0%,#F4FAFF 100%)'}}>
                       <div className="px-5 py-5">
-                        <p style={{fontSize:17,fontWeight:800,color:'#0B1E35',marginBottom:6,letterSpacing:'-.01em'}}>Retest pH + chlorine in {quickDays} days</p>
-                        <p style={{fontSize:13,lineHeight:1.6,color:'#3A6080'}}>Check pH and free chlorine to confirm the treatment worked. Then a complete panel retest in {fullDays} days.</p>
+                        <p style={{fontSize:14,fontWeight:700,color:'#0B1E35',marginBottom:4,letterSpacing:'-.01em'}}>Retest pH + chlorine in {quickDays} days</p>
+                        <p style={{fontSize:12,lineHeight:1.5,color:'#3A6080'}}>Check pH and free chlorine to confirm the treatment worked. Then a complete panel retest in {fullDays} days.</p>
                       </div>
                     </div>
                   </div>
