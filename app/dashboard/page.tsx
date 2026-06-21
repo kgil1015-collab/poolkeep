@@ -799,19 +799,11 @@ export default function DashboardPage() {
                     {/* Legend */}
                     <div style={{display:'flex',alignItems:'center',gap:12,padding:'4px 12px 8px'}}>
                       <div style={{display:'flex',alignItems:'center',gap:4}}>
-                        <div style={{width:16,height:6,borderRadius:3,background:'#7DDFC7'}} />
-                        <span style={{fontSize:9,color:'rgba(255,255,255,0.45)',fontWeight:600}}>ideal</span>
+                        <div style={{width:16,height:6,borderRadius:3,background:'rgba(0,204,163,0.35)'}} />
+                        <span style={{fontSize:9,color:'rgba(255,255,255,0.45)',fontWeight:600}}>ideal range</span>
                       </div>
                       <div style={{display:'flex',alignItems:'center',gap:4}}>
-                        <div style={{width:16,height:6,borderRadius:3,background:'#FCDDA0'}} />
-                        <span style={{fontSize:9,color:'rgba(255,255,255,0.45)',fontWeight:600}}>monitor</span>
-                      </div>
-                      <div style={{display:'flex',alignItems:'center',gap:4}}>
-                        <div style={{width:16,height:6,borderRadius:3,background:'#F4A0A0'}} />
-                        <span style={{fontSize:9,color:'rgba(255,255,255,0.45)',fontWeight:600}}>out of range</span>
-                      </div>
-                      <div style={{display:'flex',alignItems:'center',gap:4}}>
-                        <div style={{width:12,height:12,borderRadius:'50%',background:'#fff',border:'2.5px solid #0B1E35'}} />
+                        <div style={{width:12,height:12,borderRadius:'50%',background:'#fff',border:'2.5px solid #00CCA3'}} />
                         <span style={{fontSize:9,color:'rgba(255,255,255,0.45)',fontWeight:600}}>your reading</span>
                       </div>
                     </div>
@@ -839,25 +831,12 @@ export default function DashboardPage() {
                           </div>
                           {raw !== null ? (
                             <>
-                              {(() => {
-                                const warnLoPct = scalePct(p.warnLow)
-                                const warnHiPct = scalePct(p.warnHigh)
-                                const segments = [
-                                  { from: 0,          to: warnLoPct,           color: '#F4A0A0' },
-                                  { from: warnLoPct,  to: goodLoPct,           color: '#FCDDA0' },
-                                  { from: goodLoPct,  to: goodHiPct,           color: '#7DDFC7' },
-                                  { from: goodHiPct,  to: warnHiPct,           color: '#FCDDA0' },
-                                  { from: warnHiPct,  to: 100,                 color: '#F4A0A0' },
-                                ].filter(s => s.to > s.from)
-                                const gradient = segments.map(s => `${s.color} ${s.from}%, ${s.color} ${s.to}%`).join(', ')
-                                return (
-                                  <div style={{height:7,borderRadius:3.5,position:'relative',marginLeft:16,background:`linear-gradient(to right, ${gradient})`,overflow:'visible'}}>
-                                    {valPct !== null && (
-                                      <div style={{position:'absolute',top:'50%',left:`${valPct}%`,transform:'translate(-50%,-50%)',width:17,height:17,borderRadius:'50%',background:'#fff',border:'3px solid #0B1E35',boxShadow:'0 2px 6px rgba(0,0,0,0.6)',zIndex:2}} />
-                                    )}
-                                  </div>
-                                )
-                              })()}
+                              <div style={{height:7,borderRadius:3.5,position:'relative',marginLeft:16,background:'rgba(255,255,255,0.1)',overflow:'visible'}}>
+                                <div style={{position:'absolute',top:0,bottom:0,left:`${goodLoPct}%`,width:`${goodHiPct-goodLoPct}%`,background:'rgba(0,204,163,0.35)',borderRadius:3.5}} />
+                                {valPct !== null && (
+                                  <div style={{position:'absolute',top:'50%',left:`${valPct}%`,transform:'translate(-50%,-50%)',width:17,height:17,borderRadius:'50%',background:'#fff',border:`3px solid ${dot}`,boxShadow:'0 2px 6px rgba(0,0,0,0.5)',zIndex:2}} />
+                                )}
+                              </div>
                               <p style={{fontSize:10,fontWeight:500,color:'rgba(255,255,255,0.50)',marginTop:4,marginLeft:16}}>Ideal: {p.rangeLabel}</p>
                             </>
                           ) : (
