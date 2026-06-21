@@ -730,119 +730,6 @@ export default function DashboardPage() {
           </div>
         ) : (
           <>
-            {/* ACTION NEEDED — icon cards */}
-            {(() => {
-              const actionItems = [...(liveRecs ?? lastTest.recommendations).action, ...(liveRecs ?? lastTest.recommendations).monitor]
-                .filter(rec => rec.param !== 'calcium') // calcium shown in Water Report instead
-              // Sort: chlorine (most urgent safety issue) always first
-              const chlorineFirst = (x: {param: string}) => x.param === 'chlorine' ? -1 : 0
-              actionItems.sort((a, b) => chlorineFirst(a) - chlorineFirst(b))
-              const paramMeta: Record<string, { icon: React.ReactElement; bg: string; color: string }> = {
-                ph:        { bg:'rgba(124,58,237,0.13)',  color:'#6D28D9', icon:<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 2h4M10 2v7l-4.5 9.5A1 1 0 0 0 6.4 20h11.2a1 1 0 0 0 .9-1.5L14 9V2"/></svg> },
-                chlorine:  { bg:'rgba(229,48,74,0.12)',   color:'#C0102E', icon:<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polyline points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> },
-                alkalinity:{ bg:'rgba(0,120,184,0.12)',   color:'#005A8E', icon:<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M2 6c.6.5 1.2 1 2.5 1C7 7 7 5 9.5 5s2.5 2 5 2 2.5-2 5-2 2.5 2 5 2"/><path d="M2 12c.6.5 1.2 1 2.5 1C7 13 7 11 9.5 11s2.5 2 5 2 2.5-2 5-2 2.5 2 5 2"/></svg> },
-                cya:       { bg:'rgba(245,166,35,0.15)',  color:'#B97A00', icon:<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/></svg> },
-                calcium:   { bg:'rgba(100,116,139,0.12)', color:'#475569', icon:<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg> },
-                salt:      { bg:'rgba(0,120,184,0.12)',   color:'#005A8E', icon:<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M12 2C6 9 4 13 4 16a8 8 0 0 0 16 0c0-3-2-7-8-14z"/></svg> },
-              }
-              const defaultMeta = { bg:'rgba(245,166,35,0.15)', color:'#B97A00', icon:<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg> }
-
-              if (actionItems.length === 0) {
-                const unknownNonSalt = (liveRecs ?? lastTest.recommendations).unknown.filter(u => u.param !== 'salt').length
-                const hasUnknowns = unknownNonSalt > 0
-                const testedBars = 5 - unknownNonSalt
-                return (
-                  <div className="bg-white rounded-2xl p-4 shadow-md border border-gray-200 flex items-start gap-3 mb-2">
-                    <div className="w-10 h-10 rounded-full flex items-center justify-center shrink-0 mt-0.5" style={{background: hasUnknowns ? 'rgba(0,150,122,0.10)' : 'rgba(29,184,105,0.12)'}}>
-                      {hasUnknowns
-                        ? (
-                          <svg width="20" height="18" viewBox="0 0 20 18" fill="none">
-                            {[0,1,2,3,4].map(i => (
-                              <rect key={i} x={i * 4.2} y={i < testedBars ? 18 - (6 + i * 2.5) : 13} width="3" height={i < testedBars ? 6 + i * 2.5 : 5} rx="1"
-                                fill={i < testedBars ? '#00967A' : '#D1E8E2'} />
-                            ))}
-                          </svg>
-                        )
-                        : <IconCheck size={20} style={{color:'#1DB869'}} />
-                      }
-                    </div>
-                    <div>
-                      <p className="font-bold text-text-primary text-sm">
-                        {hasUnknowns ? 'Tested parameters look good' : 'Your pool looks great'}
-                      </p>
-                      <p className="text-text-muted text-xs mt-0.5">
-                        {hasUnknowns
-                          ? 'No issues found in what you tested — log the remaining parameters for a complete health score.'
-                          : 'All parameters in range — no action needed.'}
-                      </p>
-                    </div>
-                  </div>
-                )
-              }
-
-              return (
-                <div className="mb-5">
-                  <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:10}}>
-                    <div style={{width:14,height:1.5,background:'#00CCA3',borderRadius:2,flexShrink:0}} />
-                    <p style={{fontSize:11,fontWeight:700,letterSpacing:'0.12em',color:'#2A5570',textTransform:'uppercase',fontFamily:"'Space Grotesk',sans-serif"}}>What Needs Attention</p>
-                  </div>
-                  <div className="space-y-2.5">
-                    {actionItems.map((rec, i) => {
-                      const meta = paramMeta[rec.param as keyof typeof paramMeta] ?? defaultMeta
-                      const isMonitor = (liveRecs ?? lastTest.recommendations).monitor.some(m => m.title === rec.title)
-                      const isUrgentAction = !isMonitor
-                      const borderColor = isUrgentAction ? meta.color : '#D97706'
-                      const isCriticalChlorine = rec.param === 'chlorine' && (lastTest.free_chlorine ?? 99) < 0.5
-
-                      // Build display desc with patches for old stored data
-                      let displayDesc = rec.desc
-                        .replace(/\s*See the treatment plan below[\s\S]*?(?:then shock|add chlorine)\.\s*/g, ' ')
-                        .replace(/[Aa]nd aerate afterward\.?/g, 'then aim a return jet at the surface for 2–4 hrs to raise pH naturally.')
-                        .replace(/[Aa]erate afterward\.?/g, 'aim a return jet at the surface for 2–4 hrs to raise pH naturally.')
-                        .trim()
-                      if (rec.param === 'chlorine' && displayDesc.includes('Lower pH to 7.2 first, then add chlorine')) {
-                        const ph = lastTest.ph ?? 7.4
-                        displayDesc = `Free chlorine at ${lastTest.free_chlorine} ppm — unsafe for swimming. Step 1: add muriatic acid to bring pH to 7.2. Step 2: shock the pool. At pH ${ph}, most of the shock is ineffective — lower it first and the same dose works 2–3× better.`
-                      }
-
-                      // Split into alert sentence + detail for visual hierarchy
-                      const firstDot = displayDesc.search(/[.!?](\s|$)/)
-                      const alertLine = firstDot > 0 ? displayDesc.slice(0, firstDot + 1) : displayDesc
-                      const detailLine = firstDot > 0 ? displayDesc.slice(firstDot + 1).trim() : ''
-
-                      const displayTitle = rec.param === 'chlorine' && rec.title === 'Lower pH first, then add chlorine'
-                        ? 'Chlorine critically low — two steps'
-                        : rec.title
-
-                      return (
-                        <div key={i} className="bg-white rounded-2xl shadow-md border border-gray-200 overflow-hidden">
-                          {/* Urgency left border strip */}
-                          <div className="flex">
-                            <div className="w-1 shrink-0 rounded-l-2xl" style={{background: borderColor}} />
-                            <div className="flex items-start gap-3 px-4 py-3.5 flex-1 min-w-0">
-                              <div className="w-10 h-10 rounded-full flex items-center justify-center shrink-0 mt-0.5" style={{background: meta.bg, color: meta.color}}>
-                                {meta.icon}
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-center gap-2 flex-wrap mb-0.5">
-                                  <p className="font-bold text-text-primary text-sm leading-snug">{displayTitle}</p>
-                                  {isCriticalChlorine && (
-                                    <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full shrink-0" style={{background:'rgba(220,38,38,0.1)', color:'#DC2626'}}>DO NOT SWIM</span>
-                                  )}
-                                </div>
-                                <p className="text-xs leading-relaxed" style={{color:'#3D5566', fontWeight:500}}>{alertLine}</p>
-                                {detailLine ? <p className="text-xs text-text-muted leading-relaxed mt-0.5">{detailLine}</p> : null}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      )
-                    })}
-                  </div>
-                </div>
-              )
-            })()}
-
             {/* ── WATER REPORT ────────────────────────────────────────────── */}
             {(() => {
               const t = lastTest
@@ -877,14 +764,14 @@ export default function DashboardPage() {
                     <p style={{fontSize:13,fontWeight:700,letterSpacing:'0.04em',color:'#1A3A4A',flex:1,fontFamily:"'Space Grotesk',sans-serif"}}>Water Report</p>
                     <p style={{fontSize:12,fontWeight:600,color:'#2A5570'}}>{new Date(t.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric'})}</p>
                   </div>
-                  <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:10}}>
-                    <div style={{display:'flex',alignItems:'center',gap:4}}>
-                      <div style={{width:18,height:6,borderRadius:3,background:'rgba(139,92,246,0.55)',flexShrink:0}} />
-                      <span style={{fontSize:10,color:'#4A7A9A',fontWeight:500}}>ideal range</span>
+                  <div style={{display:'flex',alignItems:'center',gap:12,marginBottom:10}}>
+                    <div style={{display:'flex',alignItems:'center',gap:5}}>
+                      <div style={{width:20,height:8,borderRadius:4,background:'rgba(139,92,246,0.38)',flexShrink:0}} />
+                      <span style={{fontSize:11,color:'#4A6A7A',fontWeight:600}}>ideal range</span>
                     </div>
-                    <div style={{display:'flex',alignItems:'center',gap:4}}>
-                      <div style={{width:8,height:8,borderRadius:'50%',background:'#1A3A4A',flexShrink:0}} />
-                      <span style={{fontSize:10,color:'#4A7A9A',fontWeight:500}}>your reading</span>
+                    <div style={{display:'flex',alignItems:'center',gap:5}}>
+                      <div style={{width:10,height:10,borderRadius:'50%',background:'#1A3A4A',flexShrink:0}} />
+                      <span style={{fontSize:11,color:'#4A6A7A',fontWeight:600}}>your reading</span>
                     </div>
                   </div>
                   <div className="bg-white rounded-2xl shadow-sm overflow-hidden" style={{border:'1.5px solid #E0EBF3'}}>
@@ -898,35 +785,35 @@ export default function DashboardPage() {
                       const showHWNote = p.hardWater && raw !== null && raw > p.goodHigh
                       return (
                         <div key={p.key} style={{borderTop: i > 0 ? '1px solid #F0F6FA' : 'none'}}>
-                          <div className="px-4 pt-3.5 pb-2.5">
+                          <div className="px-4 pt-3.5 pb-3">
                             {/* Name row */}
-                            <div className="flex items-center gap-2 mb-2">
-                              <div className="w-2 h-2 rounded-full shrink-0" style={{background:dot}} />
-                              <p className="text-xs font-bold flex-1" style={{color:'#1A2E3B'}}>{p.label}</p>
+                            <div className="flex items-center gap-2 mb-2.5">
+                              <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{background:dot}} />
+                              <p className="text-sm font-bold flex-1" style={{color:'#1A2E3B'}}>{p.label}</p>
                               {raw !== null ? (
-                                <p className="text-sm font-bold mr-2" style={{color:dot, fontFamily:"'DM Mono',monospace"}}>
+                                <p className="text-base font-bold mr-2" style={{color:dot, fontFamily:"'DM Mono',monospace"}}>
                                   {raw % 1 === 0 ? raw : raw.toFixed(1)}{p.unit ? ` ${p.unit}` : ''}
                                 </p>
                               ) : null}
-                              <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full shrink-0" style={{background:badgeBg, color:dot}}>
+                              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0" style={{background:badgeBg, color:dot}}>
                                 {badge}
                               </span>
                             </div>
                             {/* Range bar */}
                             {raw !== null ? (
                               <>
-                                <div className="relative mb-1.5" style={{height:8, borderRadius:4, background:'#E8F0F6'}}>
+                                <div className="relative mb-2" style={{height:10, borderRadius:5, background:'#E8F0F6'}}>
                                   {/* Ideal zone */}
-                                  <div style={{position:'absolute',top:0,bottom:0,left:`${goodLoPct}%`,width:`${goodHiPct-goodLoPct}%`,background:'rgba(139,92,246,0.22)',borderRadius:4}} />
+                                  <div style={{position:'absolute',top:0,bottom:0,left:`${goodLoPct}%`,width:`${goodHiPct-goodLoPct}%`,background:'rgba(139,92,246,0.38)',borderRadius:5}} />
                                   {/* Value marker */}
                                   {valPct !== null && (
-                                    <div style={{position:'absolute',top:'50%',left:`${valPct}%`,transform:'translate(-50%,-50%)',width:14,height:14,borderRadius:'50%',background:dot,border:'2.5px solid white',boxShadow:`0 1px 5px ${dot}70`,zIndex:2}} />
+                                    <div style={{position:'absolute',top:'50%',left:`${valPct}%`,transform:'translate(-50%,-50%)',width:16,height:16,borderRadius:'50%',background:dot,border:'2.5px solid white',boxShadow:`0 1px 6px ${dot}80`,zIndex:2}} />
                                   )}
                                 </div>
-                                <p className="text-[10px]" style={{color:'#8AAABB'}}>Ideal: {p.rangeLabel}</p>
+                                <p className="text-xs font-semibold" style={{color:'#4A6A7A'}}>Ideal: {p.rangeLabel}</p>
                               </>
                             ) : (
-                              <p className="text-[10px] italic" style={{color:'#8AAABB'}}>Test this parameter for a more complete score</p>
+                              <p className="text-xs italic" style={{color:'#8AAABB'}}>Test this parameter for a more complete score</p>
                             )}
                           </div>
                           {/* Hard water note */}
@@ -941,6 +828,39 @@ export default function DashboardPage() {
                         </div>
                       )
                     })}
+                  </div>
+                </div>
+              )
+            })()}
+
+            {/* ── ALL GOOD card — only when nothing needs action ──────────── */}
+            {(() => {
+              const recs = liveRecs ?? lastTest.recommendations
+              if (recs.action.length > 0 || recs.monitor.length > 0) return null
+              const unknownNonSalt = recs.unknown.filter(u => u.param !== 'salt').length
+              const hasUnknowns = unknownNonSalt > 0
+              const testedBars = 5 - unknownNonSalt
+              return (
+                <div className="bg-white rounded-2xl p-4 shadow-md border border-gray-200 flex items-start gap-3 mb-5">
+                  <div className="w-10 h-10 rounded-full flex items-center justify-center shrink-0 mt-0.5" style={{background: hasUnknowns ? 'rgba(0,150,122,0.10)' : 'rgba(29,184,105,0.12)'}}>
+                    {hasUnknowns ? (
+                      <svg width="20" height="18" viewBox="0 0 20 18" fill="none">
+                        {[0,1,2,3,4].map(i => (
+                          <rect key={i} x={i * 4.2} y={i < testedBars ? 18 - (6 + i * 2.5) : 13} width="3" height={i < testedBars ? 6 + i * 2.5 : 5} rx="1"
+                            fill={i < testedBars ? '#00967A' : '#D1E8E2'} />
+                        ))}
+                      </svg>
+                    ) : <IconCheck size={20} style={{color:'#1DB869'}} />}
+                  </div>
+                  <div>
+                    <p className="font-bold text-text-primary text-sm">
+                      {hasUnknowns ? 'Tested parameters look good' : 'Your pool looks great'}
+                    </p>
+                    <p className="text-text-muted text-xs mt-0.5">
+                      {hasUnknowns
+                        ? 'No issues found in what you tested — log the remaining parameters for a complete health score.'
+                        : 'All parameters in range — no action needed.'}
+                    </p>
                   </div>
                 </div>
               )
