@@ -997,7 +997,7 @@ export default function DashboardPage() {
                                                           <p className="text-xs font-bold" style={{color:'#00967A'}}>Liquid Chlorine</p>
                                                           <p className="text-xs font-semibold text-text-muted">{lineAmount}</p>
                                                         </div>
-                                                        <p className="text-[10px] italic" style={{color:'#00967A'}}>Add in the evening. Retest in 1–4 hrs — swim when FC &lt; 5 ppm.</p>
+                                                        <p className="text-[10px] italic" style={{color:'#00967A'}}>Retest in 1–4 hrs — swim when FC &lt; 5 ppm.</p>
                                                       </div>
                                                       {/* OR divider */}
                                                       <div className="flex items-center gap-2 my-1">
