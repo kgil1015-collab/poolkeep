@@ -461,31 +461,9 @@ export default function DashboardPage() {
                 )}
               </div>
 
-              {/* Log test CTA */}
-              <button
-                onClick={() => router.push('/log')}
-                className="shrink-0 hover:opacity-90 transition-opacity"
-                style={{background:'rgba(0,120,184,0.28)',border:'1.5px solid rgba(0,180,255,0.28)',
-                  borderRadius:14,padding:'9px 11px',display:'flex',flexDirection:'column',alignItems:'center',gap:4}}
-              >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5BC8F5" strokeWidth="2.5" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                <span style={{fontSize:10,fontWeight:700,color:'#5BC8F5',whiteSpace:'nowrap'}}>Log test</span>
-              </button>
             </div>
           )
         })()}
-
-        {/* Urgent log CTA — shown when pool hasn't been tested recently */}
-        {welcome.urgency >= 2 && (
-          <button
-            onClick={() => router.push('/log')}
-            className="w-full mb-3 py-2.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2 hover:opacity-90 transition-opacity"
-            style={{background:'rgba(255,255,255,0.12)', color:'white', border:'1.5px solid rgba(255,255,255,0.25)'}}
-          >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-            Log a Test Now
-          </button>
-        )}
 
         {/* Pool switcher */}
         <div className="pb-3">
@@ -553,6 +531,19 @@ export default function DashboardPage() {
         const recs = liveRecs ?? lastTest.recommendations
         const actionCount = recs.action.filter(r => r.param !== 'calcium').length
         const monitorCount = recs.monitor.filter(r => r.param !== 'calcium').length
+
+        const testDate = new Date(lastTest.created_at)
+        const testDay = new Date(testDate.getFullYear(), testDate.getMonth(), testDate.getDate())
+        const todayDay = new Date(); todayDay.setHours(0,0,0,0)
+        const daysSince = Math.round((todayDay.getTime() - testDay.getTime()) / 86400000)
+
+        // After 2 days assume action items were treated — prompt for a fresh test instead
+        if (actionCount > 0 && daysSince >= 2) return (
+          <div style={{background:'#003D5C',padding:'8px 20px',display:'flex',alignItems:'center',gap:8}}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#5BC8F5" strokeWidth="2.5" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            <span style={{color:'#5BC8F5',fontSize:12,fontWeight:600}}>Time for a new test — log below to see your current levels</span>
+          </div>
+        )
         if (actionCount > 0) return (
           <div style={{background:'#B84018',padding:'8px 20px',display:'flex',alignItems:'center',gap:8}}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
@@ -764,29 +755,53 @@ export default function DashboardPage() {
                 return 'action'
               }
               const SM: Record<RStatus,{dot:string;badge:string;badgeBg:string}> = {
-                good:    { dot:'#1DB869', badge:'✓ In Range',    badgeBg:'rgba(29,184,105,0.12)'  },
-                monitor: { dot:'#F5A623', badge:'Monitor',       badgeBg:'rgba(245,166,35,0.12)'  },
-                action:  { dot:'#E5304A', badge:'Needs Action',  badgeBg:'rgba(229,48,74,0.10)'   },
-                unknown: { dot:'#8AAABB', badge:'Not Tested',    badgeBg:'rgba(138,170,187,0.12)' },
+                good:    { dot:'#00CCA3', badge:'In Range',    badgeBg:'rgba(0,204,163,0.18)'   },
+                monitor: { dot:'#5BC8F5', badge:'Monitor',     badgeBg:'rgba(91,200,245,0.18)'  },
+                action:  { dot:'#F0A500', badge:'Out of Range',badgeBg:'rgba(240,165,0,0.18)'   },
+                unknown: { dot:'#8AAABB', badge:'Not Tested',  badgeBg:'rgba(138,170,187,0.12)' },
               }
               return (
                 <div className="mb-5">
-                  <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:6}}>
-                    <div style={{width:3,height:18,background:'#00CCA3',borderRadius:2,flexShrink:0}} />
-                    <p style={{fontSize:13,fontWeight:700,letterSpacing:'0.04em',color:'#1A3A4A',flex:1,fontFamily:"'Space Grotesk',sans-serif"}}>Water Report</p>
-                    <p style={{fontSize:12,fontWeight:600,color:'#2A5570'}}>{new Date(t.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric'})}</p>
+                  {/* Section title */}
+                  <div style={{display:'flex',alignItems:'center',marginBottom:10}}>
+                    <p style={{fontSize:18,fontWeight:800,color:'#0B1E35',letterSpacing:'-.02em',fontFamily:"'Oswald',sans-serif",textTransform:'uppercase'}}>Water Report</p>
+                    <div style={{flex:1}} />
+                    <p style={{fontSize:11,fontWeight:600,color:'#5A7A8A'}}>{new Date(t.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric'})}</p>
                   </div>
-                  <div style={{display:'flex',alignItems:'center',gap:12,marginBottom:10}}>
-                    <div style={{display:'flex',alignItems:'center',gap:5}}>
-                      <div style={{width:20,height:8,borderRadius:4,background:'rgba(56,130,214,0.42)',flexShrink:0}} />
-                      <span style={{fontSize:11,color:'#4A6A7A',fontWeight:600}}>ideal range</span>
+
+                  {/* Dark navy panel */}
+                  <div style={{background:'#0B1E35',borderRadius:16,overflow:'hidden'}}>
+                    {/* Compact stat tiles — all params at a glance */}
+                    <div style={{display:'flex',gap:6,padding:'12px 12px 6px'}}>
+                      {REPORT_PARAMS.map(p => {
+                        const raw = t[p.key as keyof TestResult] as number | null
+                        const status = getStatus(raw, p.goodLow, p.goodHigh, p.warnLow, p.warnHigh)
+                        const { dot } = SM[status]
+                        return (
+                          <div key={p.key} style={{flex:1,background:'rgba(255,255,255,0.06)',borderRadius:8,padding:'7px 6px',border:`0.5px solid ${dot}50`}}>
+                            <div style={{fontSize:8,color:'rgba(255,255,255,0.35)',fontWeight:600,textTransform:'uppercase',letterSpacing:'.05em',marginBottom:2,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{p.label.split(' ')[0]}</div>
+                            <div style={{fontSize:16,fontWeight:700,color: raw !== null ? dot : 'rgba(255,255,255,0.2)',lineHeight:1,fontFamily:"'DM Mono',monospace"}}>
+                              {raw !== null ? (raw % 1 === 0 ? String(raw) : raw.toFixed(1)) : '—'}
+                            </div>
+                            <div style={{fontSize:7,fontWeight:700,marginTop:3,color:dot,lineHeight:1.2}}>{raw !== null ? SM[status].badge : 'Not tested'}</div>
+                          </div>
+                        )
+                      })}
                     </div>
-                    <div style={{display:'flex',alignItems:'center',gap:5}}>
-                      <div style={{width:10,height:10,borderRadius:'50%',background:'#1A3A4A',flexShrink:0}} />
-                      <span style={{fontSize:11,color:'#4A6A7A',fontWeight:600}}>your reading</span>
+
+                    {/* Legend */}
+                    <div style={{display:'flex',alignItems:'center',gap:10,padding:'4px 12px 8px'}}>
+                      <div style={{display:'flex',alignItems:'center',gap:4}}>
+                        <div style={{width:16,height:4,borderRadius:2,background:'rgba(56,130,214,0.5)'}} />
+                        <span style={{fontSize:9,color:'rgba(255,255,255,0.28)',fontWeight:600}}>ideal range</span>
+                      </div>
+                      <div style={{display:'flex',alignItems:'center',gap:4}}>
+                        <div style={{width:8,height:8,borderRadius:'50%',background:'rgba(255,255,255,0.4)'}} />
+                        <span style={{fontSize:9,color:'rgba(255,255,255,0.28)',fontWeight:600}}>your reading</span>
+                      </div>
                     </div>
-                  </div>
-                  <div className="bg-white rounded-2xl shadow-sm overflow-hidden" style={{border:'1.5px solid #E0EBF3'}}>
+
+                    {/* Detailed rows */}
                     {REPORT_PARAMS.map((p, i) => {
                       const raw = t[p.key as keyof TestResult] as number | null
                       const status = getStatus(raw, p.goodLow, p.goodHigh, p.warnLow, p.warnHigh)
@@ -796,44 +811,35 @@ export default function DashboardPage() {
                       const valPct     = raw !== null ? pct(raw, p.displayMin, p.displayMax) : null
                       const showHWNote = p.hardWater && raw !== null && raw > p.goodHigh
                       return (
-                        <div key={p.key} style={{borderTop: i > 0 ? '1px solid #F0F6FA' : 'none'}}>
-                          <div className="px-4 pt-3.5 pb-3">
-                            {/* Name row */}
-                            <div className="flex items-center gap-2 mb-2.5">
-                              <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{background:dot}} />
-                              <p className="text-sm font-bold flex-1" style={{color:'#1A2E3B'}}>{p.label}</p>
-                              {raw !== null ? (
-                                <p className="text-base font-bold mr-2" style={{color:dot, fontFamily:"'DM Mono',monospace"}}>
-                                  {raw % 1 === 0 ? raw : raw.toFixed(1)}{p.unit ? ` ${p.unit}` : ''}
-                                </p>
-                              ) : null}
-                              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0" style={{background:badgeBg, color:dot}}>
-                                {badge}
+                        <div key={p.key} style={{borderTop: i > 0 ? '1px solid rgba(255,255,255,0.06)' : 'none', padding:'9px 12px'}}>
+                          <div style={{display:'flex',alignItems:'center',gap:8,marginBottom: raw !== null ? 7 : 0}}>
+                            <div style={{width:8,height:8,borderRadius:'50%',background:dot,flexShrink:0}} />
+                            <span style={{fontSize:12,fontWeight:600,color:'rgba(255,255,255,0.8)',flex:1}}>{p.label}</span>
+                            {raw !== null && (
+                              <span style={{fontSize:13,fontWeight:700,color:dot,fontFamily:"'DM Mono',monospace"}}>
+                                {raw % 1 === 0 ? raw : raw.toFixed(1)}{p.unit ? ` ${p.unit}` : ''}
                               </span>
-                            </div>
-                            {/* Range bar */}
-                            {raw !== null ? (
-                              <>
-                                <div className="relative mb-2" style={{height:10, borderRadius:5, background:'#E8F0F6'}}>
-                                  {/* Ideal zone */}
-                                  <div style={{position:'absolute',top:0,bottom:0,left:`${goodLoPct}%`,width:`${goodHiPct-goodLoPct}%`,background:'rgba(56,130,214,0.42)',borderRadius:5}} />
-                                  {/* Value marker */}
-                                  {valPct !== null && (
-                                    <div style={{position:'absolute',top:'50%',left:`${valPct}%`,transform:'translate(-50%,-50%)',width:16,height:16,borderRadius:'50%',background:dot,border:'2.5px solid white',boxShadow:`0 1px 6px ${dot}80`,zIndex:2}} />
-                                  )}
-                                </div>
-                                <p className="text-xs font-semibold" style={{color:'#4A6A7A'}}>Ideal: {p.rangeLabel}</p>
-                              </>
-                            ) : (
-                              <p className="text-xs italic" style={{color:'#8AAABB'}}>Test this parameter for a more complete score</p>
                             )}
+                            <span style={{fontSize:8,fontWeight:700,padding:'2px 7px',borderRadius:20,background:badgeBg,color:dot,flexShrink:0}}>{badge}</span>
                           </div>
-                          {/* Hard water note */}
+                          {raw !== null ? (
+                            <>
+                              <div style={{height:7,borderRadius:3.5,background:'rgba(255,255,255,0.1)',position:'relative',marginLeft:16}}>
+                                <div style={{position:'absolute',top:0,bottom:0,left:`${goodLoPct}%`,width:`${goodHiPct-goodLoPct}%`,background:'rgba(56,130,214,0.5)',borderRadius:3.5}} />
+                                {valPct !== null && (
+                                  <div style={{position:'absolute',top:'50%',left:`${valPct}%`,transform:'translate(-50%,-50%)',width:13,height:13,borderRadius:'50%',background:dot,border:'2px solid #0B1E35',zIndex:2}} />
+                                )}
+                              </div>
+                              <p style={{fontSize:10,fontWeight:500,color:'rgba(255,255,255,0.28)',marginTop:4,marginLeft:16}}>Ideal: {p.rangeLabel}</p>
+                            </>
+                          ) : (
+                            <p style={{fontSize:10,color:'rgba(255,255,255,0.22)',marginLeft:16,fontStyle:'italic'}}>Log this to improve your score</p>
+                          )}
                           {showHWNote && (
-                            <div className="mx-3 mb-3 px-3 py-2 rounded-xl flex items-start gap-2" style={{background:'rgba(0,120,184,0.05)',border:'1px solid rgba(0,120,184,0.14)'}}>
-                              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#4A7A9A" strokeWidth="2.2" strokeLinecap="round" className="shrink-0 mt-0.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-                              <p className="text-[11px] leading-snug" style={{color:'#4A7A9A'}}>
-                                In hard water regions like Arizona, high calcium is chronic — tap water refills with similar hardness. A monthly sequestering agent (Jack&apos;s Magic, SeaKlear) keeps calcium in solution and prevents scale. Draining helps short-term but the hardness returns with the next refill.
+                            <div style={{marginTop:8,marginLeft:16,padding:'8px 10px',borderRadius:8,background:'rgba(91,200,245,0.1)',border:'0.5px solid rgba(91,200,245,0.25)',display:'flex',gap:6,alignItems:'flex-start'}}>
+                              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#5BC8F5" strokeWidth="2.2" strokeLinecap="round" style={{flexShrink:0,marginTop:1}}><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                              <p style={{fontSize:10,lineHeight:1.5,color:'rgba(255,255,255,0.45)'}}>
+                                In hard water regions like Arizona, high calcium is chronic. A monthly sequestering agent (Jack&apos;s Magic, SeaKlear) keeps calcium in solution and prevents scale.
                               </p>
                             </div>
                           )}
@@ -937,14 +943,14 @@ export default function DashboardPage() {
 
                               return (
                                 <React.Fragment key={step.step}>
-                                <div className="bg-white rounded-2xl shadow-md border border-gray-200 overflow-hidden mb-3">
-                                  {/* Compact always-visible header */}
-                                  <div className="px-4 pt-3.5 pb-3 flex items-start gap-3">
-                                    <div className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 font-bold text-sm text-white mt-0.5" style={{background: stepColor, fontFamily:"'Oswald',sans-serif"}}>
-                                      {step.step}
+                                <div className="overflow-hidden mb-3" style={{background:'#fff',borderRadius:14,border:'0.5px solid #E0EBF3'}}>
+                                  {/* Option C: blue left-bar step number */}
+                                  <div className="flex items-stretch">
+                                    <div style={{width:44,background:'#0B1E35',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,padding:'14px 0'}}>
+                                      <span style={{color:'#5BC8F5',fontSize:17,fontWeight:700,fontFamily:"'Oswald',sans-serif"}}>{step.step}</span>
                                     </div>
-                                    <div className="flex-1 min-w-0">
-                                      <p className="font-bold text-text-primary text-sm leading-snug mb-1.5">{step.title}</p>
+                                    <div className="flex-1 min-w-0 px-3 pt-3 pb-3">
+                                      <p className="font-bold text-sm leading-snug mb-1.5" style={{color:'#0B1E35'}}>{step.title}</p>
                                       {step.chemical && (
                                         step.chemical.includes('\n') ? (() => {
                                           // Build sub-step arrays — inject aerate for old stored data when TA was high
