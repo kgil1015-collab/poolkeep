@@ -446,13 +446,19 @@ export default function DashboardPage() {
               <div className="flex-1 min-w-0">
                 <p className="text-white/90 font-bold leading-tight" style={{fontSize:15}}>{welcome.headline}</p>
                 <p className="text-white/45 leading-snug mt-0.5 line-clamp-2" style={{fontSize:11}}>{welcome.subline}</p>
-                {unknownCount > 0 && score !== null && (
-                  <button onClick={() => router.push('/log')} className="mt-1">
-                    <span style={{fontSize:11,color:'#00E0B0',textDecoration:'underline',textUnderlineOffset:2}}>
-                      Based on {testedCount}/5 — log more →
-                    </span>
-                  </button>
-                )}
+                {unknownCount > 0 && score !== null && (() => {
+                  if (!lastTest) return null
+                  const td = new Date(lastTest.created_at)
+                  const ds = Math.round((Date.now() - new Date(td.getFullYear(), td.getMonth(), td.getDate()).getTime()) / 86400000)
+                  if (ds >= 2) return null
+                  return (
+                    <button onClick={() => router.push('/log')} className="mt-1">
+                      <span style={{fontSize:11,color:'#00E0B0',textDecoration:'underline',textUnderlineOffset:2}}>
+                        Based on {testedCount}/5 — log more →
+                      </span>
+                    </button>
+                  )
+                })()}
               </div>
 
             </div>
