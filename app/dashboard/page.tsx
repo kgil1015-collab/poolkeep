@@ -819,7 +819,7 @@ export default function DashboardPage() {
                       return (
                         <div key={p.key} style={{borderTop: i > 0 ? '1px solid rgba(255,255,255,0.06)' : 'none', padding:'9px 12px'}}>
                           <div style={{display:'flex',alignItems:'center',gap:8,marginBottom: raw !== null ? 7 : 0}}>
-                            <div style={{width:8,height:8,borderRadius:'50%',background:dot,flexShrink:0}} />
+                            <div style={{width:8,height:8,borderRadius:'50%',background:'#00CCA3',flexShrink:0}} />
                             <span style={{fontSize:12,fontWeight:600,color:'rgba(255,255,255,0.8)',flex:1}}>{p.label}</span>
                             {raw !== null && (
                               <span style={{fontSize:13,fontWeight:700,color:dot,fontFamily:"'DM Mono',monospace"}}>
