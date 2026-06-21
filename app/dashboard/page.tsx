@@ -858,7 +858,7 @@ export default function DashboardPage() {
                                   </div>
                                 )
                               })()}
-                              <p style={{fontSize:10,fontWeight:500,color:'rgba(255,255,255,0.28)',marginTop:4,marginLeft:16}}>Ideal: {p.rangeLabel}</p>
+                              <p style={{fontSize:10,fontWeight:500,color:'rgba(255,255,255,0.50)',marginTop:4,marginLeft:16}}>Ideal: {p.rangeLabel}</p>
                             </>
                           ) : (
                             <p style={{fontSize:10,color:'rgba(255,255,255,0.22)',marginLeft:16,fontStyle:'italic'}}>Log this to improve your score</p>
