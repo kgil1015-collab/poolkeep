@@ -829,8 +829,7 @@ export default function DashboardPage() {
                       return (
                         <div key={p.key} style={{borderTop: i > 0 ? '1px solid rgba(255,255,255,0.06)' : 'none', padding:'9px 12px'}}>
                           <div style={{display:'flex',alignItems:'center',gap:8,marginBottom: raw !== null ? 7 : 0}}>
-                            <span style={{fontSize:10,color:dot,flexShrink:0,lineHeight:1}}>✦</span>
-                            <span style={{fontSize:12,fontWeight:600,color:'rgba(255,255,255,0.8)',flex:1}}>{p.label}</span>
+                            <span style={{fontSize:12,fontWeight:700,color:'rgba(255,255,255,0.85)',flex:1,fontVariant:'small-caps',letterSpacing:'0.04em'}}>{p.label}</span>
                             {raw !== null && (
                               <span style={{fontSize:13,fontWeight:700,color:dot,fontFamily:"'DM Mono',monospace"}}>
                                 {raw % 1 === 0 ? raw : raw.toFixed(1)}{p.unit ? ` ${p.unit}` : ''}
