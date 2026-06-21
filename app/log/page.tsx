@@ -12,11 +12,20 @@ const PARAMS = [
   { key: 'free_chlorine',    label: 'Free Chlorine',       unit: 'ppm', placeholder: '—',   min: 0,    max: 20,   step: '0.1', range: '1 – 3 ppm',       hint: '',           saltOnly: false },
   { key: 'total_alkalinity', label: 'Total Alkalinity',    unit: 'ppm', placeholder: '100', min: 0,    max: 500,  step: '1',   range: '80 – 120 ppm',    hint: '',           saltOnly: false },
   { key: 'cya',              label: 'Cyanuric Acid (CYA)', unit: 'ppm', placeholder: '40',  min: 0,    max: 300,  step: '1',   range: '30 – 50 ppm',     hint: 'Cyanuric acid (also called stabilizer or conditioner) protects chlorine from sunlight. Found on most liquid test kits and 5-in-1+ test strips. Skip if your kit doesn\'t test for it.', saltOnly: false },
-  { key: 'calcium_hardness', label: 'Calcium Hardness',    unit: 'ppm', placeholder: '300', min: 0,    max: 1000, step: '1',   range: '200 – 400 ppm',   hint: 'Use calcium hardness — not total hardness. Test strips often show total hardness (higher). Use a drop-test kit or a reading from a pool store for calcium hardness specifically.', saltOnly: false },
+  { key: 'calcium_hardness', label: 'Water Hardness',       unit: 'ppm', placeholder: '300', min: 0,    max: 1000, step: '1',   range: '200 – 400 ppm',   hint: 'Strips measure total hardness — enter that number here. Liquid test kits measure calcium hardness. Both work fine for PoolKeep.', saltOnly: false },
   { key: 'salt',             label: 'Salt',                unit: 'ppm', placeholder: '—',   min: 0,    max: 6000, step: '1',   range: '2700 – 3400 ppm', hint: 'Salt pools only. If you have a standard chlorine pool, leave this blank — it won\'t affect your score.', saltOnly: true },
 ]
 
 const FREE_LIMIT = 5
+
+// AquaChek 7 / HTH strip CYA color bands → stored as midpoint ppm
+const CYA_STRIP_BANDS = [
+  { label: '0',       midpoint: 0   },
+  { label: '0–30',    midpoint: 15  },
+  { label: '30–50',   midpoint: 40  },
+  { label: '50–100',  midpoint: 75  },
+  { label: '>100',    midpoint: 110 },
+]
 
 function NudgeBanner({ count }: { count: number }) {
   const remaining = FREE_LIMIT - count
@@ -313,55 +322,96 @@ export default function LogTestPage() {
             const val = values[p.key] ?? ''
             const num = parseFloat(val)
             const hasVal = val !== '' && !isNaN(num)
+            const isCya = p.key === 'cya'
+            const cyaNum = isCya ? parseInt(val) : null
+            const activeBand = isCya && cyaNum !== null && !isNaN(cyaNum)
+              ? CYA_STRIP_BANDS.findIndex(b => b.midpoint === cyaNum)
+              : -1
             return (
-              <div key={p.key} className="bg-white rounded-2xl overflow-hidden flex items-stretch"
-                style={{
-                  border: `2px solid ${hasVal ? '#0078B8' : '#A8C4D4'}`,
-                  boxShadow: hasVal ? '0 4px 16px rgba(0,120,184,0.18)' : '0 2px 8px rgba(0,60,100,0.10)',
-                }}>
-                {/* Label side */}
-                <div className="flex items-center gap-3 flex-1 px-4 py-3.5">
-                  <div className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 text-xs font-bold text-white" style={{background: hasVal ? '#0078B8' : '#4A7A9B'}}>
-                    {i + 1}
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-2 mb-0.5">
-                      <p className="text-xs font-bold uppercase tracking-widest" style={{color:'#1A3A4A'}}>{p.label}</p>
-                      {p.saltOnly && <span className="text-[9px] font-bold uppercase tracking-widest px-1.5 py-0.5 rounded-full" style={{background:'rgba(0,120,184,0.08)',color:'#5A8AA0'}}>Salt pools only</span>}
-                    </div>
-                    <p className="text-[10px] font-medium" style={{color:'#5A7A8A'}}>{p.range}</p>
-                    {p.hint && <p className="text-[10px] leading-snug mt-0.5" style={{color:'#4A7A9A'}}>{p.hint}</p>}
-                  </div>
-                </div>
-                {/* Input side — visually distinct tap target */}
-                <div
-                  className="flex items-center justify-end gap-1.5 py-3.5 px-4 shrink-0"
+              <div key={p.key}>
+                <div className="bg-white rounded-2xl overflow-hidden flex items-stretch"
                   style={{
-                    background: hasVal ? 'rgba(0,120,184,0.10)' : '#D8E8F0',
-                    width: 110,
-                    borderLeft: `2px solid ${hasVal ? 'rgba(0,120,184,0.3)' : '#A8C4D4'}`,
-                  }}
-                >
-                  <input
-                    ref={el => { inputRefs.current[p.key] = el }}
-                    type="text"
-                    inputMode="decimal"
-                    value={val}
-                    onChange={e => set(p.key, e.target.value)}
-                    onBlur={e => {
-                      const formatted = p.key === 'ph' ? formatPH(e.target.value) : e.target.value
-                      set(p.key, formatted)
+                    border: `2px solid ${hasVal ? '#0078B8' : '#A8C4D4'}`,
+                    boxShadow: hasVal ? '0 4px 16px rgba(0,120,184,0.18)' : '0 2px 8px rgba(0,60,100,0.10)',
+                    borderRadius: isCya ? '16px 16px 0 0' : undefined,
+                  }}>
+                  {/* Label side */}
+                  <div className="flex items-center gap-3 flex-1 px-4 py-3.5">
+                    <div className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 text-xs font-bold text-white" style={{background: hasVal ? '#0078B8' : '#4A7A9B'}}>
+                      {i + 1}
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2 mb-0.5">
+                        <p className="text-xs font-bold uppercase tracking-widest" style={{color:'#1A3A4A'}}>{p.label}</p>
+                        {p.saltOnly && <span className="text-[9px] font-bold uppercase tracking-widest px-1.5 py-0.5 rounded-full" style={{background:'rgba(0,120,184,0.08)',color:'#5A8AA0'}}>Salt pools only</span>}
+                      </div>
+                      <p className="text-[10px] font-medium" style={{color:'#5A7A8A'}}>{p.range}</p>
+                      {p.hint && <p className="text-[10px] leading-snug mt-0.5" style={{color:'#4A7A9A'}}>{p.hint}</p>}
+                    </div>
+                  </div>
+                  {/* Input side — visually distinct tap target */}
+                  <div
+                    className="flex items-center justify-end gap-1.5 py-3.5 px-4 shrink-0"
+                    style={{
+                      background: hasVal ? 'rgba(0,120,184,0.10)' : '#D8E8F0',
+                      width: 110,
+                      borderLeft: `2px solid ${hasVal ? 'rgba(0,120,184,0.3)' : '#A8C4D4'}`,
                     }}
-                    placeholder={p.placeholder}
-                    autoComplete="off"
-                    autoCorrect="off"
-                    autoCapitalize="none"
-                    spellCheck={false}
-                    className="w-16 text-right text-2xl font-bold outline-none bg-transparent placeholder:text-slate-400"
-                    style={{fontFamily:"'DM Mono',monospace", color: hasVal ? '#0078B8' : '#7A9DB0'}}
-                  />
-                  {p.unit && <span className="text-xs font-bold shrink-0 mt-1" style={{color: hasVal ? '#0078B8' : '#7A9DB0'}}>{p.unit}</span>}
+                  >
+                    <input
+                      ref={el => { inputRefs.current[p.key] = el }}
+                      type="text"
+                      inputMode="decimal"
+                      value={val}
+                      onChange={e => set(p.key, e.target.value)}
+                      onBlur={e => {
+                        const formatted = p.key === 'ph' ? formatPH(e.target.value) : e.target.value
+                        set(p.key, formatted)
+                      }}
+                      placeholder={p.placeholder}
+                      autoComplete="off"
+                      autoCorrect="off"
+                      autoCapitalize="none"
+                      spellCheck={false}
+                      className="w-16 text-right text-2xl font-bold outline-none bg-transparent placeholder:text-slate-400"
+                      style={{fontFamily:"'DM Mono',monospace", color: hasVal ? '#0078B8' : '#7A9DB0'}}
+                    />
+                    {p.unit && <span className="text-xs font-bold shrink-0 mt-1" style={{color: hasVal ? '#0078B8' : '#7A9DB0'}}>{p.unit}</span>}
+                  </div>
                 </div>
+
+                {/* CYA strip band helper — seamlessly attached below the CYA card */}
+                {isCya && (
+                  <div className="bg-white px-4 pt-2.5 pb-3.5"
+                    style={{
+                      border: `2px solid ${hasVal ? '#0078B8' : '#A8C4D4'}`,
+                      borderTop: 'none',
+                      borderRadius: '0 0 16px 16px',
+                    }}>
+                    <p className="text-[10px] font-bold uppercase tracking-widest mb-2" style={{color:'#5A7A8A'}}>Using test strips? Pick your color band:</p>
+                    <div className="flex gap-1.5 flex-wrap">
+                      {CYA_STRIP_BANDS.map((band, bi) => {
+                        const isActive = bi === activeBand
+                        return (
+                          <button
+                            key={bi}
+                            type="button"
+                            onClick={() => set('cya', String(band.midpoint))}
+                            className="text-xs font-bold px-3 py-1.5 rounded-full transition-all"
+                            style={{
+                              background: isActive ? '#0078B8' : 'rgba(0,120,184,0.08)',
+                              color: isActive ? '#fff' : '#4A7A9A',
+                              border: `1.5px solid ${isActive ? '#0078B8' : 'rgba(0,120,184,0.20)'}`,
+                            }}
+                          >
+                            {band.label}
+                          </button>
+                        )
+                      })}
+                    </div>
+                    <p className="text-[9px] mt-1.5" style={{color:'#8AAABB'}}>Tap a band to fill — we use the midpoint for calculations</p>
+                  </div>
+                )}
               </div>
             )
           })}

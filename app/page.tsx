@@ -1,9 +1,11 @@
 import Link from 'next/link'
 import { createClient } from '@supabase/supabase-js'
+import { createServerSupabase } from '@/lib/supabase-server'
+import { redirect } from 'next/navigation'
 
-// Revalidate every hour so the counter stays reasonably fresh without
-// hitting the DB on every page view.
-export const revalidate = 3600
+// Dynamic so the auth check runs on every request (redirect for signed-in users).
+// The spots counter is fetched inside and is fast enough per-request.
+export const dynamic = 'force-dynamic'
 
 const FOUNDING_TOTAL = 200   // Total founding spots available
 const FOUNDING_FLOOR = 12    // Never show fewer than this — avoid showing "0 left"
@@ -43,6 +45,10 @@ function spotsBadgeLabel(n: number): string {
 }
 
 export default async function LandingPage() {
+  const supabase = await createServerSupabase()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (user) redirect('/dashboard')
+
   const spotsLeft = await getSpotsLeft()
   return (
     <div className="min-h-screen bg-white">
