@@ -1121,47 +1121,51 @@ export default function DashboardPage() {
               if (hasActions) return (
                 <div className="mb-5">
                   {hdr('After Your Treatment Plan')}
-                  <div className="rounded-2xl px-4 py-3.5 shadow-sm" style={{background:'#F2F8FB',border:'1.5px solid #C8DDE8'}}>
-                    <p className="text-sm font-bold mb-1" style={{color:'#1A3A4A'}}>Retest pH + chlorine in {quickDays} days</p>
-                    <p className="text-xs leading-relaxed" style={{color:'#3D5566'}}>Check pH and free chlorine to confirm the treatment worked. Then a complete panel retest in {fullDays} days.</p>
+                  <div className="rounded-2xl overflow-hidden" style={{border:'0.5px solid #B0D8F0',boxShadow:'0 2px 10px rgba(0,100,160,0.08)'}}>
+                    <div style={{height:4,background:'linear-gradient(90deg,#0078B8 0%,#5BC8F5 100%)'}} />
+                    <div className="px-4 py-3.5" style={{background:'linear-gradient(160deg,#EAF5FF 0%,#F4FAFF 100%)'}}>
+                      <p className="text-sm font-bold mb-1" style={{color:'#0B1E35'}}>Retest pH + chlorine in {quickDays} days</p>
+                      <p className="text-xs leading-relaxed" style={{color:'#3A6080'}}>Check pH and free chlorine to confirm the treatment worked. Then a complete panel retest in {fullDays} days.</p>
+                    </div>
                   </div>
                 </div>
               )
               return (
                 <div className="mb-5">
                   {hdr('Your Plan This Week')}
-                  <div className="rounded-2xl overflow-hidden shadow-sm" style={{border:'1.5px solid #C8DDE8'}}>
-                    <div className="px-4 py-4 border-b border-gray-100" style={{background:'#F2F8FB'}}>
+                  <div className="rounded-2xl overflow-hidden" style={{border:'0.5px solid #B0D8F0',boxShadow:'0 2px 10px rgba(0,100,160,0.08)'}}>
+                    <div style={{height:4,background:'linear-gradient(90deg,#0078B8 0%,#5BC8F5 100%)'}} />
+                    <div className="px-4 py-4" style={{background:'linear-gradient(160deg,#EAF5FF 0%,#F4FAFF 100%)'}}>
                       <div className="flex items-center gap-2.5 mb-2">
                         <div className="w-6 h-6 rounded-full flex items-center justify-center shrink-0 text-[11px] font-bold text-white" style={{background:'#0078B8'}}>1</div>
-                        <p className="text-sm font-bold" style={{color:'#1A3A4A'}}>Quick check in {quickDays} days</p>
+                        <p className="text-sm font-bold" style={{color:'#0B1E35'}}>Quick check in {quickDays} days</p>
                       </div>
-                      <p className="text-xs leading-relaxed mb-2.5" style={{color:'#3D5566'}}>Test pH and free chlorine only — save your full strips for the 7-day retest.</p>
+                      <p className="text-xs leading-relaxed mb-2.5" style={{color:'#3A6080'}}>Test pH and free chlorine only — save your full strips for the 7-day retest.</p>
                       {fc !== null && (
                         <div className="flex items-start gap-2 mb-1">
                           <span className="text-xs font-bold shrink-0 mt-0.5" style={{color:'#0078B8'}}>→</span>
-                          <p className="text-xs font-semibold" style={{color:'#1A3A4A'}}>FC drops below 1 ppm: add <span style={{color:'#0078B8'}}>{fcDose} liquid chlorine</span> (evening)</p>
+                          <p className="text-xs font-semibold" style={{color:'#0B1E35'}}>FC drops below 1 ppm: add <span style={{color:'#0078B8'}}>{fcDose} liquid chlorine</span> (evening)</p>
                         </div>
                       )}
                       {ph !== null && (
                         <div className="flex items-start gap-2 mb-1">
                           <span className="text-xs font-bold shrink-0 mt-0.5" style={{color:'#0078B8'}}>→</span>
-                          <p className="text-xs font-semibold" style={{color:'#1A3A4A'}}>pH above 7.6: add <span style={{color:'#0078B8'}}>{acidDose} muriatic acid</span>{taAtHighEnd ? ' — this will also nudge TA down' : ''}</p>
+                          <p className="text-xs font-semibold" style={{color:'#0B1E35'}}>pH above 7.6: add <span style={{color:'#0078B8'}}>{acidDose} muriatic acid</span>{taAtHighEnd ? ' — this will also nudge TA down' : ''}</p>
                         </div>
                       )}
                       {taAtHighEnd && (
                         <div className="flex items-start gap-2">
-                          <span className="text-xs font-bold shrink-0 mt-0.5" style={{color:'#8B5CF6'}}>→</span>
-                          <p className="text-xs font-semibold" style={{color:'#1A3A4A'}}>TA is at the high end ({ta} ppm) — watch it alongside pH. One acid dose handles both.</p>
+                          <span className="text-xs font-bold shrink-0 mt-0.5" style={{color:'#5BC8F5'}}>→</span>
+                          <p className="text-xs font-semibold" style={{color:'#0B1E35'}}>TA is at the high end ({ta} ppm) — watch it alongside pH. One acid dose handles both.</p>
                         </div>
                       )}
                     </div>
-                    <div className="px-4 py-4" style={{background:'#F8FBFD'}}>
+                    <div className="px-4 py-4" style={{background:'linear-gradient(160deg,#F0F8FF 0%,#F8FCFF 100%)',borderTop:'1px solid rgba(0,120,184,0.10)'}}>
                       <div className="flex items-center gap-2.5 mb-2">
                         <div className="w-6 h-6 rounded-full flex items-center justify-center shrink-0 text-[11px] font-bold text-white" style={{background:'#00967A'}}>2</div>
-                        <p className="text-sm font-bold" style={{color:'#1A3A4A'}}>Full panel retest in {fullDays} days</p>
+                        <p className="text-sm font-bold" style={{color:'#0B1E35'}}>Full panel retest in {fullDays} days</p>
                       </div>
-                      <p className="text-xs leading-relaxed" style={{color:'#3D5566'}}>Test all parameters and log results to keep your health score current. No need to test more often if chemistry is stable.</p>
+                      <p className="text-xs leading-relaxed" style={{color:'#3A6080'}}>Test all parameters and log results to keep your health score current. No need to test more often if chemistry is stable.</p>
                     </div>
                   </div>
                 </div>
@@ -1172,46 +1176,45 @@ export default function DashboardPage() {
             {((liveRecs ?? lastTest.recommendations).maintenance?.length ?? 0) > 0 && (
               <>
                 <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:12}}>
-                  <div style={{width:3,height:16,background:'#00CCA3',borderRadius:2,flexShrink:0}} />
+                  <div style={{width:3,height:16,background:'#5BC8F5',borderRadius:2,flexShrink:0}} />
                   <p style={{fontSize:11,fontWeight:700,letterSpacing:'0.12em',color:'#2A5570',textTransform:'uppercase',fontFamily:"'Space Grotesk',sans-serif"}}>Your Pool — Ongoing Guide</p>
                 </div>
-                <div className="rounded-2xl overflow-hidden mb-6" style={{boxShadow:'0 2px 12px rgba(0,45,68,0.10)', border:'1.5px solid #D0E2ED'}}>
+                <div className="rounded-2xl overflow-hidden mb-6" style={{background:'#003D5C',boxShadow:'0 4px 18px rgba(0,30,60,0.22)'}}>
                   {((liveRecs ?? lastTest.recommendations).maintenance ?? []).map((tip, i) => {
-                    const catStyles: Record<string, { bg: string; color: string; accent: string }> = {
-                      testing:   { bg:'rgba(0,150,122,0.13)',  color:'#00967A', accent:'#00967A' },
-                      chlorine:  { bg:'rgba(0,120,184,0.13)',  color:'#0078B8', accent:'#0078B8' },
-                      shock:     { bg:'rgba(220,38,38,0.11)',  color:'#DC2626', accent:'#DC2626' },
-                      brushing:  { bg:'rgba(29,184,105,0.13)', color:'#1DB869', accent:'#1DB869' },
-                      seasonal:  { bg:'rgba(217,119,6,0.13)',  color:'#D97706', accent:'#D97706' },
-                      filter:    { bg:'rgba(79,70,229,0.12)',  color:'#4F46E5', accent:'#4F46E5' },
-                      skimmer:   { bg:'rgba(6,182,212,0.13)',  color:'#0891B2', accent:'#0891B2' },
-                      cartridge: { bg:'rgba(139,92,246,0.12)', color:'#7C3AED', accent:'#7C3AED' },
-                      enzyme:    { bg:'rgba(16,185,129,0.12)', color:'#059669', accent:'#059669' },
+                    const catStyles: Record<string, { dot: string; iconStroke: string }> = {
+                      testing:   { dot:'#00CCA3', iconStroke:'#00CCA3' },
+                      chlorine:  { dot:'#5BC8F5', iconStroke:'#5BC8F5' },
+                      shock:     { dot:'#F0A500', iconStroke:'#F0A500' },
+                      brushing:  { dot:'#00CCA3', iconStroke:'#00CCA3' },
+                      seasonal:  { dot:'#F0A500', iconStroke:'#F0A500' },
+                      filter:    { dot:'#5BC8F5', iconStroke:'#5BC8F5' },
+                      skimmer:   { dot:'#5BC8F5', iconStroke:'#5BC8F5' },
+                      cartridge: { dot:'#00CCA3', iconStroke:'#00CCA3' },
+                      enzyme:    { dot:'#00CCA3', iconStroke:'#00CCA3' },
                     }
-                    const cs = catStyles[tip.category as keyof typeof catStyles] ?? { bg:'rgba(0,120,184,0.12)', color:'#0078B8', accent:'#0078B8' }
+                    const cs = catStyles[tip.category as keyof typeof catStyles] ?? { dot:'#5BC8F5', iconStroke:'#5BC8F5' }
                     const icons: Record<string, React.ReactElement> = {
-                      testing:   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={cs.color} strokeWidth="2" strokeLinecap="round"><path d="M9 3v11l-3 3h12l-3-3V3"/><line x1="9" y1="3" x2="15" y2="3"/></svg>,
-                      chlorine:  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={cs.color} strokeWidth="2" strokeLinecap="round"><path d="M12 2C6 9 4 13 4 16a8 8 0 0 0 16 0c0-3-2-7-8-14z"/></svg>,
-                      shock:     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={cs.color} strokeWidth="2" strokeLinecap="round"><polyline points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>,
-                      brushing:  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={cs.color} strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><path d="M8 12h8M12 8v8"/></svg>,
-                      seasonal:  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={cs.color} strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>,
-                      filter:    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={cs.color} strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>,
-                      skimmer:   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={cs.color} strokeWidth="2" strokeLinecap="round"><path d="M3 6h18M3 12h18M3 18h18"/><path d="M7 3v18M17 3v18"/></svg>,
-                      cartridge: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={cs.color} strokeWidth="2" strokeLinecap="round"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="7" x2="16" y2="7"/><line x1="8" y1="11" x2="16" y2="11"/><line x1="8" y1="15" x2="16" y2="15"/></svg>,
-                      enzyme:    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={cs.color} strokeWidth="2" strokeLinecap="round"><path d="M12 2a5 5 0 0 1 5 5c0 5-5 8-5 11"/><path d="M12 2a5 5 0 0 0-5 5c0 5 5 8 5 11"/><line x1="5" y1="22" x2="19" y2="22"/></svg>,
+                      testing:   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={cs.iconStroke} strokeWidth="2" strokeLinecap="round"><path d="M9 3v11l-3 3h12l-3-3V3"/><line x1="9" y1="3" x2="15" y2="3"/></svg>,
+                      chlorine:  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={cs.iconStroke} strokeWidth="2" strokeLinecap="round"><path d="M12 2C6 9 4 13 4 16a8 8 0 0 0 16 0c0-3-2-7-8-14z"/></svg>,
+                      shock:     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={cs.iconStroke} strokeWidth="2" strokeLinecap="round"><polyline points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>,
+                      brushing:  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={cs.iconStroke} strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><path d="M8 12h8M12 8v8"/></svg>,
+                      seasonal:  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={cs.iconStroke} strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>,
+                      filter:    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={cs.iconStroke} strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>,
+                      skimmer:   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={cs.iconStroke} strokeWidth="2" strokeLinecap="round"><path d="M3 6h18M3 12h18M3 18h18"/><path d="M7 3v18M17 3v18"/></svg>,
+                      cartridge: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={cs.iconStroke} strokeWidth="2" strokeLinecap="round"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="7" x2="16" y2="7"/><line x1="8" y1="11" x2="16" y2="11"/><line x1="8" y1="15" x2="16" y2="15"/></svg>,
+                      enzyme:    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={cs.iconStroke} strokeWidth="2" strokeLinecap="round"><path d="M12 2a5 5 0 0 1 5 5c0 5-5 8-5 11"/><path d="M12 2a5 5 0 0 0-5 5c0 5 5 8 5 11"/><line x1="5" y1="22" x2="19" y2="22"/></svg>,
                     }
                     return (
-                      <div key={i} className="flex items-stretch bg-white" style={{borderTop: i > 0 ? '1.5px solid #E8F0F6' : 'none'}}>
-                        {/* Left accent strip */}
-                        <div className="w-1 shrink-0" style={{background: cs.accent}} />
-                        <div className="flex items-start gap-3 px-4 py-4 flex-1 min-w-0">
-                          <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 mt-0.5" style={{background: cs.bg}}>
-                            {icons[tip.category as keyof typeof icons]}
+                      <div key={i} className="flex items-center gap-3 px-4 py-3.5" style={{borderTop: i > 0 ? '1px solid rgba(255,255,255,0.07)' : 'none'}}>
+                        <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style={{background:'rgba(255,255,255,0.08)'}}>
+                          {icons[tip.category as keyof typeof icons]}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-1.5 mb-0.5">
+                            <div style={{width:6,height:6,borderRadius:'50%',background:cs.dot,flexShrink:0}} />
+                            <p className="text-sm font-bold" style={{color:'rgba(255,255,255,0.92)'}}>{tip.title}</p>
                           </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-bold mb-0.5" style={{color:'#1A3A4A'}}>{tip.title}</p>
-                            <p className="text-xs text-text-muted leading-relaxed">{tip.body}</p>
-                          </div>
+                          <p className="text-xs leading-relaxed" style={{color:'rgba(255,255,255,0.55)'}}>{tip.body}</p>
                         </div>
                       </div>
                     )
