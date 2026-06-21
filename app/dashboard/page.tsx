@@ -1022,9 +1022,11 @@ export default function DashboardPage() {
                                                       {/* Option B — Granular */}
                                                       <div className="rounded-lg px-2.5 py-2" style={{background:'rgba(0,150,122,0.07)',border:'1px solid rgba(0,150,122,0.18)'}}>
                                                         <div className="flex items-center gap-1.5 mb-0.5">
-                                                          <span className="text-[9px] font-bold px-1.5 py-0.5 rounded" style={{background:'#5A7A8A',color:'#fff'}}>B</span>
-                                                          <p className="text-xs font-bold" style={{color:'#3A6080'}}>Granular Shock (cal-hypo)</p>
-                                                          <p className="text-xs font-semibold text-text-muted">{nextAmount}</p>
+                                                          <span className="text-[9px] font-bold px-1.5 py-0.5 rounded shrink-0" style={{background:'#5A7A8A',color:'#fff'}}>B</span>
+                                                          <div>
+                                                            <p className="text-xs font-bold" style={{color:'#3A6080'}}>Granular Shock (cal-hypo)</p>
+                                                            <p className="text-xs font-semibold text-text-muted">{nextAmount}</p>
+                                                          </div>
                                                         </div>
                                                         <p className="text-[10px] italic" style={{color:'#3A6080'}}>Add in the evening. Pre-dissolve in a bucket first. Retest the next morning.</p>
                                                       </div>
