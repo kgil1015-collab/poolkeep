@@ -90,8 +90,8 @@ export default function InstallBanner() {
             {/* iOS inline steps */}
             <div style={{ display: 'flex', gap: 6, marginBottom: 14 }}>
               {[
-                { n: '1', icon: '↑', label: 'Tap Share', sub: 'bottom of Safari' },
-                { n: '2', icon: '+', label: 'Add to Home Screen', sub: 'scroll down to find it' },
+                { n: '1', icon: '···', label: 'Tap ···', sub: 'bottom right of Safari' },
+                { n: '2', icon: '↑', label: 'Share → View More', sub: 'then Add to Home Screen' },
                 { n: '3', icon: '✓', label: 'Tap Add', sub: 'top right corner' },
               ].map(step => (
                 <div key={step.n} style={{
