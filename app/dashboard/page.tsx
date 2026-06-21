@@ -1,6 +1,6 @@
 ﻿'use client'
 
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import WaveDivider from '@/app/components/WaveDivider'
 import InstallBanner from '@/app/components/InstallBanner'
 import { useRouter } from 'next/navigation'
@@ -205,6 +205,7 @@ export default function DashboardPage() {
   const [pool, setPool] = useState<{ id: string; name: string; remind_after_days: number | null; volume_gallons: number; type: string } | null>(null)
   const [allPools, setAllPools] = useState<{ id: string; name: string; remind_after_days: number | null; volume_gallons: number; type: string }[]>([])
   const [showPicker, setShowPicker] = useState(false)
+  const pickerRef = useRef<HTMLDivElement>(null)
   const [isPro, setIsPro] = useState(false)
   const [lastTest, setLastTest] = useState<TestResult | null>(null)
   const [loading, setLoading] = useState(true)
@@ -271,6 +272,21 @@ export default function DashboardPage() {
     const result = calculateRecommendations(testInput, pool.volume_gallons, pool.type)
     setLiveRecs(result as TestResult['recommendations'])
   }, [lastTest, pool])
+
+  useEffect(() => {
+    if (!showPicker) return
+    function handleClickOutside(e: MouseEvent | TouchEvent) {
+      if (pickerRef.current && !pickerRef.current.contains(e.target as Node)) {
+        setShowPicker(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    document.addEventListener('touchstart', handleClickOutside)
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+      document.removeEventListener('touchstart', handleClickOutside)
+    }
+  }, [showPicker])
 
   // Animate water level rising whenever the test result changes
   useEffect(() => {
@@ -466,7 +482,7 @@ export default function DashboardPage() {
         })()}
 
         {/* Pool switcher */}
-        <div className="pb-3">
+        <div className="pb-3" ref={pickerRef}>
           <button
             onClick={() => setShowPicker(p => !p)}
             className="inline-flex items-center gap-2 bg-white/10 rounded-full px-3 py-1.5"
@@ -820,12 +836,25 @@ export default function DashboardPage() {
                           </div>
                           {raw !== null ? (
                             <>
-                              <div style={{height:7,borderRadius:3.5,background:'rgba(255,255,255,0.1)',position:'relative',marginLeft:16}}>
-                                <div style={{position:'absolute',top:0,bottom:0,left:`${goodLoPct}%`,width:`${goodHiPct-goodLoPct}%`,background:'rgba(56,130,214,0.5)',borderRadius:3.5}} />
-                                {valPct !== null && (
-                                  <div style={{position:'absolute',top:'50%',left:`${valPct}%`,transform:'translate(-50%,-50%)',width:13,height:13,borderRadius:'50%',background:dot,border:'2px solid #0B1E35',zIndex:2}} />
-                                )}
-                              </div>
+                              {(() => {
+                                const warnLoPct = scalePct(p.warnLow)
+                                const warnHiPct = scalePct(p.warnHigh)
+                                const segments = [
+                                  { from: 0,          to: warnLoPct,           color: '#DC2626' },
+                                  { from: warnLoPct,  to: goodLoPct,           color: '#F0A500' },
+                                  { from: goodLoPct,  to: goodHiPct,           color: '#00CCA3' },
+                                  { from: goodHiPct,  to: warnHiPct,           color: '#F0A500' },
+                                  { from: warnHiPct,  to: 100,                 color: '#DC2626' },
+                                ].filter(s => s.to > s.from)
+                                const gradient = segments.map(s => `${s.color} ${s.from}%, ${s.color} ${s.to}%`).join(', ')
+                                return (
+                                  <div style={{height:7,borderRadius:3.5,position:'relative',marginLeft:16,background:`linear-gradient(to right, ${gradient})`,overflow:'visible'}}>
+                                    {valPct !== null && (
+                                      <div style={{position:'absolute',top:'50%',left:`${valPct}%`,transform:'translate(-50%,-50%)',width:13,height:13,borderRadius:'50%',background:'#fff',border:'2px solid #0B1E35',boxShadow:'0 1px 4px rgba(0,0,0,0.5)',zIndex:2}} />
+                                    )}
+                                  </div>
+                                )
+                              })()}
                               <p style={{fontSize:10,fontWeight:500,color:'rgba(255,255,255,0.28)',marginTop:4,marginLeft:16}}>Ideal: {p.rangeLabel}</p>
                             </>
                           ) : (
