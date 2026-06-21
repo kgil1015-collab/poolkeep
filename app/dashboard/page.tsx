@@ -1198,10 +1198,7 @@ export default function DashboardPage() {
               const fcDose = fmtLiq(Math.round(v * 13))
               const acidDose = fmtLiq(Math.round(v * 13))
               const hdr = (label: string) => (
-                <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:10}}>
-                  <div style={{width:3,height:16,background:'#00CCA3',borderRadius:2,flexShrink:0}} />
-                  <p style={{fontSize:11,fontWeight:700,letterSpacing:'0.12em',color:'#2A5570',textTransform:'uppercase' as const,fontFamily:"'Space Grotesk',sans-serif"}}>{label}</p>
-                </div>
+                <p style={{fontSize:18,fontWeight:800,color:'#0B1E35',letterSpacing:'-.02em',fontFamily:"'Oswald',sans-serif",textTransform:'uppercase' as const,marginBottom:10}}>{label}</p>
               )
               if (hasActions) return (
                 <div className="mb-5">
@@ -1264,7 +1261,7 @@ export default function DashboardPage() {
               <>
                 <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:12}}>
                   <div style={{width:3,height:16,background:'#5BC8F5',borderRadius:2,flexShrink:0}} />
-                  <p style={{fontSize:11,fontWeight:700,letterSpacing:'0.12em',color:'#2A5570',textTransform:'uppercase',fontFamily:"'Space Grotesk',sans-serif"}}>Your Pool — Ongoing Guide</p>
+                  <p style={{fontSize:18,fontWeight:800,color:'#0B1E35',letterSpacing:'-.02em',fontFamily:"'Oswald',sans-serif",textTransform:'uppercase'}}>Your Pool — Ongoing Guide</p>
                 </div>
                 <div className="mb-6" style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8}}>
                   {((liveRecs ?? lastTest.recommendations).maintenance ?? []).map((tip, i) => {
