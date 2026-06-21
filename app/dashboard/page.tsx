@@ -766,7 +766,7 @@ export default function DashboardPage() {
                   </div>
                   <div style={{display:'flex',alignItems:'center',gap:12,marginBottom:10}}>
                     <div style={{display:'flex',alignItems:'center',gap:5}}>
-                      <div style={{width:20,height:8,borderRadius:4,background:'rgba(139,92,246,0.38)',flexShrink:0}} />
+                      <div style={{width:20,height:8,borderRadius:4,background:'rgba(56,130,214,0.42)',flexShrink:0}} />
                       <span style={{fontSize:11,color:'#4A6A7A',fontWeight:600}}>ideal range</span>
                     </div>
                     <div style={{display:'flex',alignItems:'center',gap:5}}>
@@ -804,7 +804,7 @@ export default function DashboardPage() {
                               <>
                                 <div className="relative mb-2" style={{height:10, borderRadius:5, background:'#E8F0F6'}}>
                                   {/* Ideal zone */}
-                                  <div style={{position:'absolute',top:0,bottom:0,left:`${goodLoPct}%`,width:`${goodHiPct-goodLoPct}%`,background:'rgba(139,92,246,0.38)',borderRadius:5}} />
+                                  <div style={{position:'absolute',top:0,bottom:0,left:`${goodLoPct}%`,width:`${goodHiPct-goodLoPct}%`,background:'rgba(56,130,214,0.42)',borderRadius:5}} />
                                   {/* Value marker */}
                                   {valPct !== null && (
                                     <div style={{position:'absolute',top:'50%',left:`${valPct}%`,transform:'translate(-50%,-50%)',width:16,height:16,borderRadius:'50%',background:dot,border:'2.5px solid white',boxShadow:`0 1px 6px ${dot}80`,zIndex:2}} />
