@@ -743,7 +743,7 @@ export default function DashboardPage() {
                 { key:'ph',               label:'pH',               short:'pH',   unit:'',    displayMin:6.8, displayMax:8.2,  goodLow:7.2,  goodHigh:7.6,  warnLow:7.0,  warnHigh:7.6,  rangeLabel:'7.2 – 7.6',    hardWater:false },
                 { key:'free_chlorine',    label:'Free Chlorine',    short:'FC',   unit:'ppm', displayMin:0,   displayMax:5,    goodLow:1,    goodHigh:3,    warnLow:0.5,  warnHigh:5,    rangeLabel:'1 – 3 ppm',      hardWater:false },
                 { key:'total_alkalinity', label:'Total Alkalinity', short:'TA',   unit:'ppm', displayMin:40,  displayMax:160,  goodLow:80,   goodHigh:120,  warnLow:60,   warnHigh:140,  rangeLabel:'80 – 120 ppm',   hardWater:false },
-                { key:'cya',              label:'Cyanuric Acid',    short:'CYA',  unit:'ppm', displayMin:0,   displayMax:80,   goodLow:30,   goodHigh:50,   warnLow:20,   warnHigh:100,  rangeLabel:'30 – 50 ppm',    hardWater:false },
+                { key:'cya',              label:'Cyanuric Acid',    short:'CYA',  unit:'ppm', displayMin:0,   displayMax:100,  goodLow:30,   goodHigh:50,   warnLow:20,   warnHigh:100,  rangeLabel:'30 – 50 ppm',    hardWater:false },
                 { key:'calcium_hardness', label:'Water Hardness',   short:'WH',   unit:'ppm', displayMin:0,   displayMax:600,  goodLow:200,  goodHigh:400,  warnLow:150,  warnHigh:600,  rangeLabel:'200 – 400 ppm',  hardWater:true  },
               ]
               const pct = (v: number, lo: number, hi: number) => Math.min(100, Math.max(0, (v - lo) / (hi - lo) * 100))
