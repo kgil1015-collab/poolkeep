@@ -1362,11 +1362,6 @@ export default function DashboardPage() {
               </button>
             ))}
           </div>
-          {remindDays !== null && (
-            <p className="text-[10px] text-text-faint mt-2 text-center">
-              You&apos;ll get an email if {pool?.name ?? 'your pool'} goes {remindDays} days without a test
-            </p>
-          )}
         </div>
       </div>
 
