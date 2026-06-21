@@ -1060,7 +1060,9 @@ export default function DashboardPage() {
                                           </div>
                                         )
                                       )}
-                                      <p className="text-xs text-text-muted leading-relaxed">{actionLine}</p>
+                                      {!(step.chemical?.toLowerCase().includes('liquid chlorine') && step.chemical?.toLowerCase().includes('granular')) && (
+                                        <p className="text-xs text-text-muted leading-relaxed">{actionLine}</p>
+                                      )}
                                     </div>
                                   </div>
 
