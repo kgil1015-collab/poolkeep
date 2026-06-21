@@ -790,7 +790,7 @@ export default function DashboardPage() {
                             <div style={{fontSize:16,fontWeight:700,color: raw !== null ? dot : 'rgba(255,255,255,0.2)',lineHeight:1,fontFamily:"'DM Mono',monospace"}}>
                               {raw !== null ? (raw % 1 === 0 ? String(raw) : raw.toFixed(1)) : '—'}
                             </div>
-                            <div style={{fontSize:8,fontWeight:700,marginTop:3,color: raw !== null ? 'rgba(255,255,255,0.6)' : 'rgba(255,255,255,0.25)',lineHeight:1.2}}>{raw !== null ? SM[status].badge : '—'}</div>
+                            <div style={{fontSize:9,fontWeight:700,marginTop:4,color: raw !== null ? dot : 'rgba(255,255,255,0.25)',lineHeight:1.2}}>{raw !== null ? SM[status].badge : '—'}</div>
                           </div>
                         )
                       })}
