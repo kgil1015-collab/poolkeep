@@ -887,10 +887,10 @@ export default function DashboardPage() {
             {/* Treatment plan — timeline grouped */}
             {((liveRecs ?? lastTest.recommendations).treatment_plan?.length ?? 0) > 0 ? (
               <>
-                <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:12}}>
-                  <div style={{width:3,height:16,background:'#00CCA3',borderRadius:2,flexShrink:0}} />
-                  <p style={{fontSize:11,fontWeight:700,letterSpacing:'0.12em',color:'#2A5570',textTransform:'uppercase',fontFamily:"'Space Grotesk',sans-serif"}}>Treatment Plan</p>
-                  <span className="text-[10px] text-text-faint">exact doses, in order</span>
+                <div style={{display:'flex',alignItems:'center',marginBottom:12}}>
+                  <p style={{fontSize:18,fontWeight:800,color:'#0B1E35',letterSpacing:'-.02em',fontFamily:"'Oswald',sans-serif",textTransform:'uppercase' as const}}>Treatment Plan</p>
+                  <div style={{flex:1}} />
+                  <span style={{fontSize:11,fontWeight:600,color:'#5A7A8A'}}>exact doses · in order</span>
                 </div>
                 {(() => {
                   const steps = ((liveRecs ?? lastTest.recommendations).treatment_plan ?? []).filter((s: TreatmentStep) => s.param !== 'calcium')

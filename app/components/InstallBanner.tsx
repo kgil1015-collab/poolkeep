@@ -16,13 +16,11 @@ export default function InstallBanner() {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null)
 
   useEffect(() => {
-    // Already installed as standalone PWA
     const inStandalone =
       window.matchMedia('(display-mode: standalone)').matches ||
       (navigator as { standalone?: boolean }).standalone === true
     if (inStandalone) return
 
-    // Permanently dismissed
     if (localStorage.getItem(DISMISSED_KEY)) return
 
     const ios = /iphone|ipad|ipod/i.test(navigator.userAgent)
@@ -33,7 +31,6 @@ export default function InstallBanner() {
       return
     }
 
-    // Android/desktop: wait for beforeinstallprompt
     const handler = (e: Event) => {
       e.preventDefault()
       setDeferredPrompt(e as BeforeInstallPromptEvent)
@@ -62,72 +59,98 @@ export default function InstallBanner() {
   return (
     <div style={{
       margin: '12px 16px 0',
-      borderRadius: 16,
-      background: 'linear-gradient(135deg, #003D5C, #005580)',
-      border: '1.5px solid rgba(0,204,163,0.35)',
+      borderRadius: 18,
+      background: '#003D5C',
       overflow: 'hidden',
     }}>
-      {/* Teal accent top bar */}
-      <div style={{ height: 3, background: 'linear-gradient(90deg, #0078B8, #00E0B0)' }} />
+      {/* Gradient top bar */}
+      <div style={{ height: 4, background: 'linear-gradient(90deg, #0078B8, #00CCA3)' }} />
 
-      <div style={{ padding: '14px 16px', display: 'flex', alignItems: 'center', gap: 12 }}>
-        {/* Icon */}
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src="/icons/icon-96.webp"
-          alt="PoolKeep"
-          style={{ width: 44, height: 44, borderRadius: 12, flexShrink: 0, boxShadow: '0 3px 10px rgba(0,0,0,0.3)' }}
-        />
-
-        {/* Text */}
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <p style={{ color: '#fff', fontWeight: 700, fontSize: 13, marginBottom: 2 }}>
-            Add PoolKeep to your home screen
-          </p>
-          <p style={{ color: 'rgba(255,255,255,0.55)', fontSize: 11, lineHeight: 1.4 }}>
-            {isIos
-              ? 'Tap Share ↑ in Safari → "Add to Home Screen"'
-              : 'One tap — works like a native app, no App Store needed'}
-          </p>
+      <div style={{ padding: '16px 16px 14px' }}>
+        {/* Header row */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/icons/icon-96.webp"
+            alt="PoolKeep"
+            style={{ width: 48, height: 48, borderRadius: 12, flexShrink: 0, boxShadow: '0 3px 10px rgba(0,0,0,0.35)' }}
+          />
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <p style={{ color: '#fff', fontWeight: 800, fontSize: 15, marginBottom: 2, letterSpacing: '-.01em' }}>
+              Add PoolKeep to your Home Screen
+            </p>
+            <p style={{ color: 'rgba(255,255,255,0.55)', fontSize: 11, lineHeight: 1.4 }}>
+              Works like a real app — no App Store needed
+            </p>
+          </div>
         </div>
 
-        {/* Action buttons */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 6, flexShrink: 0 }}>
-          {isIos ? (
+        {isIos ? (
+          <>
+            {/* iOS inline steps */}
+            <div style={{ display: 'flex', gap: 6, marginBottom: 14 }}>
+              {[
+                { n: '1', icon: '↑', label: 'Tap Share', sub: 'bottom of Safari' },
+                { n: '2', icon: '+', label: 'Add to Home Screen', sub: 'scroll down to find it' },
+                { n: '3', icon: '✓', label: 'Tap Add', sub: 'top right corner' },
+              ].map(step => (
+                <div key={step.n} style={{
+                  flex: 1,
+                  background: 'rgba(255,255,255,0.08)',
+                  borderRadius: 12,
+                  padding: '10px 8px',
+                  textAlign: 'center',
+                }}>
+                  <div style={{
+                    width: 32, height: 32, borderRadius: '50%',
+                    background: '#0078B8',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    margin: '0 auto 6px',
+                    fontSize: 16, fontWeight: 800, color: '#fff',
+                  }}>{step.icon}</div>
+                  <p style={{ color: '#fff', fontSize: 11, fontWeight: 700, lineHeight: 1.3, marginBottom: 2 }}>{step.label}</p>
+                  <p style={{ color: 'rgba(255,255,255,0.45)', fontSize: 10, lineHeight: 1.3 }}>{step.sub}</p>
+                </div>
+              ))}
+            </div>
             <Link
               href="/install"
               style={{
+                display: 'block', width: '100%', textAlign: 'center',
                 background: '#0078B8', color: '#fff',
-                fontSize: 12, fontWeight: 700,
-                padding: '7px 14px', borderRadius: 20,
-                textDecoration: 'none', whiteSpace: 'nowrap',
+                fontSize: 14, fontWeight: 700,
+                padding: '12px 0', borderRadius: 12,
+                textDecoration: 'none',
               }}
             >
-              Show me how
+              See step-by-step guide →
             </Link>
-          ) : (
-            <button
-              onClick={install}
-              style={{
-                background: '#0078B8', color: '#fff',
-                fontSize: 12, fontWeight: 700, border: 'none', cursor: 'pointer',
-                padding: '7px 14px', borderRadius: 20, whiteSpace: 'nowrap',
-              }}
-            >
-              Install App
-            </button>
-          )}
+          </>
+        ) : (
           <button
-            onClick={dismiss}
+            onClick={install}
             style={{
-              background: 'none', border: 'none', cursor: 'pointer',
-              color: 'rgba(255,255,255,0.35)', fontSize: 11,
-              textAlign: 'center', padding: '2px 0',
+              display: 'block', width: '100%',
+              background: '#0078B8', color: '#fff',
+              fontSize: 15, fontWeight: 700, border: 'none', cursor: 'pointer',
+              padding: '13px 0', borderRadius: 12,
             }}
           >
-            Dismiss
+            Add to Home Screen →
           </button>
-        </div>
+        )}
+
+        <button
+          onClick={dismiss}
+          style={{
+            display: 'block', width: '100%',
+            background: 'none', border: 'none', cursor: 'pointer',
+            color: 'rgba(255,255,255,0.3)', fontSize: 11,
+            textAlign: 'center', padding: '10px 0 0',
+          }}
+        >
+          Not now
+        </button>
       </div>
     </div>
   )
