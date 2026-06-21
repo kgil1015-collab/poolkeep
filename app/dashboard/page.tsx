@@ -799,16 +799,20 @@ export default function DashboardPage() {
                     {/* Legend */}
                     <div style={{display:'flex',alignItems:'center',gap:12,padding:'4px 12px 8px'}}>
                       <div style={{display:'flex',alignItems:'center',gap:4}}>
-                        <div style={{width:16,height:4,borderRadius:2,background:'rgba(56,130,214,0.5)'}} />
-                        <span style={{fontSize:9,color:'rgba(255,255,255,0.45)',fontWeight:600}}>ideal range</span>
+                        <div style={{width:16,height:6,borderRadius:3,background:'#7DDFC7'}} />
+                        <span style={{fontSize:9,color:'rgba(255,255,255,0.45)',fontWeight:600}}>ideal</span>
                       </div>
                       <div style={{display:'flex',alignItems:'center',gap:4}}>
-                        <div style={{width:8,height:8,borderRadius:'50%',background:'#00CCA3',border:'1.5px solid #0B1E35'}} />
-                        <span style={{fontSize:9,color:'rgba(255,255,255,0.45)',fontWeight:600}}>in range</span>
+                        <div style={{width:16,height:6,borderRadius:3,background:'#FCDDA0'}} />
+                        <span style={{fontSize:9,color:'rgba(255,255,255,0.45)',fontWeight:600}}>monitor</span>
                       </div>
                       <div style={{display:'flex',alignItems:'center',gap:4}}>
-                        <div style={{width:8,height:8,borderRadius:'50%',background:'#F0A500',border:'1.5px solid #0B1E35'}} />
+                        <div style={{width:16,height:6,borderRadius:3,background:'#F4A0A0'}} />
                         <span style={{fontSize:9,color:'rgba(255,255,255,0.45)',fontWeight:600}}>out of range</span>
+                      </div>
+                      <div style={{display:'flex',alignItems:'center',gap:4}}>
+                        <div style={{width:12,height:12,borderRadius:'50%',background:'#fff',border:'2.5px solid #0B1E35'}} />
+                        <span style={{fontSize:9,color:'rgba(255,255,255,0.45)',fontWeight:600}}>your reading</span>
                       </div>
                     </div>
 
@@ -825,7 +829,7 @@ export default function DashboardPage() {
                       return (
                         <div key={p.key} style={{borderTop: i > 0 ? '1px solid rgba(255,255,255,0.06)' : 'none', padding:'9px 12px'}}>
                           <div style={{display:'flex',alignItems:'center',gap:8,marginBottom: raw !== null ? 7 : 0}}>
-                            <div style={{width:8,height:8,borderRadius:'50%',background:'#00CCA3',flexShrink:0}} />
+                            <span style={{fontSize:10,color:dot,flexShrink:0,lineHeight:1}}>✦</span>
                             <span style={{fontSize:12,fontWeight:600,color:'rgba(255,255,255,0.8)',flex:1}}>{p.label}</span>
                             {raw !== null && (
                               <span style={{fontSize:13,fontWeight:700,color:dot,fontFamily:"'DM Mono',monospace"}}>
@@ -850,7 +854,7 @@ export default function DashboardPage() {
                                 return (
                                   <div style={{height:7,borderRadius:3.5,position:'relative',marginLeft:16,background:`linear-gradient(to right, ${gradient})`,overflow:'visible'}}>
                                     {valPct !== null && (
-                                      <div style={{position:'absolute',top:'50%',left:`${valPct}%`,transform:'translate(-50%,-50%)',width:13,height:13,borderRadius:'50%',background:'#fff',border:'2px solid #0B1E35',boxShadow:'0 1px 4px rgba(0,0,0,0.5)',zIndex:2}} />
+                                      <div style={{position:'absolute',top:'50%',left:`${valPct}%`,transform:'translate(-50%,-50%)',width:17,height:17,borderRadius:'50%',background:'#fff',border:'3px solid #0B1E35',boxShadow:'0 2px 6px rgba(0,0,0,0.6)',zIndex:2}} />
                                     )}
                                   </div>
                                 )
