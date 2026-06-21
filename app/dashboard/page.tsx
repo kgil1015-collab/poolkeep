@@ -840,7 +840,7 @@ export default function DashboardPage() {
                               <p style={{fontSize:10,fontWeight:500,color:'rgba(255,255,255,0.50)',marginTop:4,marginLeft:16}}>Ideal: {p.rangeLabel}</p>
                             </>
                           ) : (
-                            <p style={{fontSize:10,color:'rgba(255,255,255,0.50)',marginLeft:16,fontStyle:'italic'}}>Log this to improve your score</p>
+                            <p style={{fontSize:10,color:'rgba(255,255,255,0.50)',marginLeft:16,fontStyle:'italic'}}>Log this to improve score accuracy</p>
                           )}
                           {showHWNote && (
                             <div style={{marginTop:8,marginLeft:16,padding:'8px 10px',borderRadius:8,background:'rgba(91,200,245,0.1)',border:'0.5px solid rgba(91,200,245,0.25)',display:'flex',gap:6,alignItems:'flex-start'}}>
