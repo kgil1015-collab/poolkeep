@@ -289,6 +289,7 @@ export default function DashboardPage() {
   }
 
   async function switchPool(p: { id: string; name: string; remind_after_days: number | null; volume_gallons: number; type: string }) {
+    if (p.id === pool?.id) { setShowPicker(false); return }
     setPool(p)
     setRemindDays(p.remind_after_days ?? null)
     setLastTest(null)
