@@ -444,12 +444,6 @@ export default function DashboardPage() {
 
               {/* Status text */}
               <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-1.5 mb-0.5">
-                  <div className="w-2 h-2 rounded-full shrink-0" style={{background: color}} />
-                  <span className="text-xs font-bold uppercase tracking-wide" style={{color}}>
-                    {score !== null ? scoreLabel(score) : 'No test yet'}
-                  </span>
-                </div>
                 <p className="text-white/90 font-bold leading-tight" style={{fontSize:15}}>{welcome.headline}</p>
                 <p className="text-white/45 leading-snug mt-0.5 line-clamp-2" style={{fontSize:11}}>{welcome.subline}</p>
                 {unknownCount > 0 && score !== null && (
@@ -537,13 +531,6 @@ export default function DashboardPage() {
         const todayDay = new Date(); todayDay.setHours(0,0,0,0)
         const daysSince = Math.round((todayDay.getTime() - testDay.getTime()) / 86400000)
 
-        // After 2 days assume action items were treated — prompt for a fresh test instead
-        if (actionCount > 0 && daysSince >= 2) return (
-          <div style={{background:'#003D5C',padding:'8px 20px',display:'flex',alignItems:'center',gap:8}}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#5BC8F5" strokeWidth="2.5" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-            <span style={{color:'#5BC8F5',fontSize:12,fontWeight:600}}>Time for a new test — log below to see your current levels</span>
-          </div>
-        )
         if (actionCount > 0) return (
           <div style={{background:'#B84018',padding:'8px 20px',display:'flex',alignItems:'center',gap:8}}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
