@@ -652,8 +652,8 @@ function generateMaintenance(test: TestInput, isSalt: boolean): MaintenanceTip[]
 
   tips.push({
     category: 'enzyme',
-    title: 'Weekly enzymes reduce chlorine demand',
-    body: 'Pool enzymes break down oils, sunscreen, and organic buildup that silently consume chlorine — things your filter can\'t catch and chemicals can\'t easily remove. Less organic load means your chlorine goes further and your water stays clearer with less effort.\n\nAdd one capful per 10,000 gallons per week directly to the skimmer while the pump runs. Unlike clarifiers, enzymes actually eliminate the organic matter rather than just clumping it together.\n\nLook for: Natural Chemistry Pool Perfect, BioGuard Optimizer Plus, or any enzyme-based pool product. Leslie\'s Perfect Weekly uses this same enzyme technology combined with a phosphate remover — the enzyme part is genuinely useful, though the phosphate removal isn\'t necessary if your chlorine is well-maintained.\n\nEspecially worthwhile for: pools with heavy bather loads, lots of sunscreen use, or pools in areas with significant tree debris.',
+    title: 'Add a weekly maintenance dose — clarifier + phosphate remover + stain inhibitor',
+    body: 'A 3-in-1 weekly maintenance product does three things your chlorine cannot:\n\n• Clarifier — binds fine particles the filter misses, keeping water sparkling\n• Phosphate remover — strips the food source algae needs before it can grow\n• Stain & scale inhibitor — prevents metal staining and calcium deposits on surfaces\n\nNone of these affect pH, chlorine, alkalinity, or CYA — they work alongside your chemistry, not instead of it. Add one dose per week after logging your test, while the pump is running.\n\nLook for: Leslie\'s Perfect Weekly, Natural Chemistry Pool Perfect Plus, or any 3-in-1 weekly maintenance product. One capful per 10,000 gallons is typical.\n\nEspecially useful after heavy swim days, rain, or when the water looks slightly dull despite good chemistry numbers.',
   })
 
   tips.push({
