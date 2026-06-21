@@ -715,10 +715,17 @@ export function calculateRecommendations(
     recs.push({ status: 'action', param: 'ph', title: 'Lower your pH', desc: `pH is at ${test.ph} — too high. Add muriatic acid this evening.${isSalt ? ' Salt generators naturally raise pH — regular small acid additions are normal.' : ''}`, tags: [`Muriatic Acid (or Dry Acid) · ${acidAmount(dose)}`, 'Re-test tomorrow'] })
   } else if (test.ph > 7.6) {
     const dose = Math.round(v * 13)
-    const phSlightlyHighNeedsAction = isSalt || (test.free_chlorine !== null && test.free_chlorine < 0.5)
-    recs.push({ status: phSlightlyHighNeedsAction ? 'action' : 'monitor', param: 'ph', title: isSalt ? 'Lower pH — routine salt pool maintenance' : phSlightlyHighNeedsAction ? 'Lower pH before adding chlorine' : 'pH slightly high', desc: isSalt ? `pH is at ${test.ph}. A small acid dose will bring it into range. Salt generators push pH upward over time — regular acid additions are a normal part of salt pool maintenance.` : phSlightlyHighNeedsAction ? `pH is at ${test.ph} — lower it to 7.2 before adding chlorine. At this pH, most of the chlorine you add is wasted. Add muriatic acid first, then add chlorine.` : `pH is at ${test.ph}. A small acid dose will bring it into range.`, tags: [`Muriatic Acid (or Dry Acid) · ${acidAmount(dose)}`, isSalt ? 'Re-test tomorrow' : phSlightlyHighNeedsAction ? 'Do this first' : 'Monitor daily'] })
+    const fcCritical = test.free_chlorine !== null && test.free_chlorine < 0.5
+    // Suppress pH card when FC is critically low — the chlorine "two steps" card already covers lowering pH first
+    if (!fcCritical) {
+      const phSlightlyHighNeedsAction = isSalt
+      recs.push({ status: phSlightlyHighNeedsAction ? 'action' : 'monitor', param: 'ph', title: isSalt ? 'Lower pH — routine salt pool maintenance' : 'pH slightly high', desc: isSalt ? `pH is at ${test.ph}. A small acid dose will bring it into range. Salt generators push pH upward over time — regular acid additions are a normal part of salt pool maintenance.` : `pH is at ${test.ph}. A small acid dose will bring it into range.`, tags: [`Muriatic Acid (or Dry Acid) · ${acidAmount(dose)}`, isSalt ? 'Re-test tomorrow' : 'Monitor daily'] })
+    }
   } else if (test.free_chlorine !== null && test.free_chlorine < 0.5 && test.ph > 7.2) {
-    recs.push({ status: 'action', param: 'ph', title: 'Lower pH to 7.2 before adding chlorine', desc: `pH at ${test.ph} is in range for normal use, but lower it to 7.2 first — at higher pH most of the chlorine you add is wasted. Add muriatic acid first, then add chlorine.`, tags: [`Muriatic Acid (or Dry Acid)`, 'Do this first'] })
+    // pH in ideal range but slightly above 7.2 — only flag if FC is not critically low (covered by chlorine card)
+    if (!(test.free_chlorine < 0.5)) {
+      recs.push({ status: 'action', param: 'ph', title: 'Lower pH to 7.2 before adding chlorine', desc: `pH at ${test.ph} is in range for normal use, but lower it to 7.2 first — at higher pH most of the chlorine you add is wasted. Add muriatic acid first, then add chlorine.`, tags: [`Muriatic Acid (or Dry Acid)`, 'Do this first'] })
+    }
   } else {
     recs.push({ status: 'good', param: 'ph', title: 'pH is perfect', desc: `pH at ${test.ph} — right in the ideal range of 7.2–7.6.`, tags: [] })
   }
