@@ -211,6 +211,8 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true)
   const [remindDays, setRemindDays] = useState<number | null>(null)
   const [savingReminder, setSavingReminder] = useState(false)
+  const [sendingTestEmail, setSendingTestEmail] = useState(false)
+  const [showReminderSentToast, setShowReminderSentToast] = useState(false)
   const [showToast, setShowToast] = useState(false)
   const [showUpgradeToast, setShowUpgradeToast] = useState(false)
   const [expandedSteps, setExpandedSteps] = useState<Set<number>>(new Set())
@@ -328,6 +330,21 @@ export default function DashboardPage() {
     const supabase = createClient()
     await supabase.from('pools').update({ remind_after_days: days }).eq('id', pool.id)
     setSavingReminder(false)
+  }
+
+  async function sendTestEmail() {
+    if (!pool || sendingTestEmail) return
+    setSendingTestEmail(true)
+    const res = await fetch('/api/reminders/trigger', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ poolId: pool.id }),
+    })
+    setSendingTestEmail(false)
+    if (res.ok) {
+      setShowReminderSentToast(true)
+      setTimeout(() => setShowReminderSentToast(false), 3000)
+    }
   }
 
   if (loading) {
@@ -1349,8 +1366,27 @@ export default function DashboardPage() {
               </button>
             ))}
           </div>
+          {remindDays !== null && (
+            <button
+              onClick={sendTestEmail}
+              disabled={sendingTestEmail}
+              className="mt-3 w-full py-2 text-xs font-semibold rounded-xl transition-all disabled:opacity-50"
+              style={{background:'#F0F6FA', color:'#0078B8'}}
+            >
+              {sendingTestEmail ? 'Sending…' : 'Send test email now'}
+            </button>
+          )}
         </div>
       </div>
+
+      {/* Reminder sent toast */}
+      {showReminderSentToast && (
+        <div className="fixed top-4 left-1/2 z-50 -translate-x-1/2 px-4 py-3 rounded-2xl shadow-lg flex items-center gap-2.5 text-sm font-semibold text-white transition-all"
+          style={{background:'#0078B8', maxWidth: 320, width:'calc(100% - 32px)'}}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          Reminder email sent — check your inbox
+        </div>
+      )}
 
       {/* Test logged toast */}
       {showToast && (
