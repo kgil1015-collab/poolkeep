@@ -47,5 +47,12 @@ export async function POST(req: NextRequest) {
     console.log('[/api/log] insert error:', error.message)
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
+
+  // Reset reminder clock so next reminder fires remind_after_days from this test, not from last reminder
+  await adminClient
+    .from('pools')
+    .update({ last_reminder_sent_at: null })
+    .eq('id', poolId)
+
   return NextResponse.json({ ok: true, health_score: result.health_score })
 }
