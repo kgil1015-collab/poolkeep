@@ -406,6 +406,7 @@ export default function DashboardPage() {
             {isPro && (
               <span className="text-[10px] font-bold px-2.5 py-1 rounded-full" style={{background:'rgba(0,224,176,0.18)',color:'#00E0B0'}}>Pro</span>
             )}
+            <button onClick={() => router.push('/faq')} className="text-white/40 text-xs hover:text-white/60 transition-colors">Help</button>
             <button onClick={handleSignOut} className="text-white/40 text-xs hover:text-white/60 transition-colors">Sign out</button>
           </div>
         </div>
