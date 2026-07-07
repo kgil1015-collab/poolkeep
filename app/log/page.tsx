@@ -140,9 +140,12 @@ export default function LogTestPage() {
   const [isPro, setIsPro] = useState(false)
   const [isSaltPool, setIsSaltPool] = useState(false)
   const [poolTypeKnown, setPoolTypeKnown] = useState(false) // true when DB has explicit salt/chlorine type
+  const [editId, setEditId] = useState<string | null>(null)
 
   useEffect(() => {
     const supabase = createClient()
+    const editParam = new URLSearchParams(window.location.search).get('edit')
+    setEditId(editParam)
     supabase.auth.getUser().then(async ({ data }) => {
       if (!data.user) { router.push('/login'); return }
       const [{ data: profile }, { data: pools }] = await Promise.all([
@@ -171,6 +174,24 @@ export default function LogTestPage() {
           .select('id', { count: 'exact', head: true })
           .eq('pool_id', active.id)
         setTestCount(count ?? 0)
+      }
+      if (editParam) {
+        const { data: existing } = await supabase
+          .from('test_results')
+          .select('ph,free_chlorine,total_alkalinity,cya,calcium_hardness,salt')
+          .eq('id', editParam)
+          .single()
+        if (existing) {
+          const toStr = (v: number | null, decimals: number) => v === null ? '' : v.toFixed(decimals)
+          setValues({
+            ph: toStr(existing.ph, 1),
+            free_chlorine: toStr(existing.free_chlorine, 1),
+            total_alkalinity: toStr(existing.total_alkalinity, 0),
+            cya: toStr(existing.cya, 0),
+            calcium_hardness: toStr(existing.calcium_hardness, 0),
+            salt: toStr(existing.salt, 0),
+          })
+        }
       }
       setPoolLoading(false)
     })
@@ -221,9 +242,9 @@ export default function LogTestPage() {
     setLoading(true)
 
     const res = await fetch('/api/log', {
-      method: 'POST',
+      method: editId ? 'PATCH' : 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ testInput, poolId: pool.id, volumeGallons: pool.volume_gallons }),
+      body: JSON.stringify({ id: editId, testInput, poolId: pool.id, volumeGallons: pool.volume_gallons }),
     })
 
     setLoading(false)
@@ -252,11 +273,11 @@ export default function LogTestPage() {
     )
   }
 
-  if (!isPro && testCount >= FREE_LIMIT) {
+  if (!isPro && testCount >= FREE_LIMIT && !editId) {
     return <UpgradeScreen poolName={pool?.name ?? 'My Pool'} />
   }
 
-  const showNudge = !isPro && testCount >= 3 && testCount < FREE_LIMIT
+  const showNudge = !isPro && testCount >= 3 && testCount < FREE_LIMIT && !editId
 
   return (
     <div className="min-h-screen bg-surface flex flex-col" style={{maxWidth:480,margin:'0 auto'}}>
@@ -272,8 +293,8 @@ export default function LogTestPage() {
           </button>
         </div>
         <p className="text-white/50 text-xs font-semibold uppercase tracking-widest mb-1">{pool?.name ?? 'My Pool'}</p>
-        <h1 className="text-white text-2xl font-bold" style={{fontFamily:"'Oswald',sans-serif",letterSpacing:'-.01em'}}>Log a Test</h1>
-        <p className="text-white/55 text-sm mt-1">Enter your readings below</p>
+        <h1 className="text-white text-2xl font-bold" style={{fontFamily:"'Oswald',sans-serif",letterSpacing:'-.01em'}}>{editId ? 'Edit Your Test' : 'Log a Test'}</h1>
+        <p className="text-white/55 text-sm mt-1">{editId ? 'Fix a misread value below' : 'Enter your readings below'}</p>
       </div>
 
       {/* Wave */}
@@ -284,7 +305,7 @@ export default function LogTestPage() {
         {showNudge && <NudgeBanner count={testCount} />}
 
         {/* First-timer tip — only shown before the first test is logged */}
-        {testCount === 0 && (
+        {testCount === 0 && !editId && (
           <div className="rounded-2xl px-4 py-3.5 mb-4 flex items-start gap-3" style={{background:'rgba(0,120,184,0.06)', border:'1.5px solid rgba(0,120,184,0.15)'}}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0078B8" strokeWidth="2.2" strokeLinecap="round" className="shrink-0 mt-0.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
             <div>
@@ -423,7 +444,7 @@ export default function LogTestPage() {
           className="w-full text-white font-bold py-4 rounded-xl hover:opacity-90 transition-opacity disabled:opacity-50 text-base"
           style={{background:'#0078B8', boxShadow:'0 6px 20px rgba(0,120,184,0.4)'}}
         >
-          {loading ? 'Calculating…' : 'Get My Recommendations →'}
+          {loading ? 'Calculating…' : editId ? 'Save Changes →' : 'Get My Recommendations →'}
         </button>
         <button
           onClick={() => router.push('/dashboard')}

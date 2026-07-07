@@ -12,6 +12,7 @@ import { calculateRecommendations } from '@/lib/recommendations'
 type User = { email: string; user_metadata: { full_name?: string } }
 
 type TestResult = {
+  id: string
   health_score: number
   created_at: string
   ph: number | null
@@ -250,7 +251,7 @@ export default function DashboardPage() {
       localStorage.setItem('poolkeep_active_pool', active.id)
       setPool(active)
       setRemindDays(active.remind_after_days ?? null)
-      const { data: tests } = await supabase.from('test_results').select('health_score,recommendations,created_at,ph,free_chlorine,total_alkalinity,cya,calcium_hardness,salt').eq('pool_id', active.id).order('created_at', { ascending: false }).limit(1)
+      const { data: tests } = await supabase.from('test_results').select('id,health_score,recommendations,created_at,ph,free_chlorine,total_alkalinity,cya,calcium_hardness,salt').eq('pool_id', active.id).order('created_at', { ascending: false }).limit(1)
       if (tests && tests.length > 0) setLastTest(tests[0])
       setLoading(false)
     })
@@ -314,7 +315,7 @@ export default function DashboardPage() {
     const supabase = createClient()
     const { data: tests } = await supabase
       .from('test_results')
-      .select('health_score,recommendations,created_at,ph,free_chlorine,total_alkalinity,cya,calcium_hardness,salt')
+      .select('id,health_score,recommendations,created_at,ph,free_chlorine,total_alkalinity,cya,calcium_hardness,salt')
       .eq('pool_id', p.id)
       .order('created_at', { ascending: false })
       .limit(1)
@@ -483,20 +484,30 @@ export default function DashboardPage() {
 
         {/* Pool switcher */}
         <div className="pb-3" ref={pickerRef}>
-          <button
-            onClick={() => setShowPicker(p => !p)}
-            className="inline-flex items-center gap-2 bg-white/10 rounded-full px-3 py-1.5"
-          >
-            <div className="w-1.5 h-1.5 rounded-full bg-teal shrink-0" />
-            <span className="text-white/80 text-xs font-medium">
-              {pool?.name ?? 'My Pool'} · {lastTest ? `Last tested ${timeAgo(lastTest.created_at)}` : 'No tests yet'}
-            </span>
-            {allPools.length > 1 && (
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.6)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points={showPicker ? '18 15 12 9 6 15' : '6 9 12 15 18 9'} />
-              </svg>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setShowPicker(p => !p)}
+              className="inline-flex items-center gap-2 bg-white/10 rounded-full px-3 py-1.5"
+            >
+              <div className="w-1.5 h-1.5 rounded-full bg-teal shrink-0" />
+              <span className="text-white/80 text-xs font-medium">
+                {pool?.name ?? 'My Pool'} · {lastTest ? `Last tested ${timeAgo(lastTest.created_at)}` : 'No tests yet'}
+              </span>
+              {allPools.length > 1 && (
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.6)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points={showPicker ? '18 15 12 9 6 15' : '6 9 12 15 18 9'} />
+                </svg>
+              )}
+            </button>
+            {lastTest && (
+              <button
+                onClick={() => router.push(`/log?edit=${lastTest.id}`)}
+                className="text-teal text-xs font-bold underline underline-offset-2 shrink-0"
+              >
+                Edit
+              </button>
             )}
-          </button>
+          </div>
 
           {showPicker && (
             <div className="mt-2 bg-white rounded-2xl shadow-lg overflow-hidden">

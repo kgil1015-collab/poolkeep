@@ -49,3 +49,55 @@ export async function POST(req: NextRequest) {
   }
   return NextResponse.json({ ok: true, health_score: result.health_score })
 }
+
+// Editing is restricted to a pool's single most recent test — old strip readings
+// are no longer trustworthy after a few minutes, so this is for fixing a fresh
+// misread, not rewriting history. Updates the row in place (no new insert), so
+// it never touches the free-tier test count.
+export async function PATCH(req: NextRequest) {
+  const supabase = await createServerSupabase()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return NextResponse.json({ error: 'Not logged in' }, { status: 401 })
+
+  const { id, testInput, poolId, volumeGallons } = await req.json()
+
+  if (!id || !poolId || !volumeGallons) {
+    return NextResponse.json({ error: 'Missing test info' }, { status: 400 })
+  }
+
+  const { data: latest } = await adminClient
+    .from('test_results')
+    .select('id, user_id')
+    .eq('pool_id', poolId)
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .single()
+
+  if (!latest || latest.id !== id || latest.user_id !== user.id) {
+    return NextResponse.json({ error: 'Only the most recent test can be edited' }, { status: 403 })
+  }
+
+  const { data: poolRow } = await adminClient
+    .from('pools')
+    .select('type')
+    .eq('id', poolId)
+    .single()
+  const poolType: string = poolRow?.type ?? 'inground'
+
+  const result = calculateRecommendations(testInput, volumeGallons, poolType)
+
+  const { error } = await adminClient
+    .from('test_results')
+    .update({
+      ...testInput,
+      health_score: result.health_score,
+      recommendations: result,
+    })
+    .eq('id', id)
+
+  if (error) {
+    console.log('[/api/log] update error:', error.message)
+    return NextResponse.json({ error: error.message }, { status: 500 })
+  }
+  return NextResponse.json({ ok: true, health_score: result.health_score })
+}
