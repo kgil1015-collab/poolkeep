@@ -11,8 +11,13 @@ import { calculateRecommendations } from '@/lib/recommendations'
 
 type User = { email: string; user_metadata: { full_name?: string } }
 
+// Mirrors EDIT_LIMIT / EDIT_WINDOW_MS in app/api/log/route.ts — kept in sync manually
+const EDIT_LIMIT = 3
+const EDIT_WINDOW_MS = 12 * 60 * 60 * 1000
+
 type TestResult = {
   id: string
+  edit_count: number
   health_score: number
   created_at: string
   ph: number | null
@@ -251,7 +256,7 @@ export default function DashboardPage() {
       localStorage.setItem('poolkeep_active_pool', active.id)
       setPool(active)
       setRemindDays(active.remind_after_days ?? null)
-      const { data: tests } = await supabase.from('test_results').select('id,health_score,recommendations,created_at,ph,free_chlorine,total_alkalinity,cya,calcium_hardness,salt').eq('pool_id', active.id).order('created_at', { ascending: false }).limit(1)
+      const { data: tests } = await supabase.from('test_results').select('id,edit_count,health_score,recommendations,created_at,ph,free_chlorine,total_alkalinity,cya,calcium_hardness,salt').eq('pool_id', active.id).order('created_at', { ascending: false }).limit(1)
       if (tests && tests.length > 0) setLastTest(tests[0])
       setLoading(false)
     })
@@ -315,7 +320,7 @@ export default function DashboardPage() {
     const supabase = createClient()
     const { data: tests } = await supabase
       .from('test_results')
-      .select('id,health_score,recommendations,created_at,ph,free_chlorine,total_alkalinity,cya,calcium_hardness,salt')
+      .select('id,edit_count,health_score,recommendations,created_at,ph,free_chlorine,total_alkalinity,cya,calcium_hardness,salt')
       .eq('pool_id', p.id)
       .order('created_at', { ascending: false })
       .limit(1)
@@ -484,30 +489,20 @@ export default function DashboardPage() {
 
         {/* Pool switcher */}
         <div className="pb-3" ref={pickerRef}>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setShowPicker(p => !p)}
-              className="inline-flex items-center gap-2 bg-white/10 rounded-full px-3 py-1.5"
-            >
-              <div className="w-1.5 h-1.5 rounded-full bg-teal shrink-0" />
-              <span className="text-white/80 text-xs font-medium">
-                {pool?.name ?? 'My Pool'} · {lastTest ? `Last tested ${timeAgo(lastTest.created_at)}` : 'No tests yet'}
-              </span>
-              {allPools.length > 1 && (
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.6)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points={showPicker ? '18 15 12 9 6 15' : '6 9 12 15 18 9'} />
-                </svg>
-              )}
-            </button>
-            {lastTest && (
-              <button
-                onClick={() => router.push(`/log?edit=${lastTest.id}`)}
-                className="text-teal text-xs font-bold underline underline-offset-2 shrink-0"
-              >
-                Edit
-              </button>
+          <button
+            onClick={() => setShowPicker(p => !p)}
+            className="inline-flex items-center gap-2 bg-white/10 rounded-full px-3 py-1.5"
+          >
+            <div className="w-1.5 h-1.5 rounded-full bg-teal shrink-0" />
+            <span className="text-white/80 text-xs font-medium">
+              {pool?.name ?? 'My Pool'} · {lastTest ? `Last tested ${timeAgo(lastTest.created_at)}` : 'No tests yet'}
+            </span>
+            {allPools.length > 1 && (
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.6)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points={showPicker ? '18 15 12 9 6 15' : '6 9 12 15 18 9'} />
+              </svg>
             )}
-          </div>
+          </button>
 
           {showPicker && (
             <div className="mt-2 bg-white rounded-2xl shadow-lg overflow-hidden">
@@ -751,6 +746,7 @@ export default function DashboardPage() {
             {/* ── WATER REPORT ────────────────────────────────────────────── */}
             {(() => {
               const t = lastTest
+              const isEditable = t.edit_count < EDIT_LIMIT && (Date.now() - new Date(t.created_at).getTime()) < EDIT_WINDOW_MS
               // Display ranges zoomed so the ideal zone occupies the center third —
               // a reading at the high end of ideal appears right-of-center,
               // low end appears left-of-center, outside ideal is clearly past the zone.
@@ -794,7 +790,11 @@ export default function DashboardPage() {
                         const status = getStatus(raw, p.goodLow, p.goodHigh, p.warnLow, p.warnHigh)
                         const { dot } = SM[status]
                         return (
-                          <div key={p.key} style={{flex:1,background:'rgba(255,255,255,0.06)',borderRadius:8,padding:'7px 6px',border:`1.5px solid ${dot}`,overflow:'hidden',position:'relative'}}>
+                          <div
+                            key={p.key}
+                            onClick={isEditable ? () => router.push(`/log?edit=${t.id}`) : undefined}
+                            style={{flex:1,background:'rgba(255,255,255,0.06)',borderRadius:8,padding:'7px 6px',border:`1.5px solid ${dot}`,overflow:'hidden',position:'relative',cursor: isEditable ? 'pointer' : 'default'}}
+                          >
                             {/* colored top bar */}
                             <div style={{position:'absolute',top:0,left:0,right:0,height:3,background:dot,opacity:0.7}} />
                             <div style={{fontSize:10,color:'#ffffff',fontWeight:800,textTransform:'uppercase',letterSpacing:'.06em',marginBottom:3,marginTop:4}}>{p.short}</div>
@@ -806,6 +806,9 @@ export default function DashboardPage() {
                         )
                       })}
                     </div>
+                    {isEditable && (
+                      <p style={{fontSize:9,fontStyle:'italic',color:'rgba(255,255,255,0.35)',padding:'0 12px 8px'}}>Tap a value above to fix a misread</p>
+                    )}
 
                     {/* Legend */}
                     <div style={{display:'flex',flexWrap:'wrap',alignItems:'center',gap:'6px 12px',padding:'4px 12px 8px'}}>

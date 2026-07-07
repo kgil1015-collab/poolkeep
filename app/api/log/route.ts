@@ -10,6 +10,9 @@ const adminClient = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!,
 )
 
+const EDIT_LIMIT = 3
+const EDIT_WINDOW_MS = 12 * 60 * 60 * 1000
+
 export async function POST(req: NextRequest) {
   const supabase = await createServerSupabase()
   const { data: { user } } = await supabase.auth.getUser()
@@ -52,8 +55,9 @@ export async function POST(req: NextRequest) {
 
 // Editing is restricted to a pool's single most recent test — old strip readings
 // are no longer trustworthy after a few minutes, so this is for fixing a fresh
-// misread, not rewriting history. Updates the row in place (no new insert), so
-// it never touches the free-tier test count.
+// misread, not rewriting history. Capped at EDIT_LIMIT edits and EDIT_WINDOW_MS
+// after logging, then a new test must be logged instead. Updates the row in
+// place (no new insert), so it never touches the free-tier test count.
 export async function PATCH(req: NextRequest) {
   const supabase = await createServerSupabase()
   const { data: { user } } = await supabase.auth.getUser()
@@ -67,7 +71,7 @@ export async function PATCH(req: NextRequest) {
 
   const { data: latest } = await adminClient
     .from('test_results')
-    .select('id, user_id')
+    .select('id, user_id, created_at, edit_count')
     .eq('pool_id', poolId)
     .order('created_at', { ascending: false })
     .limit(1)
@@ -75,6 +79,14 @@ export async function PATCH(req: NextRequest) {
 
   if (!latest || latest.id !== id || latest.user_id !== user.id) {
     return NextResponse.json({ error: 'Only the most recent test can be edited' }, { status: 403 })
+  }
+
+  const editCount: number = latest.edit_count ?? 0
+  if (editCount >= EDIT_LIMIT) {
+    return NextResponse.json({ error: 'This test has reached its edit limit — please log a new test.' }, { status: 403 })
+  }
+  if (Date.now() - new Date(latest.created_at).getTime() > EDIT_WINDOW_MS) {
+    return NextResponse.json({ error: 'This test can no longer be edited — please log a new test.' }, { status: 403 })
   }
 
   const { data: poolRow } = await adminClient
@@ -92,6 +104,7 @@ export async function PATCH(req: NextRequest) {
       ...testInput,
       health_score: result.health_score,
       recommendations: result,
+      edit_count: editCount + 1,
     })
     .eq('id', id)
 
