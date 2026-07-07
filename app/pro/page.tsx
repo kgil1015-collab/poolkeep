@@ -6,6 +6,8 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 import WaveDivider from '@/app/components/WaveDivider'
+import { isIOSNative, configurePurchases, getCurrentOffering, purchase, restore, isEntitled } from '@/lib/purchases'
+import type { PurchasesOffering, PurchasesPackage } from '@revenuecat/purchases-capacitor'
 
 const FREE_FEATURES = [
   '1 pool',
@@ -52,6 +54,10 @@ export default function ProPage() {
   const [periodEnd, setPeriodEnd] = useState<string | null>(null)
   const [portalLoading, setPortalLoading] = useState(false)
   const [portalError, setPortalError] = useState<string | null>(null)
+  const [iosNative] = useState(() => isIOSNative())
+  const [nativeOffering, setNativeOffering] = useState<PurchasesOffering | null>(null)
+  const [nativeLoading, setNativeLoading] = useState<string | null>(null) // package identifier currently purchasing
+  const [nativeError, setNativeError] = useState<string | null>(null)
 
   useEffect(() => {
     if (localStorage.getItem('poolkeep_service_notify')) setNotified(true)
@@ -89,8 +95,43 @@ export default function ProPage() {
         setSubPlan(profile.plan ?? null)
         setPeriodEnd(profile.current_period_end ?? null)
       }
+      if (iosNative) {
+        await configurePurchases(data.user.id)
+        const offering = await getCurrentOffering()
+        setNativeOffering(offering)
+      }
     })
-  }, [])
+  }, [iosNative])
+
+  async function handleNativePurchase(pkg: PurchasesPackage) {
+    setNativeError(null)
+    setNativeLoading(pkg.identifier)
+    try {
+      const info = await purchase(pkg)
+      if (isEntitled(info)) setSubStatus('active')
+    } catch (err) {
+      const code = (err as { code?: string })?.code
+      if (code !== 'PURCHASE_CANCELLED_ERROR') {
+        setNativeError(err instanceof Error ? err.message : 'Purchase failed — please try again.')
+      }
+    } finally {
+      setNativeLoading(null)
+    }
+  }
+
+  async function handleRestore() {
+    setNativeError(null)
+    setNativeLoading('restore')
+    try {
+      const info = await restore()
+      if (isEntitled(info)) setSubStatus('active')
+      else setNativeError('No active purchase found for this Apple ID.')
+    } catch (err) {
+      setNativeError(err instanceof Error ? err.message : 'Restore failed — please try again.')
+    } finally {
+      setNativeLoading(null)
+    }
+  }
 
   const isPro = subStatus === 'active' || subStatus === 'trialing'
 
@@ -241,36 +282,50 @@ export default function ProPage() {
               <div className="px-4 py-4">
                 <p className="text-xs font-bold uppercase tracking-widest text-text-muted mb-3">Manage Subscription</p>
                 <div className="space-y-2">
-                  <button
-                    disabled={portalLoading}
-                    onClick={async () => {
-                      setPortalLoading(true)
-                      setPortalError(null)
-                      try {
-                        const res = await fetch('/api/stripe/portal', { method: 'POST' })
-                        const data = await res.json()
-                        if (data.url) { window.location.href = data.url; return }
-                        setPortalError(data.error ?? 'Could not open billing portal.')
-                      } catch {
-                        setPortalError('Network error — please try again.')
-                      } finally {
-                        setPortalLoading(false)
-                      }
-                    }}
-                    className="w-full flex items-center justify-between px-4 py-3 rounded-xl text-left transition-colors hover:bg-surface disabled:opacity-60"
-                    style={{background:'#F8FBFD'}}
-                  >
-                    <div className="flex items-center gap-3">
-                      {portalLoading
-                        ? <svg className="animate-spin" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0078B8" strokeWidth="2.5"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
-                        : <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0078B8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-                      }
-                      <span className="text-sm font-medium text-text-primary">
-                        {portalLoading ? 'Opening…' : 'Change or cancel plan'}
-                      </span>
-                    </div>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8AAABB" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-                  </button>
+                  {iosNative ? (
+                    <button
+                      onClick={() => { window.location.href = 'itms-apps://apps.apple.com/account/subscriptions' }}
+                      className="w-full flex items-center justify-between px-4 py-3 rounded-xl text-left transition-colors hover:bg-surface"
+                      style={{background:'#F8FBFD'}}
+                    >
+                      <div className="flex items-center gap-3">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0078B8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                        <span className="text-sm font-medium text-text-primary">Manage in App Store settings</span>
+                      </div>
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8AAABB" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                    </button>
+                  ) : (
+                    <button
+                      disabled={portalLoading}
+                      onClick={async () => {
+                        setPortalLoading(true)
+                        setPortalError(null)
+                        try {
+                          const res = await fetch('/api/stripe/portal', { method: 'POST' })
+                          const data = await res.json()
+                          if (data.url) { window.location.href = data.url; return }
+                          setPortalError(data.error ?? 'Could not open billing portal.')
+                        } catch {
+                          setPortalError('Network error — please try again.')
+                        } finally {
+                          setPortalLoading(false)
+                        }
+                      }}
+                      className="w-full flex items-center justify-between px-4 py-3 rounded-xl text-left transition-colors hover:bg-surface disabled:opacity-60"
+                      style={{background:'#F8FBFD'}}
+                    >
+                      <div className="flex items-center gap-3">
+                        {portalLoading
+                          ? <svg className="animate-spin" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0078B8" strokeWidth="2.5"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+                          : <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0078B8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                        }
+                        <span className="text-sm font-medium text-text-primary">
+                          {portalLoading ? 'Opening…' : 'Change or cancel plan'}
+                        </span>
+                      </div>
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8AAABB" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                    </button>
+                  )}
                   {portalError && (
                     <p className="text-xs text-red-500 px-1 pt-1">{portalError}</p>
                   )}
@@ -301,6 +356,43 @@ export default function ProPage() {
             {/* Plans — each card has its own CTA */}
             <div className="space-y-3">
 
+              {iosNative ? (
+                <>
+                  {(nativeOffering?.availablePackages ?? []).map(pkg => (
+                    <div key={pkg.identifier} className="bg-white rounded-2xl px-4 py-4 shadow-sm border-2 border-gray-100">
+                      <div className="flex items-center justify-between mb-3">
+                        <div>
+                          <p className="font-bold text-sm text-text-primary">{pkg.product.title || pkg.identifier}</p>
+                          <p className="text-xs text-text-muted">{pkg.product.description}</p>
+                        </div>
+                        <p className="text-lg font-bold text-text-primary" style={{fontFamily:"'Oswald',sans-serif"}}>{pkg.product.priceString}</p>
+                      </div>
+                      <button
+                        onClick={() => handleNativePurchase(pkg)}
+                        disabled={nativeLoading !== null}
+                        className="w-full font-bold py-3 rounded-xl text-sm text-white transition-opacity disabled:opacity-60"
+                        style={{background:'#0078B8'}}
+                      >
+                        {nativeLoading === pkg.identifier ? 'Processing…' : `Get Pro — ${pkg.product.priceString}`}
+                      </button>
+                    </div>
+                  ))}
+                  {!nativeOffering && (
+                    <div className="bg-white rounded-2xl px-4 py-6 shadow-sm border-2 border-gray-100 text-center">
+                      <p className="text-sm text-text-muted">Loading plans…</p>
+                    </div>
+                  )}
+                  <button
+                    onClick={handleRestore}
+                    disabled={nativeLoading !== null}
+                    className="w-full text-xs font-semibold text-pool-dark py-2 disabled:opacity-60"
+                  >
+                    {nativeLoading === 'restore' ? 'Restoring…' : 'Restore Purchases'}
+                  </button>
+                  {nativeError && <p className="text-red-500 text-xs text-center">{nativeError}</p>}
+                </>
+              ) : (
+              <>
               {/* Founding Member */}
               <div className="rounded-2xl overflow-hidden" style={{background:'linear-gradient(135deg,#002D44 0%,#004D6B 50%,#005A52 100%)', boxShadow:'0 6px 24px rgba(0,45,68,0.3)'}}>
                 <div className="px-4 pt-4 pb-4">
@@ -386,6 +478,8 @@ export default function ProPage() {
                   {loading && billing === 'monthly' ? 'Redirecting…' : 'Get Pro — $9.99/month'}
                 </button>
               </div>
+              </>
+              )}
 
             </div>
 
