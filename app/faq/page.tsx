@@ -100,8 +100,16 @@ const CATEGORIES: FAQCategory[] = [
     ],
   },
   {
-    title: 'Stains & Metals',
+    title: 'Scale, Stains & Metals',
     items: [
+      {
+        q: 'What is pool scale and what causes it?',
+        a: "Scale is a chalky white or gray mineral deposit — mostly calcium carbonate — that builds up on tile, plaster, and equipment. It's the opposite problem from etching: too little calcium hardness eats away at surfaces, while too much (especially combined with high pH or high alkalinity) precipitates out of the water as scale. Hard water regions see this most often, and it's the same buildup that fouls a salt cell.",
+      },
+      {
+        q: 'How do I prevent or remove pool scale?',
+        a: "Prevention beats removal — keep pH at the lower end of range (7.2–7.4) and calcium hardness under about 400 ppm, and add a sequestering agent regularly if your water is naturally hard. Once scale has already formed, no chemical dissolves it directly in the water: a pumice stone or scale remover works on tile and plaster, while a sequestering agent (sometimes paired with a partial drain and refill) is the main lever for surfaces and equipment you can't scrub by hand.",
+      },
       {
         q: 'How do I know if my stains are from metals?',
         a: "Metals discolor the water itself, not just surfaces: iron turns water brownish-red, copper turns it blue-green, and manganese turns it dark purple. A dedicated metals test (many pool stores offer this free) confirms it before you buy a treatment.",

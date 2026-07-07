@@ -384,7 +384,7 @@ export default function DashboardPage() {
             animation: 'headerShimmer 9s ease-in-out infinite',
           }}
         />
-        <div className="flex items-center justify-between mb-5">
+        <div className="flex items-center justify-between mb-1">
           <div className="flex items-center gap-2">
             <svg viewBox="28 8 144 175" width="16" height="22" xmlns="http://www.w3.org/2000/svg">
               <defs>
@@ -406,9 +406,14 @@ export default function DashboardPage() {
             {isPro && (
               <span className="text-[10px] font-bold px-2.5 py-1 rounded-full" style={{background:'rgba(0,224,176,0.18)',color:'#00E0B0'}}>Pro</span>
             )}
-            <button onClick={() => router.push('/faq')} className="text-white/40 text-xs hover:text-white/60 transition-colors">Help</button>
             <button onClick={handleSignOut} className="text-white/40 text-xs hover:text-white/60 transition-colors">Sign out</button>
           </div>
+        </div>
+
+        <div className="flex justify-end mb-4">
+          <button onClick={() => router.push('/faq')} className="font-bold hover:opacity-80 transition-opacity" style={{fontSize:13, color:'#29B8E8'}}>
+            Help &amp; FAQ
+          </button>
         </div>
 
         <p className="text-white/70 mb-2" style={{fontSize:14}}>{welcome.salutation}</p>
