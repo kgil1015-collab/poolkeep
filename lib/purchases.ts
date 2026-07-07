@@ -79,6 +79,11 @@ export async function restore() {
   return customerInfo
 }
 
+// Matches the RevenueCat entitlement identifier exactly — "PoolKeep Pro" is
+// permanent once created (RevenueCat entitlement identifiers can't be renamed
+// after creation, only the display name can).
+const ENTITLEMENT_ID = 'PoolKeep Pro'
+
 export function isEntitled(customerInfo: CustomerInfo): boolean {
-  return Object.prototype.hasOwnProperty.call(customerInfo.entitlements.active, 'pro')
+  return Object.prototype.hasOwnProperty.call(customerInfo.entitlements.active, ENTITLEMENT_ID)
 }
