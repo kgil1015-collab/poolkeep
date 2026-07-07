@@ -6,7 +6,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 import WaveDivider from '@/app/components/WaveDivider'
-import { isIOSNative, configurePurchases, getCurrentOffering, purchase, restore, isEntitled } from '@/lib/purchases'
+import { isIOSNative, configurePurchases, getCurrentOffering, purchase, purchaseFoundingBundle, isFoundingPackage, getFoundingFeePriceString, restore, isEntitled } from '@/lib/purchases'
 import type { PurchasesOffering, PurchasesPackage } from '@revenuecat/purchases-capacitor'
 
 const FREE_FEATURES = [
@@ -56,6 +56,7 @@ export default function ProPage() {
   const [portalError, setPortalError] = useState<string | null>(null)
   const [iosNative] = useState(() => isIOSNative())
   const [nativeOffering, setNativeOffering] = useState<PurchasesOffering | null>(null)
+  const [foundingFeePrice, setFoundingFeePrice] = useState<string | null>(null)
   const [nativeLoading, setNativeLoading] = useState<string | null>(null) // package identifier currently purchasing
   const [nativeError, setNativeError] = useState<string | null>(null)
 
@@ -97,8 +98,9 @@ export default function ProPage() {
       }
       if (iosNative) {
         await configurePurchases(data.user.id)
-        const offering = await getCurrentOffering()
+        const [offering, feePrice] = await Promise.all([getCurrentOffering(), getFoundingFeePriceString()])
         setNativeOffering(offering)
+        setFoundingFeePrice(feePrice)
       }
     })
   }, [iosNative])
@@ -107,7 +109,7 @@ export default function ProPage() {
     setNativeError(null)
     setNativeLoading(pkg.identifier)
     try {
-      const info = await purchase(pkg)
+      const info = isFoundingPackage(pkg) ? await purchaseFoundingBundle(pkg) : await purchase(pkg)
       if (isEntitled(info)) setSubStatus('active')
     } catch (err) {
       const code = (err as { code?: string })?.code
@@ -358,25 +360,37 @@ export default function ProPage() {
 
               {iosNative ? (
                 <>
-                  {(nativeOffering?.availablePackages ?? []).map(pkg => (
-                    <div key={pkg.identifier} className="bg-white rounded-2xl px-4 py-4 shadow-sm border-2 border-gray-100">
-                      <div className="flex items-center justify-between mb-3">
-                        <div>
-                          <p className="font-bold text-sm text-text-primary">{pkg.product.title || pkg.identifier}</p>
-                          <p className="text-xs text-text-muted">{pkg.product.description}</p>
+                  {(nativeOffering?.availablePackages ?? []).map(pkg => {
+                    const founding = isFoundingPackage(pkg)
+                    return (
+                      <div key={pkg.identifier} className="bg-white rounded-2xl px-4 py-4 shadow-sm border-2 border-gray-100">
+                        <div className="flex items-center justify-between mb-3">
+                          <div>
+                            <p className="font-bold text-sm text-text-primary">{pkg.product.title || pkg.identifier}</p>
+                            <p className="text-xs text-text-muted">{pkg.product.description}</p>
+                          </div>
+                          <p className="text-lg font-bold text-text-primary" style={{fontFamily:"'Oswald',sans-serif"}}>{pkg.product.priceString}</p>
                         </div>
-                        <p className="text-lg font-bold text-text-primary" style={{fontFamily:"'Oswald',sans-serif"}}>{pkg.product.priceString}</p>
+                        {founding && (
+                          <p className="text-xs text-text-muted mb-3">
+                            Plus a one-time {foundingFeePrice ?? '…'} founding fee, charged today — then {pkg.product.priceString}/mo, locked for life.
+                          </p>
+                        )}
+                        <button
+                          onClick={() => handleNativePurchase(pkg)}
+                          disabled={nativeLoading !== null || (founding && !foundingFeePrice)}
+                          className="w-full font-bold py-3 rounded-xl text-sm text-white transition-opacity disabled:opacity-60"
+                          style={{background:'#0078B8'}}
+                        >
+                          {nativeLoading === pkg.identifier
+                            ? 'Processing…'
+                            : founding && foundingFeePrice
+                              ? `Claim Founding Spot — ${foundingFeePrice} + ${pkg.product.priceString}/mo`
+                              : `Get Pro — ${pkg.product.priceString}`}
+                        </button>
                       </div>
-                      <button
-                        onClick={() => handleNativePurchase(pkg)}
-                        disabled={nativeLoading !== null}
-                        className="w-full font-bold py-3 rounded-xl text-sm text-white transition-opacity disabled:opacity-60"
-                        style={{background:'#0078B8'}}
-                      >
-                        {nativeLoading === pkg.identifier ? 'Processing…' : `Get Pro — ${pkg.product.priceString}`}
-                      </button>
-                    </div>
-                  ))}
+                    )
+                  })}
                   {!nativeOffering && (
                     <div className="bg-white rounded-2xl px-4 py-6 shadow-sm border-2 border-gray-100 text-center">
                       <p className="text-sm text-text-muted">Loading plans…</p>
