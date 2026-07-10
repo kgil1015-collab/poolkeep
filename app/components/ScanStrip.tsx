@@ -104,6 +104,12 @@ export default function ScanStrip({
       const photo = await Camera.getPhoto({
         resultType: CameraResultType.DataUrl,
         source: CameraSource.Prompt,
+        // In a plain mobile browser (no native app installed yet), CameraSource.Prompt's
+        // "choose Camera or Photos" sheet requires the separate @ionic/pwa-elements
+        // package, which isn't installed — without it the picker silently hangs forever.
+        // webUseInput routes to a plain <input type="file" capture> instead, which needs
+        // no extra dependency and works the same on native once that's built too.
+        webUseInput: true,
         quality: 85,
         promptLabelHeader: 'Scan Test Strip',
         promptLabelPhoto: 'Choose from Library',
@@ -114,8 +120,11 @@ export default function ScanStrip({
         setPins(loadSavedPins())
         setStep('placing')
       }
-    } catch {
-      // user cancelled the camera — stay on the intro screen
+    } catch (err) {
+      const message = err instanceof Error ? err.message : ''
+      if (!/cancel/i.test(message)) {
+        setError('Could not open the camera — please try again.')
+      }
     }
   }
 
