@@ -75,10 +75,20 @@ export default function ScanStrip({
   const [pins, setPins] = useState<Record<PinKey, PinPosition>>(DEFAULT_PINS)
   const [review, setReview] = useState<Record<StripParamKey, ReviewRow> | null>(null)
   const [error, setError] = useState('')
+  const [loupe, setLoupe] = useState<{ screenX: number; screenY: number; naturalX: number; naturalY: number } | null>(null)
 
   const containerRef = useRef<HTMLDivElement | null>(null)
   const imgRef = useRef<HTMLImageElement | null>(null)
   const draggingKey = useRef<PinKey | null>(null)
+  const loupeCanvasRef = useRef<HTMLCanvasElement | null>(null)
+
+  function updateLoupe(clientX: number, clientY: number, pin: PinPosition) {
+    const rect = containerRef.current?.getBoundingClientRect()
+    const img = imgRef.current
+    if (!rect || !img || !img.naturalWidth) return
+    const { x: naturalX, y: naturalY } = pinToNaturalPx(pin, rect.width, rect.height, img.naturalWidth, img.naturalHeight)
+    setLoupe({ screenX: clientX - rect.left, screenY: clientY - rect.top, naturalX, naturalY })
+  }
 
   useEffect(() => {
     function handleMove(e: PointerEvent) {
@@ -88,8 +98,9 @@ export default function ScanStrip({
       const x = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width))
       const y = Math.max(0, Math.min(1, (e.clientY - rect.top) / rect.height))
       setPins(prev => ({ ...prev, [key]: { x, y } }))
+      updateLoupe(e.clientX, e.clientY, { x, y })
     }
-    function handleUp() { draggingKey.current = null }
+    function handleUp() { draggingKey.current = null; setLoupe(null) }
     window.addEventListener('pointermove', handleMove)
     window.addEventListener('pointerup', handleUp)
     return () => {
@@ -97,6 +108,30 @@ export default function ScanStrip({
       window.removeEventListener('pointerup', handleUp)
     }
   }, [])
+
+  // Draw the zoomed magnifier crop whenever the loupe position updates
+  useEffect(() => {
+    if (!loupe || !imgRef.current || !loupeCanvasRef.current) return
+    const canvas = loupeCanvasRef.current
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return
+    const ZOOM = 3.5
+    const size = canvas.width
+    const cropSize = size / ZOOM
+    ctx.imageSmoothingEnabled = false
+    ctx.clearRect(0, 0, size, size)
+    ctx.drawImage(
+      imgRef.current,
+      loupe.naturalX - cropSize / 2, loupe.naturalY - cropSize / 2, cropSize, cropSize,
+      0, 0, size, size,
+    )
+    ctx.strokeStyle = 'rgba(255,255,255,0.9)'
+    ctx.lineWidth = 1.5
+    ctx.beginPath()
+    ctx.moveTo(size / 2 - 9, size / 2); ctx.lineTo(size / 2 + 9, size / 2)
+    ctx.moveTo(size / 2, size / 2 - 9); ctx.lineTo(size / 2, size / 2 + 9)
+    ctx.stroke()
+  }, [loupe])
 
   async function handleTakePhoto() {
     setError('')
@@ -190,7 +225,7 @@ export default function ScanStrip({
           {step === 'intro' && (
             <div className="space-y-4">
               <p className="text-sm text-text-muted leading-relaxed">
-                Dip your strip, wait the usual 15 seconds, then lay it flat in good light. Take a photo and we&apos;ll estimate your readings from the pad colors — you&apos;ll get a chance to check them before saving.
+                Dip your strip, wait the usual 15 seconds, then lay it flat in good light. Hold your phone directly above it and get close enough that the strip fills most of the frame — that makes the pads much easier to line up. Take a photo and we&apos;ll estimate your readings from the pad colors — you&apos;ll get a chance to check them before saving.
               </p>
               <button
                 onClick={handleTakePhoto}
@@ -208,12 +243,12 @@ export default function ScanStrip({
           {step === 'placing' && photoDataUrl && (
             <div className="space-y-4">
               <p className="text-xs font-semibold text-text-primary">
-                Drag each pin onto the matching pad. Drag the gray pin onto a plain white/light part of the strip (for lighting correction).
+                Drag each pin onto the matching pad — a magnified view pops up above your finger while you drag so you can place it precisely. Drag the gray pin onto a plain white/light part of the strip (for lighting correction).
               </p>
               <div
                 ref={containerRef}
                 className="relative w-full rounded-xl overflow-hidden bg-black"
-                style={{ height: 360, touchAction: 'none' }}
+                style={{ height: 'min(56vh, 460px)', touchAction: 'none' }}
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
@@ -231,7 +266,11 @@ export default function ScanStrip({
                   return (
                     <div
                       key={key}
-                      onPointerDown={e => { e.preventDefault(); draggingKey.current = key }}
+                      onPointerDown={e => {
+                        e.preventDefault()
+                        draggingKey.current = key
+                        updateLoupe(e.clientX, e.clientY, pin)
+                      }}
                       style={{
                         position: 'absolute',
                         left: `${pin.x * 100}%`,
@@ -245,12 +284,32 @@ export default function ScanStrip({
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                         color: 'white', fontSize: 10, fontWeight: 700,
                         cursor: 'grab',
+                        touchAction: 'none',
                       }}
                     >
                       {label}
                     </div>
                   )
                 })}
+                {loupe && (
+                  <div
+                    style={{
+                      position: 'absolute',
+                      left: loupe.screenX,
+                      top: Math.max(55, loupe.screenY - 95),
+                      transform: 'translate(-50%, -50%)',
+                      width: 110, height: 110,
+                      borderRadius: '50%',
+                      overflow: 'hidden',
+                      border: '3px solid white',
+                      boxShadow: '0 4px 14px rgba(0,0,0,0.5)',
+                      pointerEvents: 'none',
+                      zIndex: 20,
+                    }}
+                  >
+                    <canvas ref={loupeCanvasRef} width={110} height={110} style={{ width: '100%', height: '100%' }} />
+                  </div>
+                )}
               </div>
               <div className="flex gap-3">
                 <button onClick={retake} className="flex-1 text-sm font-semibold py-3 rounded-xl text-text-muted border border-gray-200">
