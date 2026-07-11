@@ -224,10 +224,10 @@ export default function HistoryPage() {
                       <rect x="0" y={chartY(75,0,100,H)} width={W} height={chartY(55,0,100,H)-chartY(75,0,100,H)} fill="rgba(0,120,184,0.05)" rx="2"/>
                       <rect x="0" y={chartY(55,0,100,H)} width={W} height={H-chartY(55,0,100,H)} fill="rgba(29,184,105,0.07)" rx="2"/>
                       {/* Zone labels */}
-                      <text x={W-2} y="8" textAnchor="end" fontSize="7.5" fill="rgba(229,48,74,0.5)" fontWeight="600">Poor</text>
-                      <text x={W-2} y={chartY(82,0,100,H)+4} textAnchor="end" fontSize="7.5" fill="rgba(212,136,0,0.55)">Fair</text>
-                      <text x={W-2} y={chartY(83,0,100,H)-8} textAnchor="end" fontSize="7.5" fill="rgba(0,120,184,0.55)">Good</text>
-                      <text x={W-2} y={H-2} textAnchor="end" fontSize="7.5" fill="rgba(29,184,105,0.65)" fontWeight="600">Excellent</text>
+                      <text x={W-2} y="8" textAnchor="end" fontSize="8.5" fill="rgba(229,48,74,0.75)" fontWeight="700">Poor</text>
+                      <text x={W-2} y={chartY(82,0,100,H)+4} textAnchor="end" fontSize="8.5" fill="rgba(212,136,0,0.8)" fontWeight="700">Fair</text>
+                      <text x={W-2} y={chartY(83,0,100,H)-8} textAnchor="end" fontSize="8.5" fill="rgba(0,120,184,0.8)" fontWeight="700">Good</text>
+                      <text x={W-2} y={H-2} textAnchor="end" fontSize="8.5" fill="rgba(29,184,105,0.85)" fontWeight="700">Excellent</text>
                       {/* Trend line */}
                       <path
                         d={makePath(chronTests.map((t,i) => ({x: chartX(i, chronTests.length, W), y: chartY(computeScore(t.recommendations), 0, 100, H)})))}
@@ -253,9 +253,9 @@ export default function HistoryPage() {
                   )
                 })()}
                 <div className="flex justify-between mt-2">
-                  <span className="text-[9px] text-text-faint">{formatDate(chronTests[0].created_at)}</span>
-                  {chronTests.length > 2 && <span className="text-[9px] text-text-faint">{formatDate(chronTests[Math.floor(chronTests.length / 2)].created_at)}</span>}
-                  <span className="text-[9px] text-text-faint">{formatDate(chronTests[chronTests.length - 1].created_at)}</span>
+                  <span className="text-[10px] font-semibold text-text-muted">{formatDate(chronTests[0].created_at)}</span>
+                  {chronTests.length > 2 && <span className="text-[10px] font-semibold text-text-muted">{formatDate(chronTests[Math.floor(chronTests.length / 2)].created_at)}</span>}
+                  <span className="text-[10px] font-semibold text-text-muted">{formatDate(chronTests[chronTests.length - 1].created_at)}</span>
                 </div>
               </div>
 
@@ -278,10 +278,10 @@ export default function HistoryPage() {
                           <span className="text-xl font-bold" style={{fontFamily:"'Oswald',sans-serif", lineHeight:1, color: latest === undefined ? '#8AAABB' : inRange ? '#1DB869' : '#E5304A'}}>
                             {latest !== undefined ? (cfg.decimals > 0 ? latest.toFixed(cfg.decimals) : String(latest)) : '—'}
                           </span>
-                          {latest !== undefined && cfg.unit && <span className="text-[10px] text-text-faint">{cfg.unit}</span>}
+                          {latest !== undefined && cfg.unit && <span className="text-[10px] font-semibold text-text-muted">{cfg.unit}</span>}
                         </div>
                         {paramPoints.length < 2 ? (
-                          <p className="text-[10px] text-text-faint py-2">Log more tests to see trend</p>
+                          <p className="text-[11px] font-medium text-text-muted py-2">Log more tests to see trend</p>
                         ) : (
                           <svg viewBox={`0 0 ${SW} ${spH}`} width="100%" style={{overflow:'visible'}}>
                             {/* Ideal range band */}
@@ -312,7 +312,7 @@ export default function HistoryPage() {
                             })}
                           </svg>
                         )}
-                        <p className="text-[9px] text-text-faint mt-1">Ideal: {cfg.idealMin}–{cfg.idealMax}{cfg.unit ? ` ${cfg.unit}` : ''}</p>
+                        <p className="text-[10px] font-semibold text-text-muted mt-1">Ideal: {cfg.idealMin}–{cfg.idealMax}{cfg.unit ? ` ${cfg.unit}` : ''}</p>
                       </div>
                     )
                   })}
@@ -371,7 +371,7 @@ export default function HistoryPage() {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-baseline justify-between gap-2">
                           <p className="font-bold text-sm text-text-primary">{formatDate(test.created_at)}</p>
-                          <p className="text-[11px] text-text-faint shrink-0">{formatTime(test.created_at)}</p>
+                          <p className="text-[11px] font-medium text-text-muted shrink-0">{formatTime(test.created_at)}</p>
                         </div>
                         {/* Param chips */}
                         <div className="flex flex-wrap gap-1 mt-1.5">
