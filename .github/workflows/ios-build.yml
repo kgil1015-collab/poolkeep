@@ -28,11 +28,6 @@ jobs:
       - name: Sync Capacitor
         run: npx cap sync ios
 
-      - name: Install CocoaPods
-        run: |
-          cd ios/App
-          pod install --repo-update
-
       - name: Set up code signing
         env:
           CERTIFICATE_BASE64: ${{ secrets.APPLE_CERTIFICATE }}
@@ -55,7 +50,7 @@ jobs:
       - name: Archive app
         run: |
           xcodebuild \
-            -workspace ios/App/App.xcworkspace \
+            -project ios/App/App.xcodeproj \
             -scheme App \
             -configuration Release \
             -archivePath build/App.xcarchive \
