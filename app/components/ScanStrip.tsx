@@ -2,7 +2,7 @@
 
 import { useRef, useState } from 'react'
 import { Camera, CameraResultType, CameraSource } from '@capacitor/camera'
-import ImageLightbox from '@/app/components/ImageLightbox'
+import ZoomableImage from '@/app/components/ZoomableImage'
 import {
   STRIP_PARAMS,
   DEFAULT_PINS,
@@ -42,7 +42,6 @@ export default function ScanStrip({
   const [error, setError] = useState('')
   const [results, setResults] = useState<Record<StripParamKey, ResultRow> | null>(null)
   const [editingText, setEditingText] = useState<Record<StripParamKey, string> | null>(null)
-  const [lightboxOpen, setLightboxOpen] = useState(false)
 
   const imgRef = useRef<HTMLImageElement | null>(null)
 
@@ -179,14 +178,7 @@ export default function ScanStrip({
           {step === 'review' && results && (
             <div className="space-y-4">
               {photoDataUrl && (
-                <button onClick={() => setLightboxOpen(true)} className="relative w-full block">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={photoDataUrl} alt="Captured test strip" className="w-full rounded-xl object-contain bg-black" style={{ maxHeight: 150 }} />
-                  <span className="absolute bottom-2 right-2 flex items-center gap-1 text-[10px] font-semibold text-white px-2 py-1 rounded-full" style={{ background: 'rgba(0,0,0,0.55)' }}>
-                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
-                    Zoom in
-                  </span>
-                </button>
+                <ZoomableImage src={photoDataUrl} alt="Captured test strip" height={200} />
               )}
               <p className="text-xs font-semibold text-text-primary">Check each value against your strip — drag the slider to adjust anything that looks off.</p>
 
@@ -255,9 +247,6 @@ export default function ScanStrip({
           )}
         </div>
       </div>
-      {lightboxOpen && photoDataUrl && (
-        <ImageLightbox src={photoDataUrl} onClose={() => setLightboxOpen(false)} />
-      )}
     </div>
   )
 }

@@ -7,7 +7,10 @@ const MAX_SCALE = 4
 const DOUBLE_TAP_ZOOM = 2.5
 const DOUBLE_TAP_WINDOW_MS = 300
 
-export default function ImageLightbox({ src, onClose }: { src: string; onClose: () => void }) {
+// Pinch/pan/double-tap zoom for a photo that stays inline in its own fixed-
+// height box (not a full-screen overlay) — lets you inspect detail without
+// losing whatever else is on screen around it.
+export default function ZoomableImage({ src, alt, height }: { src: string; alt: string; height: number }) {
   const containerRef = useRef<HTMLDivElement | null>(null)
   const [scale, setScale] = useState(1)
   const [tx, setTx] = useState(0)
@@ -107,32 +110,32 @@ export default function ImageLightbox({ src, onClose }: { src: string; onClose: 
   }
 
   return (
-    <div className="fixed inset-0 z-[60] bg-black flex flex-col">
-      <button onClick={onClose} className="absolute top-4 right-4 z-10 w-9 h-9 rounded-full bg-white/15 flex items-center justify-center text-white">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-      </button>
-      <div
-        ref={containerRef}
-        className="flex-1 flex items-center justify-center overflow-hidden"
-        style={{ touchAction: 'none' }}
-        onPointerDown={handlePointerDown}
-        onPointerMove={handlePointerMove}
-        onPointerUp={handlePointerUp}
-        onPointerCancel={handlePointerUp}
-      >
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={src}
-          alt="Test strip, enlarged"
-          draggable={false}
-          className="max-w-full max-h-full select-none"
-          style={{
-            transform: `translate(${tx}px, ${ty}px) scale(${scale})`,
-            transition: animating ? 'transform 0.2s ease-out' : 'none',
-          }}
-        />
-      </div>
-      <p className="text-white/50 text-[11px] text-center pb-4">Pinch or double-tap to zoom</p>
+    <div
+      ref={containerRef}
+      className="relative w-full rounded-xl overflow-hidden bg-black"
+      style={{ height, touchAction: 'none' }}
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onPointerUp={handlePointerUp}
+      onPointerCancel={handlePointerUp}
+    >
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={src}
+        alt={alt}
+        draggable={false}
+        className="absolute inset-0 w-full h-full object-contain select-none"
+        style={{
+          transform: `translate(${tx}px, ${ty}px) scale(${scale})`,
+          transition: animating ? 'transform 0.2s ease-out' : 'none',
+        }}
+      />
+      {scale === 1 && (
+        <span className="absolute bottom-2 right-2 flex items-center gap-1 text-[10px] font-semibold text-white px-2 py-1 rounded-full pointer-events-none" style={{ background: 'rgba(0,0,0,0.55)' }}>
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+          Pinch to zoom
+        </span>
+      )}
     </div>
   )
 }
