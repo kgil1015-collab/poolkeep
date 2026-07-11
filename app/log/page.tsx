@@ -7,7 +7,6 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 import WaveDivider from '@/app/components/WaveDivider'
 import ScanStrip from '@/app/components/ScanStrip'
-import type { StripParamKey } from '@/lib/stripScan'
 
 const PARAMS = [
   { key: 'ph',               label: 'pH',                  unit: '',    placeholder: '7.4', min: 0,    max: 14,   step: '0.1', range: '7.2 – 7.6',      hint: '',           saltOnly: false },
@@ -144,6 +143,7 @@ export default function LogTestPage() {
   const [poolTypeKnown, setPoolTypeKnown] = useState(false) // true when DB has explicit salt/chlorine type
   const [editId, setEditId] = useState<string | null>(null)
   const [showScan, setShowScan] = useState(false)
+  const [referencePhoto, setReferencePhoto] = useState<string | null>(null)
 
   useEffect(() => {
     const supabase = createClient()
@@ -204,15 +204,8 @@ export default function LogTestPage() {
     setValues(v => ({ ...v, [key]: val }))
   }
 
-  function handleScanConfirm(scanned: Partial<Record<StripParamKey, string>>) {
-    setValues(v => {
-      const next = { ...v }
-      for (const [key, val] of Object.entries(scanned)) {
-        if (val === undefined) continue
-        next[key] = key === 'ph' ? formatPH(val) : val
-      }
-      return next
-    })
+  function handleScanConfirm(photoDataUrl: string) {
+    setReferencePhoto(photoDataUrl)
     setShowScan(false)
   }
 
@@ -319,14 +312,35 @@ export default function LogTestPage() {
       <div className="flex-1 px-4 pt-4 pb-10 bg-surface">
         {showNudge && <NudgeBanner count={testCount} />}
 
-        <button
-          onClick={() => setShowScan(true)}
-          className="w-full flex items-center justify-center gap-2 font-bold py-3.5 rounded-xl text-sm mb-4 text-white"
-          style={{ background: 'linear-gradient(90deg,#00E0B0 0%,#0078B8 100%)', boxShadow: '0 4px 16px rgba(0,120,184,0.3)' }}
-        >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
-          Scan Test Strip
-        </button>
+        {referencePhoto ? (
+          <div className="rounded-2xl overflow-hidden mb-4 border border-gray-100 shadow-sm">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={referencePhoto} alt="Your test strip" className="w-full object-contain bg-black" style={{ maxHeight: 220 }} />
+            <div className="flex">
+              <button
+                onClick={() => setShowScan(true)}
+                className="flex-1 text-xs font-semibold py-2.5 text-text-muted border-t border-gray-100"
+              >
+                Retake Photo
+              </button>
+              <button
+                onClick={() => setReferencePhoto(null)}
+                className="flex-1 text-xs font-semibold py-2.5 text-red-500 border-t border-l border-gray-100"
+              >
+                Remove Photo
+              </button>
+            </div>
+          </div>
+        ) : (
+          <button
+            onClick={() => setShowScan(true)}
+            className="w-full flex items-center justify-center gap-2 font-bold py-3.5 rounded-xl text-sm mb-4 text-white"
+            style={{ background: 'linear-gradient(90deg,#00E0B0 0%,#0078B8 100%)', boxShadow: '0 4px 16px rgba(0,120,184,0.3)' }}
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+            Photograph Test Strip
+          </button>
+        )}
 
         {showScan && <ScanStrip onConfirm={handleScanConfirm} onClose={() => setShowScan(false)} />}
 
