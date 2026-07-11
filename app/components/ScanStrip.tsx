@@ -40,6 +40,7 @@ export default function ScanStrip({
   const [photoDataUrl, setPhotoDataUrl] = useState<string | null>(null)
   const [error, setError] = useState('')
   const [results, setResults] = useState<Record<StripParamKey, ResultRow> | null>(null)
+  const [editingText, setEditingText] = useState<Record<StripParamKey, string> | null>(null)
 
   const imgRef = useRef<HTMLImageElement | null>(null)
 
@@ -94,16 +95,38 @@ export default function ScanStrip({
       next[p.key] = { value, confidence, rgb: corrected }
     }
     setResults(next)
+    setEditingText(Object.fromEntries(STRIP_PARAMS.map(p => [p.key, next[p.key].value.toFixed(p.decimals)])) as Record<StripParamKey, string>)
     setStep('review')
   }
 
+  // Slider drag — updates both the numeric value and the text box in sync
   function adjustValue(key: StripParamKey, value: number) {
+    const decimals = STRIP_PARAMS.find(p => p.key === key)?.decimals ?? 1
     setResults(prev => prev ? { ...prev, [key]: { ...prev[key], value } } : prev)
+    setEditingText(prev => prev ? { ...prev, [key]: value.toFixed(decimals) } : prev)
+  }
+
+  // Typing in the value box — let them type freely, only commit/clamp on blur
+  function handleValueTextChange(key: StripParamKey, raw: string) {
+    setEditingText(prev => prev ? { ...prev, [key]: raw } : prev)
+  }
+
+  function handleValueTextBlur(key: StripParamKey) {
+    const p = STRIP_PARAMS.find(pp => pp.key === key)
+    if (!p) return
+    setEditingText(prevText => {
+      const raw = prevText?.[key] ?? ''
+      const parsed = parseFloat(raw)
+      const clamped = isNaN(parsed) ? (results?.[key].value ?? p.min) : Math.max(p.min, Math.min(p.max, parsed))
+      setResults(prev => prev ? { ...prev, [key]: { ...prev[key], value: clamped } } : prev)
+      return prevText ? { ...prevText, [key]: clamped.toFixed(p.decimals) } : prevText
+    })
   }
 
   function retake() {
     setPhotoDataUrl(null)
     setResults(null)
+    setEditingText(null)
     setStep('intro')
   }
 
@@ -175,9 +198,18 @@ export default function ScanStrip({
                           <p className="text-xs font-bold text-text-primary">{p.label}</p>
                           <p className="text-[10px] font-semibold" style={{ color: confColor }}>{confLabel}</p>
                         </div>
-                        <p className="text-lg font-bold shrink-0" style={{ fontFamily: "'DM Mono',monospace", color: '#0078B8' }}>
-                          {row.value.toFixed(p.decimals)}<span className="text-[10px] text-text-faint font-semibold">{p.unit ? ` ${p.unit}` : ''}</span>
-                        </p>
+                        <div className="flex items-baseline gap-1 shrink-0">
+                          <input
+                            type="text"
+                            inputMode="decimal"
+                            value={editingText?.[p.key] ?? row.value.toFixed(p.decimals)}
+                            onChange={e => handleValueTextChange(p.key, e.target.value)}
+                            onBlur={() => handleValueTextBlur(p.key)}
+                            className="text-lg font-bold text-right outline-none bg-white rounded-lg px-2 py-1"
+                            style={{ fontFamily: "'DM Mono',monospace", color: '#0078B8', width: 64 }}
+                          />
+                          {p.unit && <span className="text-[10px] text-text-faint font-semibold">{p.unit}</span>}
+                        </div>
                       </div>
                       <input
                         type="range"
