@@ -2,6 +2,7 @@
 
 import { useRef, useState } from 'react'
 import { Camera, CameraResultType, CameraSource } from '@capacitor/camera'
+import ImageLightbox from '@/app/components/ImageLightbox'
 import {
   STRIP_PARAMS,
   DEFAULT_PINS,
@@ -41,6 +42,7 @@ export default function ScanStrip({
   const [error, setError] = useState('')
   const [results, setResults] = useState<Record<StripParamKey, ResultRow> | null>(null)
   const [editingText, setEditingText] = useState<Record<StripParamKey, string> | null>(null)
+  const [lightboxOpen, setLightboxOpen] = useState(false)
 
   const imgRef = useRef<HTMLImageElement | null>(null)
 
@@ -177,8 +179,14 @@ export default function ScanStrip({
           {step === 'review' && results && (
             <div className="space-y-4">
               {photoDataUrl && (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={photoDataUrl} alt="Captured test strip" className="w-full rounded-xl object-contain bg-black" style={{ maxHeight: 150 }} />
+                <button onClick={() => setLightboxOpen(true)} className="relative w-full block">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={photoDataUrl} alt="Captured test strip" className="w-full rounded-xl object-contain bg-black" style={{ maxHeight: 150 }} />
+                  <span className="absolute bottom-2 right-2 flex items-center gap-1 text-[10px] font-semibold text-white px-2 py-1 rounded-full" style={{ background: 'rgba(0,0,0,0.55)' }}>
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+                    Zoom in
+                  </span>
+                </button>
               )}
               <p className="text-xs font-semibold text-text-primary">Check each value against your strip — drag the slider to adjust anything that looks off.</p>
 
@@ -226,9 +234,9 @@ export default function ScanStrip({
                 })}
               </div>
 
-              <div className="rounded-xl px-3 py-2.5 flex items-start gap-2" style={{ background: 'rgba(245,166,35,0.08)', border: '1px solid rgba(217,119,6,0.18)' }}>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#D97706" strokeWidth="2.2" strokeLinecap="round" className="shrink-0 mt-0.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-                <p className="text-[11px] leading-snug" style={{ color: '#92600A' }}>These are estimates from a photo, not a lab reading — always compare against your strip&apos;s color chart before dosing chemicals.</p>
+              <div className="rounded-xl px-3.5 py-3 flex items-start gap-2.5" style={{ background: 'rgba(245,166,35,0.14)', border: '1.5px solid #D97706' }}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#D97706" strokeWidth="2.4" strokeLinecap="round" className="shrink-0 mt-0.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                <p className="text-xs leading-snug" style={{ color: '#7A4A00' }}><span className="font-bold">Double-check before dosing:</span> these are estimates from a photo, not a lab reading — always compare against your strip&apos;s color chart.</p>
               </div>
 
               <div className="flex gap-3">
@@ -247,6 +255,9 @@ export default function ScanStrip({
           )}
         </div>
       </div>
+      {lightboxOpen && photoDataUrl && (
+        <ImageLightbox src={photoDataUrl} onClose={() => setLightboxOpen(false)} />
+      )}
     </div>
   )
 }
