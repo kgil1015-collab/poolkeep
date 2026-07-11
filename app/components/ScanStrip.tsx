@@ -121,9 +121,12 @@ export default function ScanStrip({
         setStep('placing')
       }
     } catch (err) {
-      const message = err instanceof Error ? err.message : ''
+      const message = err instanceof Error ? err.message : String(err)
+      const code = (err as { code?: string })?.code ?? ''
       if (!/cancel/i.test(message)) {
-        setError('Could not open the camera — please try again.')
+        // TEMPORARY: showing the raw error for diagnosis — revert to a friendly
+        // message once the native camera issue is confirmed fixed.
+        setError(`Could not open the camera: ${message}${code ? ` (${code})` : ''}`)
       }
     }
   }
