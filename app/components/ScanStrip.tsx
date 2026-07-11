@@ -6,6 +6,7 @@ import ZoomableImage from '@/app/components/ZoomableImage'
 import {
   STRIP_PARAMS,
   DEFAULT_PINS,
+  CYA_STRIP_BANDS,
   whiteBalance,
   matchSwatch,
   type StripParamKey,
@@ -221,6 +222,31 @@ export default function ScanStrip({
                         className="w-full"
                         style={{ accentColor: '#0078B8' }}
                       />
+                      {p.key === 'cya' && (
+                        <div className="mt-2 pt-2 border-t border-white">
+                          <p className="text-[9px] font-bold uppercase tracking-widest mb-1.5" style={{ color: '#5A7A8A' }}>Or pick your strip&apos;s color band:</p>
+                          <div className="flex gap-1.5 flex-wrap">
+                            {CYA_STRIP_BANDS.map((band, bi) => {
+                              const isActive = Math.round(row.value) === band.midpoint
+                              return (
+                                <button
+                                  key={bi}
+                                  type="button"
+                                  onClick={() => adjustValue('cya', band.midpoint)}
+                                  className="text-[11px] font-bold px-2.5 py-1 rounded-full transition-all"
+                                  style={{
+                                    background: isActive ? '#0078B8' : 'rgba(0,120,184,0.08)',
+                                    color: isActive ? '#fff' : '#4A7A9A',
+                                    border: `1.5px solid ${isActive ? '#0078B8' : 'rgba(0,120,184,0.20)'}`,
+                                  }}
+                                >
+                                  {band.label}
+                                </button>
+                              )
+                            })}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   )
                 })}

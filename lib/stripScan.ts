@@ -29,6 +29,18 @@ export const STRIP_PARAMS: StripParamMeta[] = [
   { key: 'calcium_hardness', label: 'Water Hardness',      unit: 'ppm', decimals: 0, min: 25,  max: 1000, step: 25 },
 ]
 
+// AquaChek 7 / HTH strip CYA color bands → stored as midpoint ppm. Most
+// consumer strips only distinguish bands for CYA, not a precise number, so
+// this is offered as an alternative to typing/sliding an exact value —
+// shared between the manual entry form and the camera scan review.
+export const CYA_STRIP_BANDS = [
+  { label: '0',       midpoint: 0   },
+  { label: '0–30',    midpoint: 15  },
+  { label: '30–50',   midpoint: 40  },
+  { label: '50–100',  midpoint: 75  },
+  { label: '>100',    midpoint: 110 },
+]
+
 export type RGB = [number, number, number]
 
 interface Swatch { value: number; rgb: RGB }

@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 import WaveDivider from '@/app/components/WaveDivider'
 import ScanStrip from '@/app/components/ScanStrip'
-import type { StripParamKey } from '@/lib/stripScan'
+import { CYA_STRIP_BANDS, type StripParamKey } from '@/lib/stripScan'
 
 const PARAMS = [
   { key: 'ph',               label: 'pH',                  unit: '',    placeholder: '7.4', min: 0,    max: 14,   step: '0.1', range: '7.2 – 7.6',      hint: '',           saltOnly: false },
@@ -19,15 +19,6 @@ const PARAMS = [
 ]
 
 const FREE_LIMIT = 5
-
-// AquaChek 7 / HTH strip CYA color bands → stored as midpoint ppm
-const CYA_STRIP_BANDS = [
-  { label: '0',       midpoint: 0   },
-  { label: '0–30',    midpoint: 15  },
-  { label: '30–50',   midpoint: 40  },
-  { label: '50–100',  midpoint: 75  },
-  { label: '>100',    midpoint: 110 },
-]
 
 function NudgeBanner({ count }: { count: number }) {
   const remaining = FREE_LIMIT - count
