@@ -766,7 +766,29 @@ export default function DashboardPage() {
               ]
               const pct = (v: number, lo: number, hi: number) => Math.min(100, Math.max(0, (v - lo) / (hi - lo) * 100))
               type RStatus = 'good'|'monitor'|'action'|'unknown'
-              const getStatus = (val: number|null, gLo: number, gHi: number, wLo: number, wHi: number): RStatus => {
+              // Report cards must always agree with the status banner and treatment plan,
+              // so pull status from the same recommendations engine instead of a second
+              // set of thresholds — a numeric range here is only a fallback.
+              const recs = liveRecs ?? lastTest.recommendations
+              const PARAM_TO_REC: Record<string, string> = {
+                ph: 'ph',
+                free_chlorine: 'chlorine',
+                total_alkalinity: 'alkalinity',
+                cya: 'cya',
+                calcium_hardness: 'calcium',
+              }
+              const recStatusFor = (recParam: string): RStatus | null => {
+                if (recs.action.some(r => r.param === recParam)) return 'action'
+                if (recs.monitor.some(r => r.param === recParam)) return 'monitor'
+                if (recs.good.some(r => r.param === recParam)) return 'good'
+                if (recs.unknown.some(r => r.param === recParam)) return 'unknown'
+                return null
+              }
+              const getStatus = (val: number|null, gLo: number, gHi: number, wLo: number, wHi: number, key?: string): RStatus => {
+                if (key) {
+                  const hit = recStatusFor(PARAM_TO_REC[key])
+                  if (hit) return hit
+                }
                 if (val === null) return 'unknown'
                 if (val >= gLo && val <= gHi) return 'good'
                 if (val >= wLo && val <= wHi) return 'monitor'
@@ -793,7 +815,7 @@ export default function DashboardPage() {
                     <div style={{display:'flex',gap:6,padding:'12px 12px 6px'}}>
                       {REPORT_PARAMS.map(p => {
                         const raw = t[p.key as keyof TestResult] as number | null
-                        const status = getStatus(raw, p.goodLow, p.goodHigh, p.warnLow, p.warnHigh)
+                        const status = getStatus(raw, p.goodLow, p.goodHigh, p.warnLow, p.warnHigh, p.key)
                         const { dot } = SM[status]
                         return (
                           <div
@@ -839,7 +861,7 @@ export default function DashboardPage() {
                     {/* Detailed rows */}
                     {REPORT_PARAMS.map((p, i) => {
                       const raw = t[p.key as keyof TestResult] as number | null
-                      const status = getStatus(raw, p.goodLow, p.goodHigh, p.warnLow, p.warnHigh)
+                      const status = getStatus(raw, p.goodLow, p.goodHigh, p.warnLow, p.warnHigh, p.key)
                       const { dot, badge, badgeBg } = SM[status]
                       const scalePct   = (v: number) => p.scaleFn ? p.scaleFn(v) : pct(v, p.displayMin, p.displayMax)
                       const goodLoPct  = scalePct(p.goodLow)
@@ -933,7 +955,7 @@ export default function DashboardPage() {
                   const WHEN_LABELS: Record<string, { label: string; sublabel: string; color: string; bg: string }> = {
                     'today':       { label: 'Do Today',     sublabel: 'Start here',              color: '#DC2626', bg: 'rgba(220,38,38,0.07)' },
                     'in-1-2-days': { label: 'In 1–2 Days',  sublabel: 'After first steps settle', color: '#D97706', bg: 'rgba(217,119,6,0.07)'  },
-                    'this-week':   { label: 'This Week',    sublabel: 'Once priority steps done', color: '#0078B8', bg: 'rgba(0,120,184,0.06)'  },
+                    'this-week':   { label: 'This Week',    sublabel: 'In 3–7 days',              color: '#0078B8', bg: 'rgba(0,120,184,0.06)'  },
                     'plan-ahead':  { label: 'Plan Ahead',   sublabel: 'Not urgent — schedule it', color: '#64748B', bg: 'rgba(100,116,139,0.06)' },
                   }
                   const groups = WHEN_ORDER.map(w => ({
@@ -953,7 +975,7 @@ export default function DashboardPage() {
                               <span className="text-xs font-bold uppercase tracking-widest" style={{color: group.meta.color}}>{group.meta.label}</span>
                               {group.when === 'today'
                                 ? <span className="text-[11px] font-bold ml-2" style={{color: group.meta.color}}>↓ Start here</span>
-                                : <span className="text-[10px] text-text-faint ml-2">{group.meta.sublabel}</span>
+                                : <span className="text-[11px] font-semibold ml-2" style={{color:'#5A7A8A'}}>{group.meta.sublabel}</span>
                               }
                             </div>
                             {gi < groups.length - 1 && <div className="h-px flex-1 bg-gray-100" />}
@@ -1164,11 +1186,11 @@ export default function DashboardPage() {
 
                                 {/* Inter-step wait connector */}
                                 {si < group.steps.length - 1 && step.waitAfter && (
-                                  <div className="flex items-center gap-2.5 px-3 py-2.5 mb-3 rounded-xl" style={{background:'rgba(0,120,184,0.05)', border:'1px dashed rgba(0,120,184,0.18)'}}>
-                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#0078B8" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
+                                  <div className="flex items-center gap-2.5 px-3 py-2.5 mb-3 rounded-xl" style={{background:'linear-gradient(160deg,#EAF5FF 0%,#F4FAFF 100%)', border:'1.5px solid #0078B8', boxShadow:'0 2px 8px rgba(0,120,184,0.18)'}}>
+                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#0078B8" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
                                       <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
                                     </svg>
-                                    <p className="text-[11px] font-medium leading-snug" style={{color:'#3A6A8A'}}>
+                                    <p className="text-[11px] font-bold leading-snug" style={{color:'#0B4A70'}}>
                                       {step.waitAfter}
                                     </p>
                                   </div>
