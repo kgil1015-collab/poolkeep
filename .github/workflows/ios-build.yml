@@ -56,6 +56,8 @@ jobs:
             -archivePath build/App.xcarchive \
             archive \
             CODE_SIGN_STYLE=Manual \
+            CODE_SIGN_IDENTITY="Apple Distribution" \
+            PROVISIONING_PROFILE_SPECIFIER="PoolKeep App Store" \
             DEVELOPMENT_TEAM=${{ secrets.APPLE_TEAM_ID }}
 
       - name: Export IPA
