@@ -69,3 +69,11 @@ jobs:
           name: PoolKeep-iOS
           path: build/output/*.ipa
           retention-days: 7
+
+      - name: Upload to TestFlight
+        uses: apple-actions/upload-testflight-build@v4
+        with:
+          app-path: build/output/*.ipa
+          issuer-id: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+          api-key-id: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          api-private-key: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
