@@ -6,7 +6,8 @@ import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 import WaveDivider from '@/app/components/WaveDivider'
-import ScanStrip, { type ScanParamKey } from '@/app/components/ScanStrip'
+import ScanStrip from '@/app/components/ScanStrip'
+import type { StripParamKey } from '@/lib/stripScan'
 
 const PARAMS = [
   { key: 'ph',               label: 'pH',                  unit: '',    placeholder: '7.4', min: 0,    max: 14,   step: '0.1', range: '7.2 – 7.6',      hint: '',           saltOnly: false },
@@ -203,7 +204,7 @@ export default function LogTestPage() {
     setValues(v => ({ ...v, [key]: val }))
   }
 
-  function handleScanConfirm(scanned: Partial<Record<ScanParamKey, string>>) {
+  function handleScanConfirm(scanned: Partial<Record<StripParamKey, string>>) {
     setValues(v => {
       const next = { ...v }
       for (const [key, val] of Object.entries(scanned)) {
