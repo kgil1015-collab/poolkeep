@@ -781,10 +781,14 @@ export default function DashboardPage() {
                 if (val >= wLo && val <= wHi) return 'monitor'
                 return 'action'
               }
+              // Blue reads as "good" for a pool app (clear water), so it's reserved for
+              // in-range values. Monitor gets amber (the universal "keep an eye on it"
+              // caution color) and out-of-range gets red — keeps all three visually
+              // distinct instead of blue/teal competing for the same "fine" meaning.
               const SM: Record<RStatus,{dot:string;badge:string;badgeBg:string}> = {
-                good:    { dot:'#00CCA3', badge:'In Range',    badgeBg:'rgba(0,204,163,0.18)'   },
-                monitor: { dot:'#5BC8F5', badge:'Monitor',     badgeBg:'rgba(91,200,245,0.18)'  },
-                action:  { dot:'#F0A500', badge:'Out of Range',badgeBg:'rgba(240,165,0,0.18)'   },
+                good:    { dot:'#00A8F0', badge:'In Range',    badgeBg:'rgba(0,168,240,0.18)'   },
+                monitor: { dot:'#F5A623', badge:'Monitor',     badgeBg:'rgba(245,166,35,0.18)'  },
+                action:  { dot:'#E5304A', badge:'Out of Range',badgeBg:'rgba(229,48,74,0.18)'   },
                 unknown: { dot:'#8AAABB', badge:'Not Tested',  badgeBg:'rgba(138,170,187,0.12)' },
               }
               return (
@@ -832,15 +836,15 @@ export default function DashboardPage() {
                         <span style={{fontSize:9,color:'rgba(255,255,255,0.45)',fontWeight:600}}>ideal</span>
                       </div>
                       <div style={{display:'flex',alignItems:'center',gap:4}}>
-                        <div style={{width:12,height:12,borderRadius:'50%',background:'#fff',border:'2.5px solid #00CCA3'}} />
+                        <div style={{width:12,height:12,borderRadius:'50%',background:'#fff',border:'2.5px solid #00A8F0'}} />
                         <span style={{fontSize:9,color:'rgba(255,255,255,0.45)',fontWeight:600}}>in range</span>
                       </div>
                       <div style={{display:'flex',alignItems:'center',gap:4}}>
-                        <div style={{width:12,height:12,borderRadius:'50%',background:'#fff',border:'2.5px solid #5BC8F5'}} />
+                        <div style={{width:12,height:12,borderRadius:'50%',background:'#fff',border:'2.5px solid #F5A623'}} />
                         <span style={{fontSize:9,color:'rgba(255,255,255,0.45)',fontWeight:600}}>monitor</span>
                       </div>
                       <div style={{display:'flex',alignItems:'center',gap:4}}>
-                        <div style={{width:12,height:12,borderRadius:'50%',background:'#fff',border:'2.5px solid #F0A500'}} />
+                        <div style={{width:12,height:12,borderRadius:'50%',background:'#fff',border:'2.5px solid #E5304A'}} />
                         <span style={{fontSize:9,color:'rgba(255,255,255,0.45)',fontWeight:600}}>out of range</span>
                       </div>
                     </div>
