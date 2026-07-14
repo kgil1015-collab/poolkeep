@@ -154,17 +154,30 @@ function getWelcome(firstName: string, lastTest: TestResult | null) {
     }
   }
   if (daysSince === 1) {
-    const hasActions = lastTest.recommendations.action.filter(r => r.param !== 'calcium').length > 0
+    const hasActions   = lastTest.recommendations.action.filter(r => r.param !== 'calcium').length > 0
+    const monitorCount = lastTest.recommendations.monitor.filter(r => r.param !== 'calcium').length
     if (hasActions) return {
       salutation: `${timeGreeting}, ${firstName}!`,
       headline: "Your pool still needs attention",
       subline: "Yesterday's test flagged some items — work through the treatment plan to get back on track.",
       urgency: 1,
     }
+    if (monitorCount >= 2) return {
+      salutation: `${timeGreeting}, ${firstName}!`,
+      headline: 'A few things to keep an eye on',
+      subline: `${monitorCount} parameters are slightly off — nothing urgent, but worth monitoring this week.`,
+      urgency: 0,
+    }
+    if (monitorCount === 1) return {
+      salutation: `${timeGreeting}, ${firstName}!`,
+      headline: 'Pool looking good',
+      subline: 'One parameter to watch — see the water report below.',
+      urgency: 0,
+    }
     return {
       salutation: `${timeGreeting}, ${firstName}!`,
-      headline: 'Nothing to do today',
-      subline: 'Tested yesterday — your pool is stable. See you in a day or two 👋',
+      headline: 'Pool is looking great',
+      subline: 'All parameters in range — keep up the great work.',
       urgency: 0,
     }
   }
@@ -553,34 +566,6 @@ export default function DashboardPage() {
         </div>
 
       </div>
-
-      {/* Status banner */}
-      {lastTest && (() => {
-        const recs = liveRecs ?? lastTest.recommendations
-        const actionCount = recs.action.filter(r => r.param !== 'calcium').length
-        const monitorCount = recs.monitor.filter(r => r.param !== 'calcium').length
-
-        const testDate = new Date(lastTest.created_at)
-        const testDay = new Date(testDate.getFullYear(), testDate.getMonth(), testDate.getDate())
-        const todayDay = new Date(); todayDay.setHours(0,0,0,0)
-        const daysSince = Math.round((todayDay.getTime() - testDay.getTime()) / 86400000)
-
-        if (actionCount > 0 && daysSince < 2) return (
-          <div style={{background:'#B84018',padding:'8px 20px',display:'flex',alignItems:'center',gap:8}}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-            <span style={{color:'#fff',fontSize:12,fontWeight:600}}>Action needed — {actionCount} parameter{actionCount>1?'s':''} out of range</span>
-          </div>
-        )
-        if (actionCount > 0) return null
-        return (
-          <div style={{position:'relative',zIndex:2,margin:'-14px 20px 0',background:'linear-gradient(160deg,#EAF5FF 0%,#F4FAFF 100%)',borderRadius:16,padding:'12px 16px',display:'flex',alignItems:'center',gap:10,boxShadow:'0 10px 24px -12px rgba(0,61,92,0.28)',border:'1.5px solid #B0D8F0'}}>
-            <div style={{width:26,height:26,borderRadius:'50%',background:'#0078B8',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-            </div>
-            <span style={{color:'#0B4A70',fontSize:12,fontWeight:700}}>Pool is looking great — all parameters in range</span>
-          </div>
-        )
-      })()}
 
       {/* Wave transition */}
       <WaveDivider />
