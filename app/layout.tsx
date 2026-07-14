@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next'
 import './globals.css'
 import InstallPrompt from './components/InstallPrompt'
 import ServiceWorkerRegistration from './components/ServiceWorkerRegistration'
+import ForceRefreshOnResume from './components/ForceRefreshOnResume'
 
 export const metadata: Metadata = {
   title: 'PoolKeep — Smart Pool Maintenance',
@@ -29,6 +30,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         {children}
         <ServiceWorkerRegistration />
+        <ForceRefreshOnResume />
         <InstallPrompt />
       </body>
     </html>
