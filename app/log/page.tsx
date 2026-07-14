@@ -200,30 +200,38 @@ export default function LogTestPage() {
       const next = { ...v }
       for (const [key, val] of Object.entries(scanned)) {
         if (val === undefined) continue
-        next[key] = key === 'ph' ? formatPH(val) : val
+        next[key] = formatEntry(key, val)
       }
       return next
     })
     setShowScan(false)
   }
 
-  // Smart pH formatter: lets users skip the decimal point
-  // "7" → "7.0", "78" → "7.8", "74" → "7.4", "7.4" → "7.4"
-  function formatPH(raw: string): string {
+  // Smart decimal formatter for one-decimal-place fields (pH, free chlorine):
+  // lets users skip the decimal point. "7" → "7.0", "78" → "7.8" (pH, max 14),
+  // "25" → "2.5" (chlorine, max 20) — only reinterprets a two-digit whole
+  // number as X.Y when the plain whole number would be out of range.
+  function formatDecimalEntry(raw: string, max: number): string {
     const trimmed = raw.trim()
     if (trimmed === '') return trimmed
     // Already has a decimal — leave it alone
     if (trimmed.includes('.')) return trimmed
     const num = parseFloat(trimmed)
     if (isNaN(num)) return trimmed
-    // Two-digit whole number where inserting a decimal makes a valid pH (e.g. 78 → 7.8)
-    if (trimmed.length === 2 && num > 14) {
+    // Two-digit whole number where inserting a decimal makes a valid reading
+    if (trimmed.length === 2 && num > max) {
       const formatted = trimmed[0] + '.' + trimmed[1]
       const parsed = parseFloat(formatted)
-      if (parsed >= 0 && parsed <= 14) return formatted
+      if (parsed >= 0 && parsed <= max) return formatted
     }
     // Single digit or already valid — return as decimal
     return num.toFixed(1)
+  }
+  const DECIMAL_FIELDS = new Set(['ph', 'free_chlorine'])
+  function formatEntry(key: string, raw: string): string {
+    if (!DECIMAL_FIELDS.has(key)) return raw
+    const max = PARAMS.find(p => p.key === key)?.max ?? Infinity
+    return formatDecimalEntry(raw, max)
   }
 
   async function handleSubmit() {
@@ -402,10 +410,7 @@ export default function LogTestPage() {
                       inputMode="decimal"
                       value={val}
                       onChange={e => set(p.key, e.target.value)}
-                      onBlur={e => {
-                        const formatted = p.key === 'ph' ? formatPH(e.target.value) : e.target.value
-                        set(p.key, formatted)
-                      }}
+                      onBlur={e => set(p.key, formatEntry(p.key, e.target.value))}
                       placeholder={p.placeholder}
                       autoComplete="off"
                       autoCorrect="off"
