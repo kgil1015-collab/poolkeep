@@ -573,9 +573,11 @@ export default function DashboardPage() {
         )
         if (actionCount > 0) return null
         return (
-          <div style={{background:'#083D1E',padding:'8px 20px',display:'flex',alignItems:'center',gap:8}}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1DB869" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-            <span style={{color:'#1DB869',fontSize:12,fontWeight:600}}>Pool is looking great — all parameters in range</span>
+          <div style={{position:'relative',zIndex:2,margin:'-14px 20px 0',background:'#fff',borderRadius:16,padding:'12px 16px',display:'flex',alignItems:'center',gap:10,boxShadow:'0 10px 24px -12px rgba(0,61,92,0.28)',border:'1px solid rgba(0,120,184,0.12)'}}>
+            <div style={{width:26,height:26,borderRadius:'50%',background:'rgba(0,120,184,0.10)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0078B8" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <span style={{color:'#0D2333',fontSize:12,fontWeight:600}}>Pool is looking great — all parameters in range</span>
           </div>
         )
       })()}
