@@ -258,7 +258,9 @@ export default function LogTestPage() {
     const res = await fetch('/api/log', {
       method: editId ? 'PATCH' : 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id: editId, testInput, poolId: pool.id, volumeGallons: pool.volume_gallons }),
+      // Captured once at logging time so this test's displayed time never shifts
+      // later just because you're viewing it from a different timezone.
+      body: JSON.stringify({ id: editId, testInput, poolId: pool.id, volumeGallons: pool.volume_gallons, timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone }),
     })
 
     setLoading(false)

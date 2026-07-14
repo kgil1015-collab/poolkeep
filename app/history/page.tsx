@@ -10,6 +10,7 @@ import WaveDivider from '@/app/components/WaveDivider'
 type TestResult = {
   id: string
   created_at: string
+  logged_timezone: string | null
   health_score: number
   ph: number | null
   free_chlorine: number | null
@@ -25,18 +26,23 @@ type TestResult = {
   }
 }
 
-function formatDate(iso: string) {
+// timeZone pins the display to wherever the test was actually logged, so it
+// never shifts later just because you're viewing it from somewhere else.
+function formatDate(iso: string, timeZone?: string | null) {
   const d = new Date(iso)
   const now = new Date()
-  const diffDays = Math.floor((now.getTime() - d.getTime()) / 86400000)
+  const tzOpt = timeZone ? { timeZone } : undefined
+  const dDayStr = d.toLocaleDateString('en-CA', tzOpt)
+  const nowDayStr = now.toLocaleDateString('en-CA', tzOpt)
+  const diffDays = Math.round((Date.parse(nowDayStr) - Date.parse(dDayStr)) / 86400000)
   if (diffDays === 0) return 'Today'
   if (diffDays === 1) return 'Yesterday'
   if (diffDays < 7) return `${diffDays} days ago`
-  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: d.getFullYear() !== now.getFullYear() ? 'numeric' : undefined })
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: d.getFullYear() !== now.getFullYear() ? 'numeric' : undefined, ...tzOpt })
 }
 
-function formatTime(iso: string) {
-  return new Date(iso).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
+function formatTime(iso: string, timeZone?: string | null) {
+  return new Date(iso).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', ...(timeZone ? { timeZone } : {}) })
 }
 
 function scoreColor(score: number) {
@@ -121,7 +127,7 @@ export default function HistoryPage() {
       setPool(activePool)
       const { data: results } = await supabase
         .from('test_results')
-        .select('id,created_at,health_score,ph,free_chlorine,total_alkalinity,cya,calcium_hardness,salt,recommendations')
+        .select('id,created_at,logged_timezone,health_score,ph,free_chlorine,total_alkalinity,cya,calcium_hardness,salt,recommendations')
         .eq('pool_id', activePool.id)
         .order('created_at', { ascending: false })
         .limit(pro ? 200 : 10)
@@ -253,9 +259,9 @@ export default function HistoryPage() {
                   )
                 })()}
                 <div className="flex justify-between mt-2">
-                  <span className="text-[10px] font-semibold text-text-muted">{formatDate(chronTests[0].created_at)}</span>
-                  {chronTests.length > 2 && <span className="text-[10px] font-semibold text-text-muted">{formatDate(chronTests[Math.floor(chronTests.length / 2)].created_at)}</span>}
-                  <span className="text-[10px] font-semibold text-text-muted">{formatDate(chronTests[chronTests.length - 1].created_at)}</span>
+                  <span className="text-[10px] font-semibold text-text-muted">{formatDate(chronTests[0].created_at, chronTests[0].logged_timezone)}</span>
+                  {chronTests.length > 2 && <span className="text-[10px] font-semibold text-text-muted">{formatDate(chronTests[Math.floor(chronTests.length / 2)].created_at, chronTests[Math.floor(chronTests.length / 2)].logged_timezone)}</span>}
+                  <span className="text-[10px] font-semibold text-text-muted">{formatDate(chronTests[chronTests.length - 1].created_at, chronTests[chronTests.length - 1].logged_timezone)}</span>
                 </div>
               </div>
 
@@ -370,8 +376,8 @@ export default function HistoryPage() {
 
                       <div className="flex-1 min-w-0">
                         <div className="flex items-baseline justify-between gap-2">
-                          <p className="font-bold text-sm text-text-primary">{formatDate(test.created_at)}</p>
-                          <p className="text-[11px] font-medium text-text-muted shrink-0">{formatTime(test.created_at)}</p>
+                          <p className="font-bold text-sm text-text-primary">{formatDate(test.created_at, test.logged_timezone)}</p>
+                          <p className="text-[11px] font-medium text-text-muted shrink-0">{formatTime(test.created_at, test.logged_timezone)}</p>
                         </div>
                         {/* Param chips */}
                         <div className="flex flex-wrap gap-1 mt-1.5">

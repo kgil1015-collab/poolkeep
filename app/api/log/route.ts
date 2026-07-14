@@ -18,7 +18,7 @@ export async function POST(req: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Not logged in' }, { status: 401 })
 
-  const { testInput, poolId, volumeGallons } = await req.json()
+  const { testInput, poolId, volumeGallons, timeZone } = await req.json()
 
   console.log('[/api/log] user:', user.id, 'poolId:', poolId, 'volumeGallons:', volumeGallons)
   console.log('[/api/log] testInput:', JSON.stringify(testInput))
@@ -44,6 +44,7 @@ export async function POST(req: NextRequest) {
     ...testInput,
     health_score: result.health_score,
     recommendations: result,
+    logged_timezone: typeof timeZone === 'string' ? timeZone : null,
   })
 
   if (error) {

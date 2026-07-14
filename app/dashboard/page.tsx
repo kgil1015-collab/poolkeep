@@ -20,6 +20,7 @@ type TestResult = {
   edit_count: number
   health_score: number
   created_at: string
+  logged_timezone: string | null
   ph: number | null
   free_chlorine: number | null
   total_alkalinity: number | null
@@ -36,19 +37,24 @@ type TestResult = {
   }
 }
 
-function timeAgo(iso: string) {
+// timeZone pins the display to wherever the test was actually logged, so it
+// never shifts later just because you're viewing it from somewhere else.
+// Falls back to the device's current zone for older rows logged before this
+// was captured.
+function timeAgo(iso: string, timeZone?: string | null) {
   const d = new Date(iso)
   const now = new Date()
   const diffMin = Math.floor((now.getTime() - d.getTime()) / 60000)
-  const timeStr = d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
+  const tzOpt = timeZone ? { timeZone } : undefined
+  const timeStr = d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', ...tzOpt })
   if (diffMin < 60) return `${diffMin}m ago`
-  // Compare local calendar dates, not elapsed hours
-  const dDay   = new Date(d.getFullYear(),   d.getMonth(),   d.getDate())
-  const nowDay = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-  const calDiff = Math.round((nowDay.getTime() - dDay.getTime()) / 86400000)
+  // Compare calendar dates in the logged timezone, not elapsed hours
+  const dDayStr   = d.toLocaleDateString('en-CA', tzOpt)
+  const nowDayStr = now.toLocaleDateString('en-CA', tzOpt)
+  const calDiff = Math.round((Date.parse(nowDayStr) - Date.parse(dDayStr)) / 86400000)
   if (calDiff === 0) return `Today at ${timeStr}`
   if (calDiff === 1) return `Yesterday at ${timeStr}`
-  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ` at ${timeStr}`
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', ...tzOpt }) + ` at ${timeStr}`
 }
 
 function scoreLabel(score: number) {
@@ -89,12 +95,12 @@ function getWelcome(firstName: string, lastTest: TestResult | null) {
 
   const testDate   = new Date(lastTest.created_at)
   const hoursSince = Math.floor((Date.now() - testDate.getTime()) / 3600000)
-  // Use local calendar days, not elapsed hours, so a test at 11pm last night
-  // correctly shows as "yesterday" the next morning
-  const now2       = new Date()
-  const testDay    = new Date(testDate.getFullYear(), testDate.getMonth(), testDate.getDate())
-  const todayDay   = new Date(now2.getFullYear(),     now2.getMonth(),     now2.getDate())
-  const daysSince  = Math.round((todayDay.getTime() - testDay.getTime()) / 86400000)
+  // Use calendar days in the timezone the test was actually logged in (not
+  // elapsed hours, and not wherever the device viewing this happens to be
+  // now), so a test at 11pm last night correctly shows as "yesterday" the
+  // next morning regardless of travel in between.
+  const tzOpt      = lastTest.logged_timezone ? { timeZone: lastTest.logged_timezone } : undefined
+  const daysSince  = Math.round((Date.parse(new Date().toLocaleDateString('en-CA', tzOpt)) - Date.parse(testDate.toLocaleDateString('en-CA', tzOpt))) / 86400000)
 
   if (hoursSince < 6) {
     const hasActions   = lastTest.recommendations.action.filter(r => r.param !== 'calcium').length > 0
@@ -269,7 +275,7 @@ export default function DashboardPage() {
       localStorage.setItem('poolkeep_active_pool', active.id)
       setPool(active)
       setRemindDays(active.remind_after_days ?? null)
-      const { data: tests } = await supabase.from('test_results').select('id,edit_count,health_score,recommendations,created_at,ph,free_chlorine,total_alkalinity,cya,calcium_hardness,salt').eq('pool_id', active.id).order('created_at', { ascending: false }).limit(1)
+      const { data: tests } = await supabase.from('test_results').select('id,edit_count,health_score,recommendations,created_at,logged_timezone,ph,free_chlorine,total_alkalinity,cya,calcium_hardness,salt').eq('pool_id', active.id).order('created_at', { ascending: false }).limit(1)
       if (tests && tests.length > 0) setLastTest(tests[0])
       setLoading(false)
     })
@@ -333,7 +339,7 @@ export default function DashboardPage() {
     const supabase = createClient()
     const { data: tests } = await supabase
       .from('test_results')
-      .select('id,edit_count,health_score,recommendations,created_at,ph,free_chlorine,total_alkalinity,cya,calcium_hardness,salt')
+      .select('id,edit_count,health_score,recommendations,created_at,logged_timezone,ph,free_chlorine,total_alkalinity,cya,calcium_hardness,salt')
       .eq('pool_id', p.id)
       .order('created_at', { ascending: false })
       .limit(1)
@@ -514,7 +520,7 @@ export default function DashboardPage() {
           >
             <div className="w-1.5 h-1.5 rounded-full bg-teal shrink-0" />
             <span className="text-white/80 text-xs font-medium">
-              {pool?.name ?? 'My Pool'} · {lastTest ? `Last tested ${timeAgo(lastTest.created_at)}` : 'No tests yet'}
+              {pool?.name ?? 'My Pool'} · {lastTest ? `Last tested ${timeAgo(lastTest.created_at, lastTest.logged_timezone)}` : 'No tests yet'}
             </span>
             {allPools.length > 1 && (
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.6)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -797,7 +803,7 @@ export default function DashboardPage() {
                   <div style={{display:'flex',alignItems:'center',marginBottom:10}}>
                     <p style={{fontSize:18,fontWeight:800,color:'#0B1E35',letterSpacing:'-.02em',fontFamily:"'Oswald',sans-serif",textTransform:'uppercase'}}>Water Report</p>
                     <div style={{flex:1}} />
-                    <p style={{fontSize:11,fontWeight:600,color:'#5A7A8A'}}>{new Date(t.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric'})}</p>
+                    <p style={{fontSize:11,fontWeight:600,color:'#5A7A8A'}}>{new Date(t.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric', ...(t.logged_timezone ? {timeZone:t.logged_timezone} : {})})}</p>
                   </div>
 
                   {/* Dark navy panel */}
