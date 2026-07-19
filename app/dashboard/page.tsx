@@ -102,90 +102,15 @@ function getWelcome(firstName: string, lastTest: TestResult | null) {
   const tzOpt      = lastTest.logged_timezone ? { timeZone: lastTest.logged_timezone } : undefined
   const daysSince  = Math.round((Date.parse(new Date().toLocaleDateString('en-CA', tzOpt)) - Date.parse(testDate.toLocaleDateString('en-CA', tzOpt))) / 86400000)
 
-  if (hoursSince < 6) {
-    const hasActions   = lastTest.recommendations.action.filter(r => r.param !== 'calcium').length > 0
-    const monitorCount = lastTest.recommendations.monitor.filter(r => r.param !== 'calcium').length
-    if (hasActions) return {
-      salutation: `${timeGreeting}, ${firstName}!`,
-      headline: 'Test logged — action needed',
-      subline: 'Check the treatment plan below and work through the steps.',
-      urgency: 1,
-    }
-    if (monitorCount >= 2) return {
-      salutation: `${timeGreeting}, ${firstName}!`,
-      headline: 'Test logged — a few things to watch',
-      subline: 'See the water report and weekly plan below.',
-      urgency: 0,
-    }
-    if (monitorCount === 1) return {
-      salutation: `${timeGreeting}, ${firstName}!`,
-      headline: 'Fresh test logged ✓',
-      subline: 'One parameter to keep an eye on — see the water report below.',
-      urgency: 0,
-    }
-    return {
-      salutation: `${timeGreeting}, ${firstName}!`,
-      headline: 'Fresh test logged ✓',
-      subline: 'Your pool is all set — check back in a day or two.',
-      urgency: 0,
-    }
-  }
-  if (daysSince === 0) {
-    // Exclude calcium — it's shown in the Water Report only, not in action cards
-    const hasActions   = lastTest.recommendations.action.filter(r => r.param !== 'calcium').length > 0
-    const monitorCount = lastTest.recommendations.monitor.filter(r => r.param !== 'calcium').length
-    if (hasActions) return {
-      salutation: `${timeGreeting}, ${firstName}!`,
-      headline: 'Pool needs attention today',
-      subline: 'Your latest test flagged some items — check the treatment plan below.',
-      urgency: 1,
-    }
-    if (monitorCount >= 2) return {
-      salutation: `${timeGreeting}, ${firstName}!`,
-      headline: 'A few things to keep an eye on',
-      subline: `${monitorCount} parameters are slightly off — nothing urgent, but worth monitoring this week.`,
-      urgency: 0,
-    }
-    if (monitorCount === 1) return {
-      salutation: `${timeGreeting}, ${firstName}!`,
-      headline: 'Pool looking good',
-      subline: 'One parameter to watch — see the water report below.',
-      urgency: 0,
-    }
-    return {
-      salutation: `${timeGreeting}, ${firstName}!`,
-      headline: 'Pool looking great',
-      subline: 'Tested today — everything in range. Keep up the great work.',
-      urgency: 0,
-    }
-  }
-  if (daysSince === 1) {
-    const hasActions   = lastTest.recommendations.action.filter(r => r.param !== 'calcium').length > 0
-    const monitorCount = lastTest.recommendations.monitor.filter(r => r.param !== 'calcium').length
-    if (hasActions) return {
-      salutation: `${timeGreeting}, ${firstName}!`,
-      headline: "Your pool still needs attention",
-      subline: "Yesterday's test flagged some items — work through the treatment plan to get back on track.",
-      urgency: 1,
-    }
-    if (monitorCount >= 2) return {
-      salutation: `${timeGreeting}, ${firstName}!`,
-      headline: 'A few things to keep an eye on',
-      subline: `${monitorCount} parameters are slightly off — nothing urgent, but worth monitoring this week.`,
-      urgency: 0,
-    }
-    if (monitorCount === 1) return {
-      salutation: `${timeGreeting}, ${firstName}!`,
-      headline: 'Pool looking good',
-      subline: 'One parameter to watch — see the water report below.',
-      urgency: 0,
-    }
-    return {
-      salutation: `${timeGreeting}, ${firstName}!`,
-      headline: 'Pool is looking great',
-      subline: 'All parameters in range — keep up the great work.',
-      urgency: 0,
-    }
+  // The Water Report and Treatment Plan below are the source of truth for
+  // status — a headline/subline here duplicated that judgment from separate
+  // counts and could disagree with what's actually shown (e.g. "nothing
+  // urgent" next to a red "Do Today" treatment step). Just greet.
+  if (hoursSince < 6 || daysSince === 0 || daysSince === 1) return {
+    salutation: `${timeGreeting}, ${firstName}!`,
+    headline: undefined,
+    subline: undefined,
+    urgency: 0,
   }
   if (daysSince <= 3) return {
     salutation: `Hey ${firstName}, welcome back!`,
@@ -491,8 +416,12 @@ export default function DashboardPage() {
 
               {/* Status text */}
               <div className="flex-1 min-w-0">
-                <p className="text-white/90 font-bold leading-tight" style={{fontSize:18}}>{welcome.headline}</p>
-                <p className="text-white/55 leading-snug mt-1 line-clamp-2" style={{fontSize:13}}>{welcome.subline}</p>
+                {welcome.headline && (
+                  <p className="text-white/90 font-bold leading-tight" style={{fontSize:18}}>{welcome.headline}</p>
+                )}
+                {welcome.subline && (
+                  <p className="text-white/55 leading-snug mt-1 line-clamp-2" style={{fontSize:13}}>{welcome.subline}</p>
+                )}
                 {unknownCount > 0 && score !== null && (() => {
                   if (!lastTest) return null
                   const td = new Date(lastTest.created_at)
