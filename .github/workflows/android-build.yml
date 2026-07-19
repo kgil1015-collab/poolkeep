@@ -31,6 +31,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Create placeholder web asset dir
+        run: mkdir -p out && echo '<!doctype html><title>PoolKeep</title>' > out/index.html
+
       - name: Sync Capacitor
         run: npx cap sync android
 
