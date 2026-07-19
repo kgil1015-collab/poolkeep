@@ -362,85 +362,6 @@ export default function DashboardPage() {
 
         <p className="text-white/70 mb-2" style={{fontSize:14}}>{welcome.salutation}</p>
 
-        {/* Compact score row */}
-        {(() => {
-          const score = lastTest ? computeScore((liveRecs ?? lastTest.recommendations)) : null
-          const unknownCount = lastTest
-            ? (liveRecs ?? lastTest.recommendations).unknown.filter(u => u.param !== 'salt').length
-            : 0
-          const testedCount = 5 - unknownCount
-          const { color } = statusAccent(score)
-
-          const fillH = score !== null ? Math.round(68 * displayScore / 100) : 0
-          const offsetY = 68 - fillH
-          const excellent = score !== null && score >= 90
-          const waterDeep = excellent ? 'rgba(0,90,160,0.55)' : 'rgba(0,80,150,0.50)'
-          const waveFront = excellent ? 'rgba(0,190,255,0.75)' : 'rgba(0,168,240,0.72)'
-          const waveBack  = excellent ? 'rgba(0,150,220,0.45)' : 'rgba(0,140,210,0.42)'
-
-          return (
-            <div className="flex items-center gap-3 pt-1 mb-3">
-              {/* Water-fill score circle */}
-              <div className="relative flex items-center justify-center shrink-0" style={{width:84,height:84}}>
-                <svg width="84" height="84" viewBox="0 0 84 84" style={{position:'absolute',top:0,left:0}}>
-                  <defs>
-                    <clipPath id="smCircleClip"><circle cx="42" cy="42" r="34"/></clipPath>
-                  </defs>
-                  <circle cx="42" cy="42" r="39" fill="none" stroke="rgba(0,160,230,0.15)" strokeWidth="6"/>
-                  <circle cx="42" cy="42" r="35" fill="rgba(0,20,45,0.9)" stroke="rgba(0,170,240,0.55)" strokeWidth="2.5"/>
-                  {score !== null && (
-                    <g clipPath="url(#smCircleClip)">
-                      <rect x="8" y="8" width="68" height="68" fill={waterDeep}
-                        style={{transform:`translateY(${offsetY}px)`,transition:'transform 1.5s cubic-bezier(0.4,0,0.2,1)'}}
-                      />
-                      <g style={{transform:`translateY(${offsetY}px)`,transition:'transform 1.5s cubic-bezier(0.4,0,0.2,1)'}}>
-                        <path d="M-50,8 Q-35,3 -20,8 Q-5,13 10,8 Q25,3 40,8 Q55,13 70,8 Q85,3 100,8 Q115,13 130,8 L130,16 L-50,16 Z"
-                          fill={waveFront} style={{animation:'waveSurface 3s linear infinite'}}/>
-                      </g>
-                      <g style={{transform:`translateY(${offsetY+3}px)`,transition:'transform 1.5s cubic-bezier(0.4,0,0.2,1)'}}>
-                        <path d="M-50,8 Q-35,13 -20,8 Q-5,3 10,8 Q25,13 40,8 Q55,3 70,8 Q85,13 100,8 L100,16 L-50,16 Z"
-                          fill={waveBack} style={{animation:'waveSurface 4.5s linear infinite reverse'}}/>
-                      </g>
-                    </g>
-                  )}
-                  <circle cx="42" cy="42" r="35" fill="none" stroke="rgba(0,170,240,0.55)" strokeWidth="2.5"/>
-                </svg>
-                <div className="relative z-10">
-                  <span className="text-white font-bold leading-none"
-                    style={{fontSize: score !== null ? 36 : 18, fontFamily:"'Oswald',sans-serif",
-                      letterSpacing:'-1px', textShadow:'0 1px 8px rgba(0,0,0,0.6)'}}>
-                    {score ?? '—'}
-                  </span>
-                </div>
-              </div>
-
-              {/* Status text */}
-              <div className="flex-1 min-w-0">
-                {welcome.headline && (
-                  <p className="text-white/90 font-bold leading-tight" style={{fontSize:18}}>{welcome.headline}</p>
-                )}
-                {welcome.subline && (
-                  <p className="text-white/55 leading-snug mt-1 line-clamp-2" style={{fontSize:13}}>{welcome.subline}</p>
-                )}
-                {unknownCount > 0 && score !== null && (() => {
-                  if (!lastTest) return null
-                  const td = new Date(lastTest.created_at)
-                  const ds = Math.round((Date.now() - new Date(td.getFullYear(), td.getMonth(), td.getDate()).getTime()) / 86400000)
-                  if (ds >= 2) return null
-                  return (
-                    <button onClick={() => router.push('/log')} className="mt-1">
-                      <span style={{fontSize:11,color:'#00E0B0',textDecoration:'underline',textUnderlineOffset:2}}>
-                        Based on {testedCount}/5 — log more →
-                      </span>
-                    </button>
-                  )
-                })()}
-              </div>
-
-            </div>
-          )
-        })()}
-
         {/* Pool switcher */}
         <div className="pb-3" ref={pickerRef}>
           <button
@@ -499,6 +420,74 @@ export default function DashboardPage() {
             </div>
           )}
         </div>
+
+        {/* Score circle — centered, enlarged */}
+        {(() => {
+          const score = lastTest ? computeScore((liveRecs ?? lastTest.recommendations)) : null
+          const unknownCount = lastTest
+            ? (liveRecs ?? lastTest.recommendations).unknown.filter(u => u.param !== 'salt').length
+            : 0
+          const testedCount = 5 - unknownCount
+
+          const fillH = score !== null ? Math.round(68 * displayScore / 100) : 0
+          const offsetY = 68 - fillH
+          const excellent = score !== null && score >= 90
+          const waterDeep = excellent ? 'rgba(0,90,160,0.55)' : 'rgba(0,80,150,0.50)'
+          const waveFront = excellent ? 'rgba(0,190,255,0.75)' : 'rgba(0,168,240,0.72)'
+          const waveBack  = excellent ? 'rgba(0,150,220,0.45)' : 'rgba(0,140,210,0.42)'
+
+          return (
+            <div className="flex flex-col items-center pt-1 mb-3">
+              {/* Water-fill score circle */}
+              <div className="relative flex items-center justify-center shrink-0" style={{width:150,height:150}}>
+                <svg width="150" height="150" viewBox="0 0 84 84" style={{position:'absolute',top:0,left:0}}>
+                  <defs>
+                    <clipPath id="smCircleClip"><circle cx="42" cy="42" r="34"/></clipPath>
+                  </defs>
+                  <circle cx="42" cy="42" r="39" fill="none" stroke="rgba(0,160,230,0.15)" strokeWidth="6"/>
+                  <circle cx="42" cy="42" r="35" fill="rgba(0,20,45,0.9)" stroke="rgba(0,170,240,0.55)" strokeWidth="2.5"/>
+                  {score !== null && (
+                    <g clipPath="url(#smCircleClip)">
+                      <rect x="8" y="8" width="68" height="68" fill={waterDeep}
+                        style={{transform:`translateY(${offsetY}px)`,transition:'transform 1.5s cubic-bezier(0.4,0,0.2,1)'}}
+                      />
+                      <g style={{transform:`translateY(${offsetY}px)`,transition:'transform 1.5s cubic-bezier(0.4,0,0.2,1)'}}>
+                        <path d="M-50,8 Q-35,3 -20,8 Q-5,13 10,8 Q25,3 40,8 Q55,13 70,8 Q85,3 100,8 Q115,13 130,8 L130,16 L-50,16 Z"
+                          fill={waveFront} style={{animation:'waveSurface 3s linear infinite'}}/>
+                      </g>
+                      <g style={{transform:`translateY(${offsetY+3}px)`,transition:'transform 1.5s cubic-bezier(0.4,0,0.2,1)'}}>
+                        <path d="M-50,8 Q-35,13 -20,8 Q-5,3 10,8 Q25,13 40,8 Q55,3 70,8 Q85,13 100,8 L100,16 L-50,16 Z"
+                          fill={waveBack} style={{animation:'waveSurface 4.5s linear infinite reverse'}}/>
+                      </g>
+                    </g>
+                  )}
+                  <circle cx="42" cy="42" r="35" fill="none" stroke="rgba(0,170,240,0.55)" strokeWidth="2.5"/>
+                </svg>
+                <div className="relative z-10">
+                  <span className="text-white font-bold leading-none"
+                    style={{fontSize: score !== null ? 64 : 32, fontFamily:"'Oswald',sans-serif",
+                      letterSpacing:'-1px', textShadow:'0 1px 8px rgba(0,0,0,0.6)'}}>
+                    {score ?? '—'}
+                  </span>
+                </div>
+              </div>
+
+              {unknownCount > 0 && score !== null && (() => {
+                if (!lastTest) return null
+                const td = new Date(lastTest.created_at)
+                const ds = Math.round((Date.now() - new Date(td.getFullYear(), td.getMonth(), td.getDate()).getTime()) / 86400000)
+                if (ds >= 2) return null
+                return (
+                  <button onClick={() => router.push('/log')} className="mt-2">
+                    <span style={{fontSize:11,color:'#00E0B0',textDecoration:'underline',textUnderlineOffset:2}}>
+                      Based on {testedCount}/5 — log more →
+                    </span>
+                  </button>
+                )
+              })()}
+            </div>
+          )
+        })()}
 
       </div>
 
