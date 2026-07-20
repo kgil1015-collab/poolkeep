@@ -108,7 +108,6 @@ export default function HistoryPage() {
   const [expanded, setExpanded] = useState<string | null>(null)
   const [pool, setPool] = useState<{ name: string } | null>(null)
   const [activeTab, setActiveTab] = useState<'trends' | 'log'>('trends')
-  const [isPro, setIsPro] = useState(false)
 
   useEffect(() => {
     const supabase = createClient()
@@ -119,7 +118,6 @@ export default function HistoryPage() {
         supabase.from('pools').select('id,name').order('created_at', { ascending: true }),
       ])
       const pro = profile?.subscription_status === 'active' || profile?.subscription_status === 'trialing'
-      setIsPro(pro)
       const pools = poolsRes.data
       if (!pools || pools.length === 0) { router.push('/setup/pool'); return }
       const savedId = typeof window !== 'undefined' ? localStorage.getItem('poolkeep_active_pool') : null
@@ -342,17 +340,6 @@ export default function HistoryPage() {
             </div>
           ) : (
             <div className="space-y-3">
-              {!isPro && tests.length >= 10 && (
-                <div className="bg-white rounded-2xl px-4 py-4 shadow-sm border border-gray-100 flex items-center justify-between gap-3">
-                  <div>
-                    <p className="text-sm font-bold text-text-primary">Showing last 10 tests</p>
-                    <p className="text-xs text-text-muted mt-0.5">Upgrade to Pro for unlimited history</p>
-                  </div>
-                  <button onClick={() => router.push('/pro')} className="shrink-0 text-xs font-bold px-3 py-2 rounded-xl text-white" style={{background:'#0078B8'}}>
-                    Upgrade
-                  </button>
-                </div>
-              )}
               {tests.map(test => {
                 const score = computeScore(test.recommendations)
                 const colors = scoreColor(score)
