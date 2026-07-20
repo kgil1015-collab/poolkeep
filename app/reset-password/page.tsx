@@ -2,7 +2,8 @@
 
 export const dynamic = 'force-dynamic'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 
@@ -13,19 +14,42 @@ export default function ResetPasswordPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [ready, setReady] = useState(false)
+  const [linkError, setLinkError] = useState('')
+  const readyRef = useRef(false)
 
   // Supabase delivers the session via URL hash fragment on this page
   useEffect(() => {
+    // Expired/invalid reset links redirect back with an error in the hash
+    // (e.g. #error=access_denied&error_code=otp_expired&...) instead of
+    // firing PASSWORD_RECOVERY — check for that first.
+    if (typeof window !== 'undefined') {
+      const hashParams = new URLSearchParams(window.location.hash.slice(1))
+      const description = hashParams.get('error_description')
+      if (description) {
+        setLinkError(description.replace(/\+/g, ' '))
+        return
+      }
+    }
+
     const supabase = createClient()
     // Listen for the PASSWORD_RECOVERY event which fires when the reset link is valid
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-      if (event === 'PASSWORD_RECOVERY') setReady(true)
+      if (event === 'PASSWORD_RECOVERY') { readyRef.current = true; setReady(true) }
     })
     // Also check if already in a recovery session
     supabase.auth.getSession().then(({ data }) => {
-      if (data.session) setReady(true)
+      if (data.session) { readyRef.current = true; setReady(true) }
     })
-    return () => subscription.unsubscribe()
+    // Neither the event nor an existing session showed up — treat it as an
+    // expired link instead of spinning forever.
+    const timeout = setTimeout(() => {
+      if (!readyRef.current) setLinkError('This reset link has expired or is no longer valid.')
+    }, 8000)
+
+    return () => {
+      subscription.unsubscribe()
+      clearTimeout(timeout)
+    }
   }, [])
 
   async function handleSubmit(e: React.FormEvent) {
@@ -42,6 +66,25 @@ export default function ResetPasswordPage() {
 
     if (updateError) { setError(updateError.message); return }
     router.push('/dashboard')
+  }
+
+  if (linkError) {
+    return (
+      <div className="min-h-screen flex items-center justify-center px-4" style={{background:'linear-gradient(172deg,#e8f5ff 0%,#c4dff5 38%,#9ac4e8 70%,#6ba8d8 100%)'}}>
+        <div className="w-full max-w-sm bg-white rounded-3xl shadow-2xl p-8 text-center">
+          <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4" style={{background:'rgba(229,48,74,0.1)'}}>
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#E5304A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+            </svg>
+          </div>
+          <h1 className="text-2xl font-bold text-text-primary mb-2">Link expired</h1>
+          <p className="text-text-muted text-sm mb-6 leading-relaxed">{linkError}</p>
+          <Link href="/forgot-password" className="inline-block w-full bg-pool-dark text-white font-bold py-3 rounded-xl hover:opacity-90 transition-opacity text-sm">
+            Request a New Link →
+          </Link>
+        </div>
+      </div>
+    )
   }
 
   if (!ready) {
