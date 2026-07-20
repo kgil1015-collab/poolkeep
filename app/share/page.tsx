@@ -158,7 +158,10 @@ export default function SharePage() {
   function handleSms() {
     if (!test || !pool) return
     const body = encodeURIComponent(buildSmsText(pool.name, test, isSalt))
-    window.open(`sms:?body=${body}`)
+    // iOS (with no recipient) silently drops the body when the separator is
+    // "?" — it needs "&" instead. Android needs the opposite ("?").
+    const isIOS = typeof navigator !== 'undefined' && /iPhone|iPad|iPod/i.test(navigator.userAgent)
+    window.open(`sms:${isIOS ? '&' : '?'}body=${body}`)
   }
 
   async function handleNativeShare() {
@@ -435,22 +438,6 @@ export default function SharePage() {
                     <p className="text-xs text-text-muted">Paste anywhere — notes, another app, etc.</p>
                   </div>
                 </button>
-              </div>
-
-              {/* Coming soon — user to user */}
-              <div className="no-print bg-white rounded-2xl px-4 py-4 shadow-sm border border-gray-100 opacity-60">
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{background:'rgba(0,120,184,0.06)'}}>
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8AAABB" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <p className="text-sm font-bold text-text-primary">Share with a PoolKeep user</p>
-                      <span className="text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full" style={{background:'rgba(0,120,184,0.08)',color:'#0078B8'}}>Coming Soon</span>
-                    </div>
-                    <p className="text-xs text-text-muted mt-0.5">Send reports directly to another PoolKeep account — great for pool services and families managing multiple pools.</p>
-                  </div>
-                </div>
               </div>
             </>
           )}
