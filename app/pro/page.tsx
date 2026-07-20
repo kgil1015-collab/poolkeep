@@ -9,19 +9,10 @@ import WaveDivider from '@/app/components/WaveDivider'
 import { isIOSNative, configurePurchases, getCurrentOffering, purchase, purchaseFoundingBundle, isFoundingPackage, getFoundingFeePriceString, restore, isEntitled } from '@/lib/purchases'
 import type { PurchasesOffering, PurchasesPackage } from '@revenuecat/purchases-capacitor'
 
-const FREE_FEATURES = [
-  '1 pool',
-  'Water test logging',
-  'Treatment recommendations',
-  'Last 10 tests in history',
-  'Email, text & print sharing',
-]
-
 const PRO_FEATURES = [
   { text: 'Up to 5 pools', highlight: false },
   { text: 'Unlimited test history', highlight: false },
   { text: 'Full treatment plans with dosing', highlight: false },
-  { text: 'Share reports with other PoolKeep users', highlight: false },
   { text: 'Priority support', highlight: false, link: 'mailto:support@poolkeep.app' },
   { text: 'Early access to new features', highlight: false },
 ]
