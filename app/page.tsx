@@ -293,61 +293,6 @@ export default async function LandingPage() {
         </div>
       </section>
 
-      {/* Get it on your phone */}
-      <section className="py-16 px-6 bg-surface">
-        <div className="max-w-2xl mx-auto text-center">
-          <p className="text-pool-dark text-sm font-bold uppercase tracking-widest mb-3">Works Like a Native App</p>
-          <h2 className="text-3xl font-bold tracking-tight mb-4" style={{fontFamily:"'Oswald',sans-serif"}}>Add PoolKeep to your home screen.</h2>
-          <p className="text-text-muted text-sm mb-10 max-w-md mx-auto">No app store required. Add it to your phone in seconds and it works just like a regular app — even offline.</p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-left">
-            {/* iPhone */}
-            <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{background:'rgba(0,120,184,0.08)'}}>
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0078B8" strokeWidth="2" strokeLinecap="round"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18" strokeWidth="2.5"/></svg>
-                </div>
-                <p className="font-bold text-sm text-text-primary">iPhone (Safari)</p>
-              </div>
-              <ol className="space-y-2">
-                {[
-                  'Open poolkeep.app in Safari',
-                  'Tap the Share button at the bottom',
-                  'Scroll down and tap "Add to Home Screen"',
-                  'Tap Add — done',
-                ].map((step, i) => (
-                  <li key={i} className="flex items-start gap-2.5 text-xs text-text-muted">
-                    <span className="w-4 h-4 rounded-full bg-pool-dark text-white flex items-center justify-center shrink-0 mt-0.5 text-[9px] font-bold">{i+1}</span>
-                    {step}
-                  </li>
-                ))}
-              </ol>
-            </div>
-            {/* Android */}
-            <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{background:'rgba(0,120,184,0.08)'}}>
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0078B8" strokeWidth="2" strokeLinecap="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
-                </div>
-                <p className="font-bold text-sm text-text-primary">Android (Chrome)</p>
-              </div>
-              <ol className="space-y-2">
-                {[
-                  'Open poolkeep.app in Chrome',
-                  'Tap the three-dot menu (top right)',
-                  'Tap "Add to Home screen"',
-                  'Tap Add — done',
-                ].map((step, i) => (
-                  <li key={i} className="flex items-start gap-2.5 text-xs text-text-muted">
-                    <span className="w-4 h-4 rounded-full bg-pool-dark text-white flex items-center justify-center shrink-0 mt-0.5 text-[9px] font-bold">{i+1}</span>
-                    {step}
-                  </li>
-                ))}
-              </ol>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* Testimonials */}
       <section className="py-16 px-6 bg-white">
         <div className="max-w-4xl mx-auto">
@@ -443,54 +388,6 @@ export default async function LandingPage() {
             ))}
           </div>
           <p className="text-[11px] text-text-muted mt-3 text-center">* $4.99/mo is the founding member rate ($60 one-time to join). Regular plans from $9.99/mo.</p>
-        </div>
-      </section>
-
-      {/* Add to Phone */}
-      <section className="py-16 px-6 bg-pool-deep text-white">
-        <div className="max-w-2xl mx-auto text-center">
-          <p className="text-teal text-sm font-bold uppercase tracking-widest mb-3">No App Store Required</p>
-          <h2 className="text-3xl font-bold tracking-tight mb-3" style={{fontFamily:"'Oswald',sans-serif"}}>Add PoolKeep to your home screen.</h2>
-          <p className="text-white/60 text-sm mb-10 max-w-md mx-auto">Works exactly like a native app — instant access, no updates, no download fees. Takes 10 seconds.</p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-left">
-            {/* iOS */}
-            <div className="rounded-2xl p-5" style={{background:'rgba(255,255,255,0.06)',border:'1px solid rgba(255,255,255,0.10)'}}>
-              <div className="flex items-center gap-2.5 mb-4">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
-                <p className="font-bold text-white text-sm">iPhone / iPad</p>
-              </div>
-              {[
-                {n:1, text: <>Open <strong className="text-white">poolkeep.app</strong> in Safari</>},
-                {n:2, text: <>Tap the <strong className="text-white">Share</strong> button <span className="inline-block bg-white/10 px-1.5 py-0.5 rounded text-xs">↑</span> at the bottom</>},
-                {n:3, text: <>Scroll down and tap <strong className="text-white">&ldquo;Add to Home Screen&rdquo;</strong></>},
-                {n:4, text: <>Tap <strong className="text-white">&ldquo;Add&rdquo;</strong> — done!</>},
-              ].map(({n, text}) => (
-                <div key={n} className="flex items-start gap-3 mb-3 last:mb-0">
-                  <div className="w-6 h-6 rounded-full flex items-center justify-center shrink-0 text-xs font-bold text-white mt-0.5" style={{background:'#0078B8'}}>{n}</div>
-                  <p className="text-sm text-white/70 leading-snug">{text}</p>
-                </div>
-              ))}
-            </div>
-            {/* Android */}
-            <div className="rounded-2xl p-5" style={{background:'rgba(255,255,255,0.06)',border:'1px solid rgba(255,255,255,0.10)'}}>
-              <div className="flex items-center gap-2.5 mb-4">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg"><path d="M17.6 9.48l1.84-3.18c.16-.31.04-.69-.26-.85-.29-.15-.65-.06-.83.22l-1.88 3.24c-1.44-.5-3.08-.77-4.83-.77s-3.39.27-4.83.77L4.99 5.67c-.19-.29-.54-.37-.83-.22-.31.16-.42.54-.26.85L5.74 9.5C3.03 11.25 1.2 14.44 1 18h22c-.2-3.56-2.03-6.75-5.4-8.52zM7 15.25c-.69 0-1.25-.56-1.25-1.25S6.31 12.75 7 12.75s1.25.56 1.25 1.25S7.69 15.25 7 15.25zm10 0c-.69 0-1.25-.56-1.25-1.25s.56-1.25 1.25-1.25 1.25.56 1.25 1.25-.56 1.25-1.25 1.25z"/></svg>
-                <p className="font-bold text-white text-sm">Android</p>
-              </div>
-              {[
-                {n:1, text: <>Open <strong className="text-white">poolkeep.app</strong> in Chrome</>},
-                {n:2, text: <>Tap the <strong className="text-white">menu</strong> <span className="inline-block bg-white/10 px-1.5 py-0.5 rounded text-xs">⋮</span> in the top right</>},
-                {n:3, text: <>Tap <strong className="text-white">&ldquo;Add to Home Screen&rdquo;</strong></>},
-                {n:4, text: <>Tap <strong className="text-white">&ldquo;Add&rdquo;</strong> — done!</>},
-              ].map(({n, text}) => (
-                <div key={n} className="flex items-start gap-3 mb-3 last:mb-0">
-                  <div className="w-6 h-6 rounded-full flex items-center justify-center shrink-0 text-xs font-bold text-white mt-0.5" style={{background:'#0078B8'}}>{n}</div>
-                  <p className="text-sm text-white/70 leading-snug">{text}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-          <p className="text-white/35 text-xs mt-6">The app icon will appear on your home screen just like any other app — tap to open instantly.</p>
         </div>
       </section>
 
