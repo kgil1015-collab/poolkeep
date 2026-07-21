@@ -9,8 +9,6 @@ export const dynamic = 'force-dynamic'
 
 const FOUNDING_TOTAL = 200   // Total founding spots available
 const FOUNDING_FLOOR = 12    // Never show fewer than this — avoid showing "0 left"
-const FOUNDING_PHASE1_SHOWN = 157   // Fixed display until real sales reach threshold
-const FOUNDING_PHASE1_THRESHOLD = 50 // Switch to real count once this many members sign up
 
 async function getSpotsLeft(): Promise<number> {
   try {
@@ -23,12 +21,9 @@ async function getSpotsLeft(): Promise<number> {
       .select('*', { count: 'exact', head: true })
       .eq('plan', 'founding')
     const taken = count ?? 0
-    if (taken < FOUNDING_PHASE1_THRESHOLD) {
-      return FOUNDING_PHASE1_SHOWN  // fixed display in early days
-    }
     return Math.max(FOUNDING_FLOOR, FOUNDING_TOTAL - taken)
   } catch {
-    return FOUNDING_PHASE1_SHOWN // safe fallback if DB is unreachable
+    return FOUNDING_TOTAL // safe fallback if DB is unreachable
   }
 }
 
@@ -125,27 +120,7 @@ export default async function LandingPage() {
           </Link>
         </div>
 
-        <p className="text-sm text-white/50">
-          Already joined by <strong className="text-white/80">127 homeowners</strong> saving $1,200+/year in service fees.
-        </p>
         <p className="mt-2 text-xs text-white/35">Start free · Upgrade anytime · Founding rate locked in forever</p>
-      </section>
-
-      {/* Stats bar */}
-      <section className="bg-white border-b border-gray-100 py-8 px-6">
-        <div className="max-w-3xl mx-auto grid grid-cols-2 sm:grid-cols-4 gap-6 text-center">
-          {[
-            { stat: '127', label: 'Pool owners' },
-            { stat: '$1,200+', label: 'Avg. annual savings' },
-            { stat: '4.9★', label: 'Average rating' },
-            { stat: '< 30s', label: 'To log a test' },
-          ].map(({ stat, label }) => (
-            <div key={label}>
-              <p className="text-2xl font-bold" style={{fontFamily:"'Oswald',sans-serif",color:'#003D5C'}}>{stat}</p>
-              <p className="text-xs text-text-muted font-medium mt-0.5">{label}</p>
-            </div>
-          ))}
-        </div>
       </section>
 
       {/* How it works */}
@@ -290,57 +265,6 @@ export default async function LandingPage() {
             </div>
           </div>
 
-        </div>
-      </section>
-
-      {/* Testimonials */}
-      <section className="py-16 px-6 bg-white">
-        <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-10">
-            <p className="text-pool-dark text-sm font-bold uppercase tracking-widest mb-3">What Pool Owners Say</p>
-            <h2 className="text-3xl font-bold tracking-tight" style={{fontFamily:"'Oswald',sans-serif"}}>Real pools. Real results.</h2>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-            {[
-              {
-                quote: "I was dumping chemicals in and crossing my fingers. PoolKeep told me exactly what to add and in what order. Water's been perfect for two months straight.",
-                name: 'Dave M.',
-                pool: '18,000 gal inground',
-                stars: 5,
-              },
-              {
-                quote: "Cancelled my monthly service call. Between PoolKeep and a test kit from Home Depot, I'm saving about $100 a month. The app pays for itself in a day.",
-                name: 'Sarah K.',
-                pool: '12,000 gal above ground',
-                stars: 5,
-              },
-              {
-                quote: "The share feature is underrated. I send my pool guy the report before he shows up and he knows exactly what's been going on. Saves us both time.",
-                name: 'Marcus T.',
-                pool: '25,000 gal salt pool',
-                stars: 5,
-              },
-              {
-                quote: "My pool frustrated me and I was constantly chasing the right numbers. Turns out I was missing the chemistry underneath — why the order matters, how pH actually affects chlorine, what CYA does. PoolKeep gave me that knowledge. Now I'm not just following steps — I actually own my pool care.",
-                name: 'Jennifer R.',
-                pool: '14,000 gal inground · Gilbert, AZ',
-                stars: 5,
-              },
-            ].map((t, i) => (
-              <div key={i} className="bg-surface rounded-2xl p-5 border-l-4 border-teal flex flex-col gap-3">
-                <div className="flex gap-0.5">
-                  {Array.from({length: t.stars}).map((_, s) => (
-                    <svg key={s} width="14" height="14" viewBox="0 0 24 24" fill="#F5A623" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-                  ))}
-                </div>
-                <p className="text-sm text-text-primary leading-relaxed flex-1">&ldquo;{t.quote}&rdquo;</p>
-                <div>
-                  <p className="text-sm font-bold text-text-primary">{t.name}</p>
-                  <p className="text-xs text-text-muted">{t.pool}</p>
-                </div>
-              </div>
-            ))}
-          </div>
         </div>
       </section>
 
