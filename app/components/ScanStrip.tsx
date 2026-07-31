@@ -1,6 +1,7 @@
 'use client'
 
 import { useRef, useState } from 'react'
+import { Capacitor } from '@capacitor/core'
 import { Camera, CameraResultType, CameraSource } from '@capacitor/camera'
 import ZoomableImage from '@/app/components/ZoomableImage'
 import {
@@ -55,9 +56,13 @@ export default function ScanStrip({
         // In a plain mobile browser (no native app installed yet), CameraSource.Prompt's
         // "choose Camera or Photos" sheet requires the separate @ionic/pwa-elements
         // package, which isn't installed — without it the picker silently hangs forever.
-        // webUseInput routes to a plain <input type="file" capture> instead, which needs
-        // no extra dependency and works the same on native once that's built too.
-        webUseInput: true,
+        // webUseInput routes to a plain <input type="file"> instead, which needs no
+        // extra dependency there. But inside the native app this same code runs in a
+        // webview loading the live site, so unconditionally setting this also forced
+        // native builds onto that same plain file-input fallback — which only offers
+        // picking an existing photo, never opening the camera. Scope it to the actual
+        // plain-browser case only.
+        webUseInput: !Capacitor.isNativePlatform(),
         quality: 85,
         promptLabelHeader: 'Scan Test Strip',
         promptLabelPhoto: 'Choose from Library',
