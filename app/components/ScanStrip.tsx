@@ -117,8 +117,15 @@ export default function ScanStrip({
     const p = STRIP_PARAMS.find(pp => pp.key === key)
     if (!p) return
     setEditingText(prevText => {
-      const raw = prevText?.[key] ?? ''
-      const parsed = parseFloat(raw)
+      const raw = (prevText?.[key] ?? '').trim()
+      let parsed = parseFloat(raw)
+      // Two-digit whole number with no decimal, out of range as typed — assume
+      // they meant to type a decimal point (e.g. "64" for pH means 6.4, not
+      // literally 64) rather than just clamping it straight to the max.
+      if (!raw.includes('.') && raw.length === 2 && !isNaN(parsed) && parsed > p.max) {
+        const reinterpreted = parseFloat(`${raw[0]}.${raw[1]}`)
+        if (!isNaN(reinterpreted)) parsed = reinterpreted
+      }
       const clamped = isNaN(parsed) ? (results?.[key].value ?? p.min) : Math.max(p.min, Math.min(p.max, parsed))
       setResults(prev => prev ? { ...prev, [key]: { ...prev[key], value: clamped } } : prev)
       return prevText ? { ...prevText, [key]: clamped.toFixed(p.decimals) } : prevText
