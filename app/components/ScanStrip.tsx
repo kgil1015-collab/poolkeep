@@ -68,8 +68,11 @@ export default function ScanStrip({
       }
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err)
+      const code = (err as { code?: string })?.code ?? ''
       if (!/cancel/i.test(message)) {
-        setError('Could not open the camera. Check that PoolKeep has camera/photo permission in Settings.')
+        // TEMPORARY: showing the raw error for diagnosis — revert to a friendly
+        // message once the Android camera issue is confirmed fixed.
+        setError(`${message}${code ? ` (${code})` : ''}`)
       }
     }
   }
