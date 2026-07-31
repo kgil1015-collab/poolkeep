@@ -169,6 +169,10 @@ export default function ScanStrip({
 
           {step === 'intro' && (
             <div className="space-y-4">
+              {/* TEMPORARY DEBUG — remove once the Android camera issue is confirmed fixed */}
+              <div className="text-[10px] font-mono bg-black text-lime-400 px-2 py-1 rounded">
+                DEBUG platform={Capacitor.getPlatform()} native={String(Capacitor.isNativePlatform())}
+              </div>
               <p className="text-sm text-text-muted leading-relaxed">
                 Dip your strip, wait the usual 15 seconds, then lay it flat with the pads running left to right, centered in the frame. Take a photo and we&apos;ll read the colors automatically — you&apos;ll get to check and adjust every value before saving.
               </p>
