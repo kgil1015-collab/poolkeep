@@ -5,7 +5,7 @@ const config: CapacitorConfig = {
   appName: 'PoolKeep',
   webDir: 'out',
   server: {
-    url: 'https://www.poolkeep.app',
+    url: 'https://poolkeep.app',
     cleartext: false,
   },
   ios: {
