@@ -36,12 +36,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           dangerouslySetInnerHTML={{
             __html: `
               (function () {
+                // Non-destructive: pinned to the bottom of the screen so it never
+                // hides real content, in case content actually did render fine.
                 function show(label, detail) {
                   var el = document.getElementById('pk-boot-error');
                   if (!el) {
                     el = document.createElement('div');
                     el.id = 'pk-boot-error';
-                    el.style.cssText = 'position:fixed;inset:0;z-index:999999;background:#001a2e;color:#7CFC9A;font:11px/1.5 monospace;padding:16px;overflow:auto;white-space:pre-wrap;';
+                    el.style.cssText = 'position:fixed;left:0;right:0;bottom:0;max-height:40vh;z-index:999999;background:rgba(0,26,46,0.95);color:#7CFC9A;font:11px/1.5 monospace;padding:12px;overflow:auto;white-space:pre-wrap;border-top:2px solid #7CFC9A;';
                     document.documentElement.appendChild(el);
                   }
                   el.textContent += '[' + label + '] ' + detail + '\\n\\n';
@@ -54,8 +56,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                   show('unhandledrejection', r && r.message ? r.message : String(r));
                 });
                 setTimeout(function () {
-                  if (!document.getElementById('__next') && !document.querySelector('main')) {
-                    show('timeout', 'No app content after 8s. location=' + location.href + ' UA=' + navigator.userAgent);
+                  var hasContent = document.body && document.body.innerText && document.body.innerText.trim().length > 20;
+                  if (!hasContent) {
+                    show('timeout', 'No visible text content after 8s. location=' + location.href + ' UA=' + navigator.userAgent);
                   }
                 }, 8000);
               })();
