@@ -27,6 +27,42 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
+      <head>
+        {/* TEMPORARY — surfaces otherwise-silent blank-page failures (the
+            Apple review + Android white-screen bug) directly on screen,
+            since it runs before React itself has a chance to load. Remove
+            once that bug is found and fixed. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function () {
+                function show(label, detail) {
+                  var el = document.getElementById('pk-boot-error');
+                  if (!el) {
+                    el = document.createElement('div');
+                    el.id = 'pk-boot-error';
+                    el.style.cssText = 'position:fixed;inset:0;z-index:999999;background:#001a2e;color:#7CFC9A;font:11px/1.5 monospace;padding:16px;overflow:auto;white-space:pre-wrap;';
+                    document.documentElement.appendChild(el);
+                  }
+                  el.textContent += '[' + label + '] ' + detail + '\\n\\n';
+                }
+                window.addEventListener('error', function (e) {
+                  show('error', (e.message || 'unknown') + ' @ ' + (e.filename || '?') + ':' + (e.lineno || '?'));
+                });
+                window.addEventListener('unhandledrejection', function (e) {
+                  var r = e.reason;
+                  show('unhandledrejection', r && r.message ? r.message : String(r));
+                });
+                setTimeout(function () {
+                  if (!document.getElementById('__next') && !document.querySelector('main')) {
+                    show('timeout', 'No app content after 8s. location=' + location.href + ' UA=' + navigator.userAgent);
+                  }
+                }, 8000);
+              })();
+            `,
+          }}
+        />
+      </head>
       <body>
         {children}
         <ServiceWorkerRegistration />
