@@ -38,7 +38,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               (function () {
                 // Non-destructive: pinned to the bottom of the screen so it never
                 // hides real content, in case content actually did render fine.
-                function show(label, detail) {
+                function showDebug(label, detail) {
                   var el = document.getElementById('pk-boot-error');
                   if (!el) {
                     el = document.createElement('div');
@@ -49,18 +49,32 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                   el.textContent += '[' + label + '] ' + detail + '\\n\\n';
                 }
                 window.addEventListener('error', function (e) {
-                  show('error', (e.message || 'unknown') + ' @ ' + (e.filename || '?') + ':' + (e.lineno || '?'));
+                  showDebug('error', (e.message || 'unknown') + ' @ ' + (e.filename || '?') + ':' + (e.lineno || '?'));
                 });
                 window.addEventListener('unhandledrejection', function (e) {
                   var r = e.reason;
-                  show('unhandledrejection', r && r.message ? r.message : String(r));
+                  showDebug('unhandledrejection', r && r.message ? r.message : String(r));
                 });
+
+                // Real, permanent safety net: if nothing has rendered after 6s
+                // (slow/stalled network, a hung request, anything), show an
+                // actual retry screen instead of leaving the user staring at a
+                // dead blank screen with no way forward.
                 setTimeout(function () {
                   var hasContent = document.body && document.body.innerText && document.body.innerText.trim().length > 20;
-                  if (!hasContent) {
-                    show('timeout', 'No visible text content after 8s. location=' + location.href + ' UA=' + navigator.userAgent);
-                  }
-                }, 8000);
+                  if (hasContent) return;
+                  showDebug('timeout', 'No visible text content after 6s. location=' + location.href + ' UA=' + navigator.userAgent);
+                  var retry = document.createElement('div');
+                  retry.style.cssText = 'position:fixed;inset:0;z-index:999998;background:#003D5C;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:32px;font-family:system-ui,-apple-system,sans-serif;';
+                  retry.innerHTML =
+                    '<p style="font-size:17px;font-weight:700;margin-bottom:8px;">Taking longer than expected</p>' +
+                    '<p style="font-size:14px;color:rgba(255,255,255,0.7);margin-bottom:24px;max-width:280px;">This is taking a while to load. Check your connection and try again.</p>' +
+                    '<button id="pk-retry-btn" style="background:#0078B8;color:#fff;font-weight:700;font-size:15px;padding:14px 28px;border:none;border-radius:12px;">Retry</button>';
+                  document.documentElement.appendChild(retry);
+                  document.getElementById('pk-retry-btn').addEventListener('click', function () {
+                    location.reload();
+                  });
+                }, 6000);
               })();
             `,
           }}
