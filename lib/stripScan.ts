@@ -54,13 +54,18 @@ const SWATCHES: Record<StripParamKey, Swatch[]> = {
     { value: 7.8, rgb: [224, 108, 134] },
     { value: 8.4, rgb: [196, 80, 126] },
   ],
+  // Calibrated 2026-08-15 against a real AquaChek 7-Way bottle chart — the
+  // previous generic pink/rose approximation was the wrong hue family
+  // entirely. AquaChek's Free Chlorine reagent actually reads white → blue →
+  // purple, not white → pink → magenta, which is likely why low free
+  // chlorine readings were coming back near 0 regardless of the real value.
   free_chlorine: [
-    { value: 0,    rgb: [245, 242, 236] },
-    { value: 0.5,  rgb: [245, 220, 224] },
-    { value: 1,    rgb: [240, 184, 196] },
-    { value: 3,    rgb: [229, 133, 160] },
-    { value: 5,    rgb: [194, 70, 124] },
-    { value: 10,   rgb: [139, 44, 100] },
+    { value: 0,    rgb: [206, 228, 228] },
+    { value: 0.5,  rgb: [211, 222, 235] },
+    { value: 1,    rgb: [178, 165, 213] },
+    { value: 3,    rgb: [141, 82, 169] },
+    { value: 5,    rgb: [100, 0, 115] },
+    { value: 10,   rgb: [62, 1, 81] },
   ],
   // Calibrated 2026-08-15 against a real AquaChek 7-Way bottle chart
   // (extracted via pixel sampling, not eyeballed) — replaces an earlier
