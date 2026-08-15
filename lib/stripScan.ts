@@ -25,20 +25,24 @@ export const STRIP_PARAMS: StripParamMeta[] = [
   { key: 'ph',               label: 'pH',                  unit: '',    decimals: 1, min: 6.2, max: 8.4,  step: 0.1 },
   { key: 'free_chlorine',    label: 'Free Chlorine',       unit: 'ppm', decimals: 1, min: 0,   max: 10,   step: 0.1 },
   { key: 'total_alkalinity', label: 'Total Alkalinity',    unit: 'ppm', decimals: 0, min: 0,   max: 240,  step: 5 },
-  { key: 'cya',              label: 'Cyanuric Acid (CYA)', unit: 'ppm', decimals: 0, min: 0,   max: 110,  step: 5 },
-  { key: 'calcium_hardness', label: 'Water Hardness',      unit: 'ppm', decimals: 0, min: 25,  max: 1000, step: 25 },
+  { key: 'cya',              label: 'Cyanuric Acid (CYA)', unit: 'ppm', decimals: 0, min: 0,   max: 300,  step: 5 },
+  { key: 'calcium_hardness', label: 'Water Hardness',      unit: 'ppm', decimals: 0, min: 0,   max: 1000, step: 25 },
 ]
 
-// AquaChek 7 / HTH strip CYA color bands → stored as midpoint ppm. Most
+// AquaChek 7-Way strip CYA color bands → stored as midpoint ppm. Most
 // consumer strips only distinguish bands for CYA, not a precise number, so
 // this is offered as an alternative to typing/sliding an exact value —
 // shared between the manual entry form and the camera scan review.
+// Calibrated 2026-08-15 against a real AquaChek 7-Way bottle chart — the
+// previous bands (0/0-30/30-50/50-100/>100) and their 110 ppm ceiling were
+// invented, not from a real product; the actual printed chart's tested
+// points are 0, 30-50, 100, 150, 300.
 export const CYA_STRIP_BANDS = [
   { label: '0',       midpoint: 0   },
-  { label: '0–30',    midpoint: 15  },
   { label: '30–50',   midpoint: 40  },
-  { label: '50–100',  midpoint: 75  },
-  { label: '>100',    midpoint: 110 },
+  { label: '100',     midpoint: 100 },
+  { label: '150',     midpoint: 150 },
+  { label: '300',     midpoint: 300 },
 ]
 
 export type RGB = [number, number, number]
@@ -80,20 +84,29 @@ const SWATCHES: Record<StripParamKey, Swatch[]> = {
     { value: 180, rgb: [61, 111, 101] },
     { value: 240, rgb: [79, 115, 126] },
   ],
+  // Calibrated 2026-08-15 against a real AquaChek 7-Way bottle chart. The
+  // previous approximation was wrong on two axes at once: colors (pale
+  // cream instead of golden-orange-to-magenta) and scale (topped out at 110
+  // ppm; the real chart goes to 300) — a real "0 ppm" swatch was landing
+  // closer to the old table's "110" entry than its own "0".
   cya: [
-    { value: 0,   rgb: [242, 239, 216] },
-    { value: 15,  rgb: [237, 226, 160] },
-    { value: 40,  rgb: [232, 208, 96]  },
-    { value: 75,  rgb: [217, 178, 58]  },
-    { value: 110, rgb: [192, 138, 44]  },
+    { value: 0,   rgb: [185, 124, 30] },
+    { value: 40,  rgb: [175, 89, 7]   },
+    { value: 100, rgb: [163, 48, 45]  },
+    { value: 150, rgb: [147, 32, 66]  },
+    { value: 300, rgb: [136, 35, 88]  },
   ],
+  // Calibrated 2026-08-15 against a real AquaChek 7-Way bottle chart — same
+  // kind of wrong-hue-family bug as Free Chlorine. The previous table
+  // assumed blue -> teal -> green -> yellow-green -> purple; the real
+  // progression never goes green/yellow at all, it's blue -> purple ->
+  // purple -> rose -> pink across the whole 0-1000 ppm range.
   calcium_hardness: [
-    { value: 25,   rgb: [62, 111, 168] },
-    { value: 100,  rgb: [75, 143, 160] },
-    { value: 250,  rgb: [95, 168, 144] },
-    { value: 500,  rgb: [122, 184, 104] },
-    { value: 750,  rgb: [176, 192, 96]  },
-    { value: 1000, rgb: [154, 90, 158]  },
+    { value: 0,    rgb: [73, 87, 110]  },
+    { value: 100,  rgb: [108, 98, 122] },
+    { value: 250,  rgb: [113, 81, 110] },
+    { value: 500,  rgb: [138, 73, 95]  },
+    { value: 1000, rgb: [169, 79, 105] },
   ],
 }
 
