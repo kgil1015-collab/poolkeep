@@ -152,7 +152,7 @@ export interface PinPosition { x: number; y: number } // fractional 0..1 within 
 
 export type PinKey = StripParamKey | 'white_reference'
 
-export type StripBrand = 'aquachek_7way' | 'generic'
+export type StripBrand = 'aquachek_7way' | 'taylor' | 'generic'
 
 // Sampling points assume the strip is laid with pads in a horizontal row,
 // centered in the photo — matches the framing guidance shown before the user
@@ -173,6 +173,21 @@ export const PIN_LAYOUTS: Record<StripBrand, Record<PinKey, PinPosition>> = {
     cya:                { x: 0.80, y: 0.30 },
     white_reference:    { x: 0.56, y: 0.70 },
   },
+  // Sourced from Taylor's official "how to read" guide (2026-08-15): pad
+  // order is Free Chlorine, Total Chlorine/Bromine, pH, Total Alkalinity,
+  // Total Hardness, CYA. Total Chlorine/Bromine isn't a field PoolKeep
+  // tracks, so its position (index 2 of 6) is skipped rather than sampled.
+  // Not verified against a physical strip the way AquaChek 7-Way was — if a
+  // Taylor user reports readings are off, re-check this against a real strip
+  // before assuming the color-matching itself is at fault.
+  taylor: {
+    free_chlorine:      { x: 0.20, y: 0.30 },
+    ph:                 { x: 0.44, y: 0.30 },
+    total_alkalinity:   { x: 0.56, y: 0.30 },
+    calcium_hardness:   { x: 0.68, y: 0.30 },
+    cya:                { x: 0.80, y: 0.30 },
+    white_reference:    { x: 0.50, y: 0.70 },
+  },
   // Fallback for brands we don't have confirmed pad positions for yet.
   generic: {
     ph:                 { x: 0.30, y: 0.30 },
@@ -185,5 +200,7 @@ export const PIN_LAYOUTS: Record<StripBrand, Record<PinKey, PinPosition>> = {
 }
 
 export function pinsForBrand(stripBrand: string | null | undefined): Record<PinKey, PinPosition> {
-  return stripBrand === 'aquachek_7way' ? PIN_LAYOUTS.aquachek_7way : PIN_LAYOUTS.generic
+  if (stripBrand === 'aquachek_7way') return PIN_LAYOUTS.aquachek_7way
+  if (stripBrand === 'taylor') return PIN_LAYOUTS.taylor
+  return PIN_LAYOUTS.generic
 }

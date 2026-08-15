@@ -38,8 +38,9 @@ const SIZES = [
 // generic approximation. Purely cosmetic/optional: doesn't affect dosing math,
 // only camera-scan sample accuracy.
 const STRIP_BRANDS = [
-  { id: 'aquachek_7way', label: 'AquaChek 7-Way',  sub: 'Hardness, Total Cl, Free Cl, pH, Alkalinity, CYA' },
-  { id: 'other',         label: 'Other / Not Sure', sub: "We'll use a generic layout — you can always adjust readings after scanning" },
+  { id: 'aquachek_7way', label: 'AquaChek 7-Way',  sub: 'Verified pad layout — our most accurate camera scan' },
+  { id: 'taylor',        label: 'Taylor 7-Way',     sub: 'Verified pad layout — high scan accuracy' },
+  { id: 'other',         label: 'Other / Not Sure', sub: 'Camera scan is less reliable for unverified brands — manual entry is recommended instead' },
 ]
 
 const TOTAL_STEPS = 5
