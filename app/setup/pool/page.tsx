@@ -33,12 +33,22 @@ const SIZES = [
   { label: 'Extra Large', sub: '~30,000 gal', value: 30000 },
 ]
 
-const TOTAL_STEPS = 4
-const titles    = ['Sanitizer Type', 'Pool Shape', 'Pool Size', 'Final Details']
+// Pad order/spacing for the camera "Scan Test Strip" feature varies by brand —
+// this picks which layout lib/stripScan.ts uses. 'other' falls back to a
+// generic approximation. Purely cosmetic/optional: doesn't affect dosing math,
+// only camera-scan sample accuracy.
+const STRIP_BRANDS = [
+  { id: 'aquachek_7way', label: 'AquaChek 7-Way',  sub: 'Hardness, Total Cl, Free Cl, pH, Alkalinity, CYA' },
+  { id: 'other',         label: 'Other / Not Sure', sub: "We'll use a generic layout — you can always adjust readings after scanning" },
+]
+
+const TOTAL_STEPS = 5
+const titles    = ['Sanitizer Type', 'Pool Shape', 'Pool Size', 'Test Strip Brand', 'Final Details']
 const subtitles = [
   'How does your pool sanitize the water?',
   'What best describes your pool?',
   'Roughly how many gallons?',
+  'Which test strips do you use? (optional)',
   'Give your pool a name',
 ]
 
@@ -50,6 +60,7 @@ export default function PoolSetupPage() {
   const [structure, setStructure]       = useState('')   // 'inground' | 'above_ground' | 'spa'
   const [volumeGallons, setVolumeGallons] = useState<number | null>(null)
   const [customVolume, setCustomVolume] = useState('')
+  const [stripBrand, setStripBrand]     = useState('')   // 'aquachek_7way' | 'other' | '' (unset)
   const [poolName, setPoolName]         = useState('')
   const [zipCode, setZipCode]           = useState('')
   const [loading, setLoading]           = useState(false)
@@ -92,6 +103,7 @@ export default function PoolSetupPage() {
       type: poolType,
       volume_gallons: volume,
       zip_code: zipCode || null,
+      strip_brand: stripBrand || null,
     })
 
     setLoading(false)
@@ -306,8 +318,43 @@ export default function PoolSetupPage() {
           </div>
         )}
 
-        {/* ── Step 4: Name + zip ── */}
+        {/* ── Step 4: Test strip brand ── */}
         {step === 4 && (
+          <div className="space-y-3">
+            {STRIP_BRANDS.map(b => {
+              const active = stripBrand === b.id
+              return (
+                <button
+                  key={b.id}
+                  onClick={() => setStripBrand(b.id)}
+                  className="w-full bg-white rounded-2xl p-4 flex items-center justify-between text-left transition-all border-2 shadow-sm"
+                  style={{borderColor: active ? '#0078B8' : 'transparent'}}
+                >
+                  <div>
+                    <p className="font-semibold text-text-primary text-sm">{b.label}</p>
+                    <p className="text-text-muted text-xs mt-0.5 leading-relaxed">{b.sub}</p>
+                  </div>
+                  <div className="w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 ml-4 transition-all"
+                    style={{borderColor: active ? '#0078B8' : '#D1D9DD', background: active ? '#0078B8' : 'transparent'}}>
+                    {active && <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>}
+                  </div>
+                </button>
+              )
+            })}
+            <p className="text-[11px] text-text-faint px-1 pt-1 leading-relaxed">
+              This only affects the camera scan feature — you can change it anytime later from your pool settings, and it never affects your dosing calculations.
+            </p>
+            <button
+              onClick={() => setStep(5)}
+              className="w-full bg-pool-dark text-white font-bold py-3.5 rounded-xl mt-1 hover:opacity-90 transition-opacity text-sm"
+            >
+              Continue →
+            </button>
+          </div>
+        )}
+
+        {/* ── Step 5: Name + zip ── */}
+        {step === 5 && (
           <div className="space-y-3">
             <div className="bg-white rounded-2xl p-4 shadow-sm">
               <label className="text-xs font-semibold uppercase tracking-widest text-text-muted block mb-2">Pool Nickname</label>

@@ -152,15 +152,38 @@ export interface PinPosition { x: number; y: number } // fractional 0..1 within 
 
 export type PinKey = StripParamKey | 'white_reference'
 
-// Fixed sampling points assuming the strip is laid with pads in a horizontal
-// row, centered in the photo — matches the framing guidance shown before the
-// user takes the photo. No manual placement step; this is the starting guess
-// the slider-based review lets the user correct.
-export const DEFAULT_PINS: Record<PinKey, PinPosition> = {
-  ph:                 { x: 0.30, y: 0.30 },
-  free_chlorine:      { x: 0.42, y: 0.30 },
-  total_alkalinity:   { x: 0.54, y: 0.30 },
-  cya:                { x: 0.66, y: 0.30 },
-  calcium_hardness:   { x: 0.78, y: 0.30 },
-  white_reference:    { x: 0.54, y: 0.70 },
+export type StripBrand = 'aquachek_7way' | 'generic'
+
+// Sampling points assume the strip is laid with pads in a horizontal row,
+// centered in the photo — matches the framing guidance shown before the user
+// takes the photo. No manual placement step; this is the starting guess the
+// slider-based review lets the user correct. Pad order/spacing is brand-
+// specific, which is why this is keyed by brand rather than a single fixed
+// layout — a wrong-brand guess samples the wrong physical pad entirely.
+export const PIN_LAYOUTS: Record<StripBrand, Record<PinKey, PinPosition>> = {
+  // Confirmed against a real AquaChek 7-Way strip (2026-08-12): pad order
+  // left-to-right is Hardness, Total Chlorine, Free Chlorine, pH, Total
+  // Alkalinity, CYA. Total Chlorine isn't a field PoolKeep tracks, so its
+  // position (index 2 of 6) is skipped rather than sampled.
+  aquachek_7way: {
+    calcium_hardness:   { x: 0.20, y: 0.30 },
+    free_chlorine:      { x: 0.44, y: 0.30 },
+    ph:                 { x: 0.56, y: 0.30 },
+    total_alkalinity:   { x: 0.68, y: 0.30 },
+    cya:                { x: 0.80, y: 0.30 },
+    white_reference:    { x: 0.56, y: 0.70 },
+  },
+  // Fallback for brands we don't have confirmed pad positions for yet.
+  generic: {
+    ph:                 { x: 0.30, y: 0.30 },
+    free_chlorine:      { x: 0.42, y: 0.30 },
+    total_alkalinity:   { x: 0.54, y: 0.30 },
+    cya:                { x: 0.66, y: 0.30 },
+    calcium_hardness:   { x: 0.78, y: 0.30 },
+    white_reference:    { x: 0.54, y: 0.70 },
+  },
+}
+
+export function pinsForBrand(stripBrand: string | null | undefined): Record<PinKey, PinPosition> {
+  return stripBrand === 'aquachek_7way' ? PIN_LAYOUTS.aquachek_7way : PIN_LAYOUTS.generic
 }

@@ -25,6 +25,11 @@ const SIZES = [
   { label: 'Extra Large', sub: '~30,000 gal', value: 30000 },
 ]
 
+const STRIP_BRANDS = [
+  { id: 'aquachek_7way', label: 'AquaChek 7-Way',  sub: 'Hardness, Total Cl, Free Cl, pH, Alkalinity, CYA' },
+  { id: 'other',         label: 'Other / Not Sure', sub: "We'll use a generic layout — you can always adjust readings after scanning" },
+]
+
 export default function EditPoolPage() {
   const router = useRouter()
   const [poolId, setPoolId]             = useState<string | null>(null)
@@ -33,6 +38,7 @@ export default function EditPoolPage() {
   const [structure, setStructure]       = useState('')  // 'inground' | 'above_ground' | 'spa'
   const [volumeGallons, setVolumeGallons] = useState<number | null>(null)
   const [customVolume, setCustomVolume] = useState('')
+  const [stripBrand, setStripBrand]     = useState('')  // 'aquachek_7way' | 'other' | '' (unset)
   const [loading, setLoading]           = useState(true)
   const [saving, setSaving]             = useState(false)
   const [error, setError]               = useState('')
@@ -46,13 +52,14 @@ export default function EditPoolPage() {
 
       const { data: pool } = await supabase
         .from('pools')
-        .select('id,name,type,volume_gallons')
+        .select('id,name,type,volume_gallons,strip_brand')
         .eq('id', savedId)
         .single()
 
       if (!pool) { router.push('/dashboard'); return }
       setPoolId(pool.id)
       setPoolName(pool.name ?? '')
+      setStripBrand(pool.strip_brand ?? '')
 
       // Decode stored type back into sanitizer + structure
       const storedType: string = pool.type ?? ''
@@ -92,7 +99,7 @@ export default function EditPoolPage() {
     const supabase = createClient()
     const { error: dbError } = await supabase
       .from('pools')
-      .update({ name: poolName.trim(), type: poolType, volume_gallons: volume })
+      .update({ name: poolName.trim(), type: poolType, volume_gallons: volume, strip_brand: stripBrand || null })
       .eq('id', poolId!)
 
     setSaving(false)
@@ -242,6 +249,36 @@ export default function EditPoolPage() {
               className="w-full text-sm outline-none text-text-primary bg-transparent"
             />
           </div>
+        </div>
+
+        {/* Test strip brand */}
+        <div>
+          <p className="text-xs font-bold uppercase tracking-widest mb-2 px-1" style={{color:'#1A3A4A'}}>Test Strip Brand</p>
+          <div className="space-y-2">
+            {STRIP_BRANDS.map(b => {
+              const active = stripBrand === b.id
+              return (
+                <button
+                  key={b.id}
+                  onClick={() => setStripBrand(b.id)}
+                  className="w-full bg-white rounded-2xl p-3.5 flex items-center justify-between text-left border-2 transition-all shadow-sm"
+                  style={{borderColor: active ? '#0078B8' : '#E8F0F6'}}
+                >
+                  <div>
+                    <p className="font-semibold text-text-primary text-sm">{b.label}</p>
+                    <p className="text-text-muted text-xs mt-0.5">{b.sub}</p>
+                  </div>
+                  <div className="w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 ml-3 transition-all"
+                    style={{borderColor: active ? '#0078B8' : '#D1D9DD', background: active ? '#0078B8' : 'transparent'}}>
+                    {active && <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>}
+                  </div>
+                </button>
+              )
+            })}
+          </div>
+          <p className="text-[11px] text-text-faint px-1 pt-2 leading-relaxed">
+            Only affects the camera scan feature — never your dosing calculations.
+          </p>
         </div>
 
         <button

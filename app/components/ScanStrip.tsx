@@ -6,7 +6,7 @@ import { Camera, CameraResultType, CameraSource } from '@capacitor/camera'
 import ZoomableImage from '@/app/components/ZoomableImage'
 import {
   STRIP_PARAMS,
-  DEFAULT_PINS,
+  pinsForBrand,
   CYA_STRIP_BANDS,
   whiteBalance,
   matchSwatch,
@@ -33,12 +33,15 @@ function averageColor(ctx: CanvasRenderingContext2D, cx: number, cy: number, rad
 }
 
 export default function ScanStrip({
+  stripBrand,
   onConfirm,
   onClose,
 }: {
+  stripBrand?: string | null
   onConfirm: (values: Partial<Record<StripParamKey, string>>) => void
   onClose: () => void
 }) {
+  const pins = pinsForBrand(stripBrand)
   const [step, setStep] = useState<Step>('intro')
   const [photoDataUrl, setPhotoDataUrl] = useState<string | null>(null)
   const [error, setError] = useState('')
@@ -95,10 +98,10 @@ export default function ScanStrip({
     const sampleRadius = Math.max(6, Math.round(img.naturalWidth * 0.015))
     const sample = (x: number, y: number) => averageColor(ctx, x * img.naturalWidth, y * img.naturalHeight, sampleRadius)
 
-    const whiteRgb = sample(DEFAULT_PINS.white_reference.x, DEFAULT_PINS.white_reference.y)
+    const whiteRgb = sample(pins.white_reference.x, pins.white_reference.y)
     const next: Record<StripParamKey, ResultRow> = {} as Record<StripParamKey, ResultRow>
     for (const p of STRIP_PARAMS) {
-      const pin = DEFAULT_PINS[p.key]
+      const pin = pins[p.key]
       const raw = sample(pin.x, pin.y)
       const corrected = whiteBalance(raw, whiteRgb)
       const { value, confidence } = matchSwatch(p.key, corrected)

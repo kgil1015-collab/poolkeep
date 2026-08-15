@@ -125,7 +125,7 @@ export default function LogTestPage() {
   const router = useRouter()
   const [values, setValues] = useState<Record<string, string>>({})
   const inputRefs = useRef<Record<string, HTMLInputElement | null>>({})
-  const [pool, setPool] = useState<{ id: string; name: string; volume_gallons: number; type?: string } | null>(null)
+  const [pool, setPool] = useState<{ id: string; name: string; volume_gallons: number; type?: string; strip_brand?: string | null } | null>(null)
   const [poolLoading, setPoolLoading] = useState(true)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -144,7 +144,7 @@ export default function LogTestPage() {
       if (!data.user) { router.push('/login'); return }
       const [{ data: profile }, { data: pools }] = await Promise.all([
         supabase.from('profiles').select('subscription_status').eq('id', data.user.id).maybeSingle(),
-        supabase.from('pools').select('id,name,volume_gallons,type').order('created_at', { ascending: true }),
+        supabase.from('pools').select('id,name,volume_gallons,type,strip_brand').order('created_at', { ascending: true }),
       ])
       const pro = profile?.subscription_status === 'active' || profile?.subscription_status === 'trialing'
       setIsPro(pro)
@@ -329,7 +329,7 @@ export default function LogTestPage() {
           Scan Test Strip
         </button>
 
-        {showScan && <ScanStrip onConfirm={handleScanConfirm} onClose={() => setShowScan(false)} />}
+        {showScan && <ScanStrip stripBrand={pool?.strip_brand ?? null} onConfirm={handleScanConfirm} onClose={() => setShowScan(false)} />}
 
         {/* First-timer tip — only shown before the first test is logged */}
         {testCount === 0 && !editId && (
