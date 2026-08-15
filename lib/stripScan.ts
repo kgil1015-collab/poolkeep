@@ -62,13 +62,18 @@ const SWATCHES: Record<StripParamKey, Swatch[]> = {
     { value: 5,    rgb: [194, 70, 124] },
     { value: 10,   rgb: [139, 44, 100] },
   ],
+  // Calibrated 2026-08-15 against a real AquaChek 7-Way bottle chart
+  // (extracted via pixel sampling, not eyeballed) — replaces an earlier
+  // generic approximation that ran noticeably hot in the green channel
+  // across the whole range, which was likely part of why TA scans were
+  // landing on the wrong ppm band.
   total_alkalinity: [
-    { value: 0,   rgb: [232, 216, 64] },
-    { value: 40,  rgb: [201, 216, 72] },
-    { value: 80,  rgb: [143, 199, 104] },
-    { value: 120, rgb: [92, 184, 148] },
-    { value: 180, rgb: [60, 160, 160] },
-    { value: 240, rgb: [46, 127, 168] },
+    { value: 0,   rgb: [222, 157, 54] },
+    { value: 40,  rgb: [180, 158, 54] },
+    { value: 80,  rgb: [135, 132, 56] },
+    { value: 120, rgb: [120, 138, 114] },
+    { value: 180, rgb: [61, 111, 101] },
+    { value: 240, rgb: [79, 115, 126] },
   ],
   cya: [
     { value: 0,   rgb: [242, 239, 216] },
