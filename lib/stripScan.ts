@@ -63,13 +63,17 @@ const SWATCHES: Record<StripParamKey, Swatch[]> = {
   // entirely. AquaChek's Free Chlorine reagent actually reads white → blue →
   // purple, not white → pink → magenta, which is likely why low free
   // chlorine readings were coming back near 0 regardless of the real value.
+  // Re-calibrated 2026-08-16 — the 2026-08-15 fix (blue→purple) was itself
+  // wrong. Direct pixel sampling of the real bottle chart shows the actual
+  // progression is pale cream-yellow → pale pink → dusty mauve → magenta →
+  // dark purple, not blue at the low end at all.
   free_chlorine: [
-    { value: 0,    rgb: [206, 228, 228] },
-    { value: 0.5,  rgb: [211, 222, 235] },
-    { value: 1,    rgb: [178, 165, 213] },
-    { value: 3,    rgb: [141, 82, 169] },
-    { value: 5,    rgb: [100, 0, 115] },
-    { value: 10,   rgb: [62, 1, 81] },
+    { value: 0,    rgb: [240, 234, 185] },
+    { value: 0.5,  rgb: [240, 230, 193] },
+    { value: 1,    rgb: [240, 225, 212] },
+    { value: 3,    rgb: [191, 133, 163] },
+    { value: 5,    rgb: [142, 48, 107] },
+    { value: 10,   rgb: [103, 24, 84] },
   ],
   // Calibrated 2026-08-15 against a real AquaChek 7-Way bottle chart
   // (extracted via pixel sampling, not eyeballed) — replaces an earlier
