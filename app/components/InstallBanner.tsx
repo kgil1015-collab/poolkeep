@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { Capacitor } from '@capacitor/core'
 
 const DISMISSED_KEY = 'poolkeep_banner_dismissed'
 
@@ -16,6 +17,11 @@ export default function InstallBanner() {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null)
 
   useEffect(() => {
+    // Already the real native app (App Store/Play Store) — "add to home
+    // screen" is meaningless here and would only confuse someone who
+    // already has the actual app installed.
+    if (Capacitor.isNativePlatform()) return
+
     const inStandalone =
       window.matchMedia('(display-mode: standalone)').matches ||
       (navigator as { standalone?: boolean }).standalone === true

@@ -1168,7 +1168,7 @@ export default function DashboardPage() {
                         <div className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 text-xs font-bold text-white" style={{background:'#0078B8'}}>1</div>
                         <p style={{fontSize:16,fontWeight:800,color:'#0B1E35',letterSpacing:'-.01em'}}>Quick check in {quickDays} days</p>
                       </div>
-                      <p style={{fontSize:13,lineHeight:1.6,color:'#3A6080',marginBottom:12}}>Test pH and free chlorine only — save your full strips for the 7-day retest.</p>
+                      <p style={{fontSize:13,lineHeight:1.6,color:'#3A6080',marginBottom:12}}>Test pH and free chlorine to confirm the treatment worked. Then a complete panel retest in {fullDays} days.</p>
                       {fc !== null && (
                         <div className="flex items-start gap-2 mb-1.5">
                           <span className="font-bold shrink-0 mt-0.5" style={{color:'#0078B8',fontSize:13}}>→</span>

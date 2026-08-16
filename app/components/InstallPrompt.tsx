@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { usePathname } from 'next/navigation'
+import { Capacitor } from '@capacitor/core'
 
 interface BeforeInstallPromptEvent extends Event {
   prompt(): Promise<void>
@@ -20,6 +21,9 @@ export default function InstallPrompt() {
 
   useEffect(() => {
     if (PUBLIC_PATHS.includes(pathname)) return
+
+    // Already the real native app — nothing to install
+    if (Capacitor.isNativePlatform()) return
 
     // Already installed as standalone PWA
     const inStandalone =

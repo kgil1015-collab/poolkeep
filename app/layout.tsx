@@ -3,6 +3,7 @@ import './globals.css'
 import InstallPrompt from './components/InstallPrompt'
 import ServiceWorkerRegistration from './components/ServiceWorkerRegistration'
 import ForceRefreshOnResume from './components/ForceRefreshOnResume'
+import DisableNativeZoom from './components/DisableNativeZoom'
 
 export const metadata: Metadata = {
   title: 'PoolKeep — Smart Pool Maintenance',
@@ -84,6 +85,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {children}
         <ServiceWorkerRegistration />
         <ForceRefreshOnResume />
+        <DisableNativeZoom />
         <InstallPrompt />
       </body>
     </html>
