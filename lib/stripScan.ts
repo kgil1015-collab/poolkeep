@@ -188,17 +188,24 @@ export type StripBrand = 'aquachek_7way' | 'taylor' | 'generic'
 // specific, which is why this is keyed by brand rather than a single fixed
 // layout — a wrong-brand guess samples the wrong physical pad entirely.
 export const PIN_LAYOUTS: Record<StripBrand, Record<PinKey, PinPosition>> = {
-  // Confirmed against a real AquaChek 7-Way strip (2026-08-12): pad order
-  // left-to-right is Hardness, Total Chlorine, Free Chlorine, pH, Total
-  // Alkalinity, CYA. Total Chlorine isn't a field PoolKeep tracks, so its
-  // position (index 2 of 6) is skipped rather than sampled.
+  // Re-verified 2026-08-16 by pixel-sampling two real, properly-framed flat
+  // strip photos (the 2026-08-12 values were sampled from a differently-
+  // framed reference photo and turned out not to generalize — pads sat far
+  // left of these fractions and much lower than y=0.30 in real photos, plus
+  // any slight tilt in laying the strip down drifts pad y across the strip's
+  // width). Pad order left-to-right is Hardness, Total Chlorine, Free
+  // Chlorine, pH, Total Alkalinity, CYA. Total Chlorine isn't a field
+  // PoolKeep tracks, so its position (index 2 of 6) is skipped rather than
+  // sampled. These are starting points only now — ScanStrip.tsx searches a
+  // neighborhood around each and keeps whichever point best matches the
+  // param's own swatches, so exact precision here matters less than it used to.
   aquachek_7way: {
-    calcium_hardness:   { x: 0.20, y: 0.30 },
-    free_chlorine:      { x: 0.44, y: 0.30 },
-    ph:                 { x: 0.56, y: 0.30 },
-    total_alkalinity:   { x: 0.68, y: 0.30 },
-    cya:                { x: 0.80, y: 0.30 },
-    white_reference:    { x: 0.56, y: 0.70 },
+    calcium_hardness:   { x: 0.10, y: 0.55 },
+    free_chlorine:      { x: 0.33, y: 0.55 },
+    ph:                 { x: 0.45, y: 0.56 },
+    total_alkalinity:   { x: 0.57, y: 0.57 },
+    cya:                { x: 0.70, y: 0.58 },
+    white_reference:    { x: 0.85, y: 0.58 },
   },
   // Sourced from Taylor's official "how to read" guide (2026-08-15): pad
   // order is Free Chlorine, Total Chlorine/Bromine, pH, Total Alkalinity,

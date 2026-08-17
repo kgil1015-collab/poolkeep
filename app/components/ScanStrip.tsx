@@ -39,6 +39,80 @@ function averageColor(ctx: CanvasRenderingContext2D, cx: number, cy: number, rad
   return [r / n, g / n, b / n]
 }
 
+function samplePixel(ctx: CanvasRenderingContext2D, x: number, y: number): RGB {
+  const canvas = ctx.canvas
+  const px = Math.max(0, Math.min(canvas.width - 1, Math.round(x)))
+  const py = Math.max(0, Math.min(canvas.height - 1, Math.round(y)))
+  const d = ctx.getImageData(px, py, 1, 1).data
+  return [d[0], d[1], d[2]]
+}
+
+// Real photos rarely land a pad at PIN_LAYOUTS' exact fractional position —
+// framing and zoom vary between photos, and any slight tilt in how the
+// strip was laid down drifts the pad row's y-position across the strip's
+// width (confirmed 2026-08-16 against real strip photos: a "flat, centered"
+// strip still showed ~0.03 of y-drift from left pad to right pad). Instead
+// of trusting the nominal point outright, probe a neighborhood around it
+// and keep whichever spot best matches this param's own reference swatches
+// — a wrong-colored neighboring pad scores badly against the wrong swatch
+// list, so this self-corrects without needing to know the strip's exact
+// position or angle.
+function findBestPin(
+  ctx: CanvasRenderingContext2D,
+  imgW: number,
+  imgH: number,
+  key: StripParamKey,
+  nominal: { x: number; y: number },
+  whiteRgb: RGB
+): { cx: number; cy: number } {
+  const xRadius = 0.05
+  const yRadius = 0.07
+  const step = 0.01
+  let best = { cx: nominal.x, cy: nominal.y, score: -Infinity }
+  for (let dy = -yRadius; dy <= yRadius + 1e-9; dy += step) {
+    for (let dx = -xRadius; dx <= xRadius + 1e-9; dx += step) {
+      const fx = nominal.x + dx
+      const fy = nominal.y + dy
+      if (fx < 0 || fx > 1 || fy < 0 || fy > 1) continue
+      const raw = samplePixel(ctx, fx * imgW, fy * imgH)
+      const corrected = whiteBalance(raw, whiteRgb)
+      const { confidence } = matchSwatch(key, corrected)
+      if (confidence > best.score) best = { cx: fx, cy: fy, score: confidence }
+    }
+  }
+  return best
+}
+
+// White reference has no swatch list to score against, so instead of
+// matching a param it prefers whichever nearby point is brightest and least
+// saturated (most neutral) — that's what the strip's own blank plastic
+// looks like, versus colored pads or the (usually darker, textured)
+// background behind the strip.
+function findWhiteReference(
+  ctx: CanvasRenderingContext2D,
+  imgW: number,
+  imgH: number,
+  nominal: { x: number; y: number }
+): { cx: number; cy: number } {
+  const xRadius = 0.08
+  const yRadius = 0.08
+  const step = 0.01
+  let best = { cx: nominal.x, cy: nominal.y, score: -Infinity }
+  for (let dy = -yRadius; dy <= yRadius + 1e-9; dy += step) {
+    for (let dx = -xRadius; dx <= xRadius + 1e-9; dx += step) {
+      const fx = nominal.x + dx
+      const fy = nominal.y + dy
+      if (fx < 0 || fx > 1 || fy < 0 || fy > 1) continue
+      const rgb = samplePixel(ctx, fx * imgW, fy * imgH)
+      const brightness = Math.min(rgb[0], rgb[1], rgb[2])
+      const saturation = Math.max(rgb[0], rgb[1], rgb[2]) - brightness
+      const score = brightness - saturation * 2
+      if (score > best.score) best = { cx: fx, cy: fy, score }
+    }
+  }
+  return best
+}
+
 export default function ScanStrip({
   stripBrand,
   onConfirm,
@@ -106,11 +180,13 @@ export default function ScanStrip({
     const sampleRadius = Math.max(6, Math.round(img.naturalWidth * 0.015))
     const sample = (x: number, y: number) => averageColor(ctx, x * img.naturalWidth, y * img.naturalHeight, sampleRadius)
 
-    const whiteRgb = sample(pins.white_reference.x, pins.white_reference.y)
+    const whiteBest = findWhiteReference(ctx, img.naturalWidth, img.naturalHeight, pins.white_reference)
+    const whiteRgb = sample(whiteBest.cx, whiteBest.cy)
     const next: Record<StripParamKey, ResultRow> = {} as Record<StripParamKey, ResultRow>
     for (const p of STRIP_PARAMS) {
       const pin = pins[p.key]
-      const raw = sample(pin.x, pin.y)
+      const best = findBestPin(ctx, img.naturalWidth, img.naturalHeight, p.key, pin, whiteRgb)
+      const raw = sample(best.cx, best.cy)
       const corrected = whiteBalance(raw, whiteRgb)
       const { value, confidence } = matchSwatch(p.key, corrected)
       next[p.key] = { value, confidence, rgb: corrected }
