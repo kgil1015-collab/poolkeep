@@ -7,6 +7,7 @@ import ZoomableImage from '@/app/components/ZoomableImage'
 import {
   STRIP_PARAMS,
   pinsForBrand,
+  stripLayoutForBrand,
   CYA_STRIP_BANDS,
   whiteBalance,
   matchSwatch,
@@ -14,7 +15,13 @@ import {
   type RGB,
 } from '@/lib/stripScan'
 
-type Step = 'intro' | 'review'
+type Step = 'intro' | 'review' | 'unclear'
+
+// Below this average confidence across all sampled pads, the sample points
+// are more likely landing on the wrong spots entirely (reversed strip,
+// diagonal placement, wrong zoom) than just genuinely ambiguous colors —
+// worth a retake prompt instead of confidently showing garbage numbers.
+const RETAKE_CONFIDENCE_THRESHOLD = 0.35
 
 interface ResultRow { value: number; confidence: number; rgb: RGB }
 
@@ -42,6 +49,7 @@ export default function ScanStrip({
   onClose: () => void
 }) {
   const pins = pinsForBrand(stripBrand)
+  const padLayout = stripLayoutForBrand(stripBrand)
   const [step, setStep] = useState<Step>('intro')
   const [photoDataUrl, setPhotoDataUrl] = useState<string | null>(null)
   const [error, setError] = useState('')
@@ -107,9 +115,12 @@ export default function ScanStrip({
       const { value, confidence } = matchSwatch(p.key, corrected)
       next[p.key] = { value, confidence, rgb: corrected }
     }
+
     setResults(next)
     setEditingText(Object.fromEntries(STRIP_PARAMS.map(p => [p.key, next[p.key].value.toFixed(p.decimals)])) as Record<StripParamKey, string>)
-    setStep('review')
+
+    const avgConfidence = STRIP_PARAMS.reduce((sum, p) => sum + next[p.key].confidence, 0) / STRIP_PARAMS.length
+    setStep(avgConfidence < RETAKE_CONFIDENCE_THRESHOLD ? 'unclear' : 'review')
   }
 
   // Slider drag — updates both the numeric value and the text box in sync
@@ -175,6 +186,25 @@ export default function ScanStrip({
               <p className="text-sm text-text-muted leading-relaxed">
                 Dip your strip, wait the usual 15 seconds, then lay it flat with the pads running left to right, centered in the frame. Take a photo and we&apos;ll read the colors automatically — you&apos;ll get to check and adjust every value before saving.
               </p>
+
+              {/* Brand-specific orientation guide — reading pads in the wrong
+                  order (reversed strip, wrong pad count) is the single
+                  biggest cause of bad scans, more than lighting or angle. */}
+              <div className="rounded-xl px-3 py-3" style={{ background: '#0B1E35' }}>
+                <p className="text-[10px] font-bold uppercase tracking-widest mb-2" style={{ color: 'rgba(255,255,255,0.5)' }}>Lay your strip left to right like this:</p>
+                <div className="flex items-center gap-1">
+                  {padLayout.map((pad, i) => (
+                    <div key={i} className="flex-1 text-center">
+                      <div
+                        className="rounded-md mb-1"
+                        style={{ height: 18, background: pad.tracked ? '#0078B8' : 'rgba(255,255,255,0.15)', opacity: pad.tracked ? 1 : 0.6 }}
+                      />
+                      <p className="text-[8px] font-semibold leading-tight" style={{ color: pad.tracked ? '#fff' : 'rgba(255,255,255,0.4)' }}>{pad.label}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
               <div className="rounded-xl px-3 py-2.5 flex items-start gap-2" style={{ background: 'rgba(0,120,184,0.06)', border: '1px solid rgba(0,120,184,0.15)' }}>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0078B8" strokeWidth="2.2" strokeLinecap="round" className="shrink-0 mt-0.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
                 <p className="text-[11px] leading-snug" style={{ color: '#0B4A70' }}>Shoot in bright, even light — daylight or a bright room light works best. Avoid direct flash and shadows, which can shift how the colors look.</p>
@@ -187,10 +217,40 @@ export default function ScanStrip({
                 Open Camera →
               </button>
               {photoDataUrl && (
-                // Hidden loader — draws once, then jumps straight to the review step.
+                // Hidden loader — draws once, then jumps to review (or back
+                // to this screen with a retake prompt if confidence is low).
                 // eslint-disable-next-line @next/next/no-img-element
                 <img ref={imgRef} src={photoDataUrl} alt="" className="hidden" onLoad={handlePhotoLoaded} />
               )}
+            </div>
+          )}
+
+          {step === 'unclear' && (
+            <div className="space-y-4">
+              <div className="rounded-xl px-3.5 py-3.5 flex items-start gap-2.5" style={{ background: 'rgba(229,48,74,0.08)', border: '1.5px solid rgba(229,48,74,0.3)' }}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#E5304A" strokeWidth="2.2" strokeLinecap="round" className="shrink-0 mt-0.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                <p className="text-xs leading-relaxed" style={{ color: '#7A1D2E' }}><span className="font-bold">Couldn&apos;t read your strip clearly.</span> This usually means the strip wasn&apos;t laid out in the expected order, was tilted, or wasn&apos;t centered in the frame. Check the layout guide below and try again.</p>
+              </div>
+              <div className="rounded-xl px-3 py-3" style={{ background: '#0B1E35' }}>
+                <p className="text-[10px] font-bold uppercase tracking-widest mb-2" style={{ color: 'rgba(255,255,255,0.5)' }}>Lay your strip left to right like this:</p>
+                <div className="flex items-center gap-1">
+                  {padLayout.map((pad, i) => (
+                    <div key={i} className="flex-1 text-center">
+                      <div
+                        className="rounded-md mb-1"
+                        style={{ height: 18, background: pad.tracked ? '#0078B8' : 'rgba(255,255,255,0.15)', opacity: pad.tracked ? 1 : 0.6 }}
+                      />
+                      <p className="text-[8px] font-semibold leading-tight" style={{ color: pad.tracked ? '#fff' : 'rgba(255,255,255,0.4)' }}>{pad.label}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <button onClick={retake} className="w-full text-white font-bold py-4 rounded-xl text-sm" style={{ background: '#0078B8' }}>
+                Retake Photo →
+              </button>
+              <button onClick={() => setStep('review')} className="w-full text-sm font-semibold py-2 text-text-muted">
+                Use these readings anyway
+              </button>
             </div>
           )}
 

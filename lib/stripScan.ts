@@ -226,6 +226,42 @@ export const PIN_LAYOUTS: Record<StripBrand, Record<PinKey, PinPosition>> = {
   },
 }
 
+// Left-to-right pad order for the "how to lay out your strip" reference
+// diagram shown before the camera opens — includes pads PoolKeep doesn't
+// track (tracked: false) so the diagram matches the real physical strip
+// the user is holding, not just the subset we sample.
+export interface StripPadInfo { label: string; tracked: boolean }
+export const STRIP_BRAND_LAYOUT: Record<StripBrand, StripPadInfo[]> = {
+  aquachek_7way: [
+    { label: 'Hardness',    tracked: true },
+    { label: 'Total Cl',    tracked: false },
+    { label: 'Free Cl',     tracked: true },
+    { label: 'pH',          tracked: true },
+    { label: 'Alkalinity',  tracked: true },
+    { label: 'CYA',         tracked: true },
+  ],
+  taylor: [
+    { label: 'Free Cl',     tracked: true },
+    { label: 'Total Cl/Br', tracked: false },
+    { label: 'pH',          tracked: true },
+    { label: 'Alkalinity',  tracked: true },
+    { label: 'Hardness',    tracked: true },
+    { label: 'CYA',         tracked: true },
+  ],
+  generic: [
+    { label: 'pH',          tracked: true },
+    { label: 'Free Cl',     tracked: true },
+    { label: 'Alkalinity',  tracked: true },
+    { label: 'CYA',         tracked: true },
+    { label: 'Hardness',    tracked: true },
+  ],
+}
+export function stripLayoutForBrand(stripBrand: string | null | undefined): StripPadInfo[] {
+  if (stripBrand === 'aquachek_7way') return STRIP_BRAND_LAYOUT.aquachek_7way
+  if (stripBrand === 'taylor') return STRIP_BRAND_LAYOUT.taylor
+  return STRIP_BRAND_LAYOUT.generic
+}
+
 export function pinsForBrand(stripBrand: string | null | undefined): Record<PinKey, PinPosition> {
   if (stripBrand === 'aquachek_7way') return PIN_LAYOUTS.aquachek_7way
   if (stripBrand === 'taylor') return PIN_LAYOUTS.taylor
