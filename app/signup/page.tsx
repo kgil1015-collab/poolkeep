@@ -86,15 +86,15 @@ export default function SignupPage() {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-semibold text-text-primary mb-1.5">Full Name</label>
-            <input type="text" value={name} onChange={e => setName(e.target.value)} placeholder="Dave Miller" className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-pool-dark focus:ring-2 focus:ring-pool-dark/10 transition-all bg-surface" />
+            <input type="text" value={name} onChange={e => setName(e.target.value)} placeholder="Dave Miller" className="w-full border border-gray-200 rounded-xl px-4 py-3 text-base outline-none focus:border-pool-dark focus:ring-2 focus:ring-pool-dark/10 transition-all bg-surface" />
           </div>
           <div>
             <label className="block text-sm font-semibold text-text-primary mb-1.5">Email</label>
-            <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="you@example.com" className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-pool-dark focus:ring-2 focus:ring-pool-dark/10 transition-all bg-surface" />
+            <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="you@example.com" className="w-full border border-gray-200 rounded-xl px-4 py-3 text-base outline-none focus:border-pool-dark focus:ring-2 focus:ring-pool-dark/10 transition-all bg-surface" />
           </div>
           <div>
             <label className="block text-sm font-semibold text-text-primary mb-1.5">Password</label>
-            <input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Min 8 characters" className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-pool-dark focus:ring-2 focus:ring-pool-dark/10 transition-all bg-surface" />
+            <input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Min 8 characters" className="w-full border border-gray-200 rounded-xl px-4 py-3 text-base outline-none focus:border-pool-dark focus:ring-2 focus:ring-pool-dark/10 transition-all bg-surface" />
           </div>
           <button type="submit" disabled={loading} className="w-full font-bold py-3 rounded-xl hover:opacity-90 transition-opacity text-sm mt-2 disabled:opacity-60" style={{background:'#00E0B0',color:'#003D5C'}}>
             {loading ? 'Creating account…' : 'Get Started Free →'}

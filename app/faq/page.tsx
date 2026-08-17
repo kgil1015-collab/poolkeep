@@ -314,7 +314,7 @@ export default function FAQPage() {
               value={query}
               onChange={e => setQuery(e.target.value)}
               placeholder="Search the FAQ — try &quot;chlorine&quot; or &quot;storage&quot;"
-              className="w-full bg-white rounded-xl py-3 pl-10 pr-4 text-sm outline-none border border-gray-100 shadow-sm placeholder:text-text-faint"
+              className="w-full bg-white rounded-xl py-3 pl-10 pr-4 text-base outline-none border border-gray-100 shadow-sm placeholder:text-text-faint"
               style={{color:'#0D2333'}}
             />
           </div>

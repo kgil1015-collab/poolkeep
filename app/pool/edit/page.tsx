@@ -162,7 +162,7 @@ export default function EditPoolPage() {
             value={poolName}
             onChange={e => setPoolName(e.target.value)}
             placeholder="Backyard Pool"
-            className="w-full text-sm outline-none text-text-primary bg-transparent border-b border-gray-100 pb-2 focus:border-pool-dark transition-colors"
+            className="w-full text-base outline-none text-text-primary bg-transparent border-b border-gray-100 pb-2 focus:border-pool-dark transition-colors"
           />
         </div>
 
@@ -247,7 +247,7 @@ export default function EditPoolPage() {
               value={customVolume}
               onChange={e => { setCustomVolume(e.target.value); setVolumeGallons(null) }}
               placeholder="e.g. 18,500"
-              className="w-full text-sm outline-none text-text-primary bg-transparent"
+              className="w-full text-base outline-none text-text-primary bg-transparent"
             />
           </div>
         </div>

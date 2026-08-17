@@ -306,7 +306,7 @@ export default function PoolSetupPage() {
                 value={customVolume}
                 onChange={e => { setCustomVolume(e.target.value); setVolumeGallons(null) }}
                 placeholder="e.g. 18,500"
-                className="w-full text-sm outline-none text-text-primary bg-transparent"
+                className="w-full text-base outline-none text-text-primary bg-transparent"
               />
             </div>
             <button
@@ -364,7 +364,7 @@ export default function PoolSetupPage() {
                 value={poolName}
                 onChange={e => setPoolName(e.target.value)}
                 placeholder="Backyard Pool"
-                className="w-full text-sm outline-none text-text-primary bg-transparent border-b border-gray-100 pb-1 focus:border-pool-dark transition-colors"
+                className="w-full text-base outline-none text-text-primary bg-transparent border-b border-gray-100 pb-1 focus:border-pool-dark transition-colors"
               />
             </div>
             <div className="bg-white rounded-2xl p-4 shadow-sm">
@@ -377,7 +377,7 @@ export default function PoolSetupPage() {
                 onChange={e => setZipCode(e.target.value)}
                 placeholder="e.g. 85001"
                 maxLength={5}
-                className="w-full text-sm outline-none text-text-primary bg-transparent border-b border-gray-100 pb-1 focus:border-pool-dark transition-colors"
+                className="w-full text-base outline-none text-text-primary bg-transparent border-b border-gray-100 pb-1 focus:border-pool-dark transition-colors"
               />
             </div>
             <button

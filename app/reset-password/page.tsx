@@ -134,7 +134,7 @@ export default function ResetPasswordPage() {
               value={password}
               onChange={e => setPassword(e.target.value)}
               placeholder="Min 8 characters"
-              className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-pool-dark focus:ring-2 focus:ring-pool-dark/10 transition-all bg-surface"
+              className="w-full border border-gray-200 rounded-xl px-4 py-3 text-base outline-none focus:border-pool-dark focus:ring-2 focus:ring-pool-dark/10 transition-all bg-surface"
             />
           </div>
           <div>
@@ -144,7 +144,7 @@ export default function ResetPasswordPage() {
               value={confirm}
               onChange={e => setConfirm(e.target.value)}
               placeholder="Repeat your new password"
-              className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-pool-dark focus:ring-2 focus:ring-pool-dark/10 transition-all bg-surface"
+              className="w-full border border-gray-200 rounded-xl px-4 py-3 text-base outline-none focus:border-pool-dark focus:ring-2 focus:ring-pool-dark/10 transition-all bg-surface"
             />
           </div>
           <button
