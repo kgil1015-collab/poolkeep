@@ -167,7 +167,15 @@ export function matchSwatch(key: StripParamKey, rgb: RGB): MatchResult {
     .map(s => ({ s, d: deltaE(lab, rgbToLab(s.rgb)) }))
     .sort((a, b) => a.d - b.d)
   const [best, second] = ranked
-  const confidence = Math.max(0, Math.min(1, 1 - best.d / 35))
+  // 35 was calibrated against clean bottle-chart swatches, not real strip
+  // photos — a user reading a strip by eye already has to eyeball a color
+  // that often falls between two printed bands, so treating anything short
+  // of a near-exact match as "low confidence" mismatches how strips are
+  // actually meant to be read. Checked against verified real photos
+  // (2026-08-30): legitimate, correctly-matched pads ranged deltaE 13-61, so
+  // 90 keeps meaningfully bad matches (wrong pad entirely) penalized while
+  // no longer flagging normal in-between readings as failures.
+  const confidence = Math.max(0, Math.min(1, 1 - best.d / 90))
   if (!second || best.d < 0.01) return { value: best.s.value, confidence }
   const w1 = 1 / Math.max(best.d, 0.01)
   const w2 = 1 / Math.max(second.d, 0.01)
