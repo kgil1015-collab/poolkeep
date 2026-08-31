@@ -83,6 +83,121 @@ function findBestPin(
   return best
 }
 
+// Locates the strip's row in the photo. Real photos vary far more in
+// framing/zoom than any fixed y-fraction or small search window can absorb
+// — confirmed 2026-08-30: the same "flat, centered" framing produced pad
+// rows at y=0.55 in one photo and y=0.43 in another, a swing findBestPin's
+// search radius can't bridge. Instead of assuming where the row is, scan
+// for the row with the longest run of "strip-like" pixels (near-white
+// plastic or a saturated color pad) — that reliably stands out against a
+// duller, more uniformly textured background.
+function findStripRow(ctx: CanvasRenderingContext2D, imgW: number, imgH: number): number {
+  let bestY = 0.5, bestRun = 0
+  for (let yf = 0.08; yf <= 0.92; yf += 0.01) {
+    const y = Math.round(yf * imgH)
+    let run = 0, maxRun = 0
+    for (let xf = 0; xf <= 1; xf += 0.004) {
+      const x = Math.round(xf * imgW)
+      const [r, g, b] = samplePixel(ctx, x, y)
+      const lo = Math.min(r, g, b)
+      const hi = Math.max(r, g, b)
+      if (lo > 195 || hi - lo > 45) { run++; if (run > maxRun) maxRun = run } else { run = 0 }
+    }
+    if (maxRun > bestRun) { bestRun = maxRun; bestY = yf }
+  }
+  return bestY
+}
+
+interface PadBlob { xCenter: number; y: number }
+
+// Any slight tilt in laying the strip down drifts the pad row across the
+// strip's width, so instead of trusting one fixed y for the whole row, each
+// column gets its own locally-refined y within a band around the row
+// findStripRow found (follows the tilt). Pads are then found as runs of
+// saturated columns; an over-wide run (background glare, or a reflection
+// bridging the gap between two pads) is narrowed to whichever sub-window
+// scores highest, so a false merge doesn't get treated as one giant pad.
+function findPadBlobs(ctx: CanvasRenderingContext2D, imgW: number, imgH: number, coarseY: number): PadBlob[] {
+  const step = 0.003
+  const yBand = 0.05
+  const cols: { sat: number; y: number }[] = []
+  for (let xf = 0; xf <= 1; xf += step) {
+    const x = Math.round(xf * imgW)
+    let bestSat = 0, bestY = coarseY
+    for (let dy = -yBand; dy <= yBand + 1e-9; dy += 0.005) {
+      const yf = coarseY + dy
+      if (yf < 0 || yf > 1) continue
+      const y = Math.round(yf * imgH)
+      const [r, g, b] = samplePixel(ctx, x, y)
+      const sat = Math.max(r, g, b) - Math.min(r, g, b)
+      if (sat > bestSat) { bestSat = sat; bestY = yf }
+    }
+    cols.push({ sat: bestSat, y: bestY })
+  }
+
+  const rawRuns: [number, number][] = []
+  let runStart = -1
+  for (let i = 0; i < cols.length; i++) {
+    if (cols[i].sat > 35 && runStart < 0) runStart = i
+    if (cols[i].sat <= 35 && runStart >= 0) {
+      if ((i - runStart) * step > 0.015) rawRuns.push([runStart, i])
+      runStart = -1
+    }
+  }
+  if (runStart >= 0) rawRuns.push([runStart, cols.length - 1])
+
+  const avgSatOf = (a: number, b: number) => {
+    let sum = 0, n = 0
+    for (let i = a; i <= b; i++) { sum += cols[i].sat; n++ }
+    return sum / n
+  }
+  const padWidthCols = Math.max(1, Math.round(0.035 / step))
+  const blobs: PadBlob[] = []
+  for (const [rs, re] of rawRuns) {
+    if ((re - rs) * step <= 0.07) {
+      const c = Math.round((rs + re) / 2)
+      blobs.push({ xCenter: (rs + re) / 2 * step, y: cols[c].y })
+      continue
+    }
+    let bestStart = rs, bestAvg = -1
+    for (let s = rs; s + padWidthCols <= re; s++) {
+      const avg = avgSatOf(s, s + padWidthCols)
+      if (avg > bestAvg) { bestAvg = avg; bestStart = s }
+    }
+    const bestEnd = bestStart + padWidthCols
+    const c = Math.round((bestStart + bestEnd) / 2)
+    blobs.push({ xCenter: (bestStart + bestEnd) / 2 * step, y: cols[c].y })
+  }
+  return blobs
+}
+
+// Matches detected pad blobs to params by proximity to each param's nominal
+// PIN_LAYOUTS position, greedily assigning the closest (param, blob) pairs
+// first so two params near the same blob don't both grab it in an
+// arbitrary order. A param with no sufficiently close blob (e.g. a pad that
+// didn't separate cleanly) is left unmatched and falls back to findBestPin.
+function matchBlobsToPins(
+  blobs: PadBlob[],
+  pins: Record<StripParamKey, { x: number; y: number }>,
+  keys: StripParamKey[]
+): Partial<Record<StripParamKey, PadBlob>> {
+  const maxDist = 0.12
+  const candidates: { key: StripParamKey; blobIdx: number; dist: number }[] = []
+  for (const key of keys) {
+    blobs.forEach((b, i) => candidates.push({ key, blobIdx: i, dist: Math.abs(b.xCenter - pins[key].x) }))
+  }
+  candidates.sort((a, b) => a.dist - b.dist)
+  const assigned: Partial<Record<StripParamKey, PadBlob>> = {}
+  const usedBlobs = new Set<number>()
+  for (const c of candidates) {
+    if (c.dist > maxDist) break
+    if (assigned[c.key] || usedBlobs.has(c.blobIdx)) continue
+    assigned[c.key] = blobs[c.blobIdx]
+    usedBlobs.add(c.blobIdx)
+  }
+  return assigned
+}
+
 // White reference has no swatch list to score against, so instead of
 // matching a param it prefers whichever nearby point is brightest and least
 // saturated (most neutral) — that's what the strip's own blank plastic
@@ -182,10 +297,18 @@ export default function ScanStrip({
 
     const whiteBest = findWhiteReference(ctx, img.naturalWidth, img.naturalHeight, pins.white_reference)
     const whiteRgb = sample(whiteBest.cx, whiteBest.cy)
+
+    const coarseY = findStripRow(ctx, img.naturalWidth, img.naturalHeight)
+    const blobs = findPadBlobs(ctx, img.naturalWidth, img.naturalHeight, coarseY)
+    const blobMatches = matchBlobsToPins(blobs, pins, STRIP_PARAMS.map(p => p.key))
+
     const next: Record<StripParamKey, ResultRow> = {} as Record<StripParamKey, ResultRow>
     for (const p of STRIP_PARAMS) {
       const pin = pins[p.key]
-      const best = findBestPin(ctx, img.naturalWidth, img.naturalHeight, p.key, pin, whiteRgb)
+      const matched = blobMatches[p.key]
+      const best = matched
+        ? { cx: matched.xCenter, cy: matched.y }
+        : findBestPin(ctx, img.naturalWidth, img.naturalHeight, p.key, pin, whiteRgb)
       const raw = sample(best.cx, best.cy)
       const corrected = whiteBalance(raw, whiteRgb)
       const { value, confidence } = matchSwatch(p.key, corrected)
