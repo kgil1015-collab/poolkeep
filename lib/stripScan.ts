@@ -56,6 +56,12 @@ const SWATCHES: Record<StripParamKey, Swatch[]> = {
     { value: 7.2, rgb: [240, 160, 60] },
     { value: 7.5, rgb: [232, 130, 94] },
     { value: 7.8, rgb: [224, 108, 134] },
+    // Added 2026-08-31 from a real dipped strip + the user's own read of it
+    // ("closer to 8") — the app's white-balance-corrected color for that pad
+    // was a warm red [255,151,136], notably redder/brighter than the
+    // 7.8/8.4 bottle-chart points it was landing between (both pull toward
+    // pink/purple), which was pulling the interpolated result down to 7.6.
+    { value: 8.0, rgb: [255, 151, 136] },
     { value: 8.4, rgb: [196, 80, 126] },
   ],
   // Calibrated 2026-08-15 against a real AquaChek 7-Way bottle chart — the
@@ -83,7 +89,12 @@ const SWATCHES: Record<StripParamKey, Swatch[]> = {
   total_alkalinity: [
     { value: 0,   rgb: [222, 157, 54] },
     { value: 40,  rgb: [180, 158, 54] },
-    { value: 80,  rgb: [135, 132, 56] },
+    // Replaced 2026-08-31: the bottle-chart value (dark olive [135,132,56])
+    // was way darker than how this pad actually renders in a real photo —
+    // the app's white-balance-corrected color for a strip the user read as
+    // 80 ppm was a bright yellow-green [227,230,128]. This is what the "T"
+    // status circle looked visibly wrong against before the fix.
+    { value: 80,  rgb: [227, 230, 128] },
     { value: 120, rgb: [120, 138, 114] },
     { value: 180, rgb: [61, 111, 101] },
     { value: 240, rgb: [79, 115, 126] },
@@ -96,6 +107,12 @@ const SWATCHES: Record<StripParamKey, Swatch[]> = {
   cya: [
     { value: 0,   rgb: [185, 124, 30] },
     { value: 40,  rgb: [175, 89, 7]   },
+    // Added 2026-08-31 from a real dipped strip + the user's own read of it
+    // (~75 ppm) — the app's white-balance-corrected color for that pad was
+    // a bright orange [255,180,123], much brighter than the 40/100
+    // bottle-chart points it was landing between, which was pulling the
+    // interpolated result down to 19.
+    { value: 75,  rgb: [255, 180, 123] },
     { value: 100, rgb: [163, 48, 45]  },
     { value: 150, rgb: [147, 32, 66]  },
     { value: 300, rgb: [136, 35, 88]  },
