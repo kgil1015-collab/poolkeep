@@ -21,7 +21,7 @@ type Step = 'intro' | 'review' | 'unclear'
 // are more likely landing on the wrong spots entirely (reversed strip,
 // diagonal placement, wrong zoom) than just genuinely ambiguous colors —
 // worth a retake prompt instead of confidently showing garbage numbers.
-const RETAKE_CONFIDENCE_THRESHOLD = 0.35
+const RETAKE_CONFIDENCE_THRESHOLD = 0.25
 
 interface ResultRow { value: number; confidence: number; rgb: RGB }
 
@@ -88,21 +88,25 @@ function findBestPin(
 // saturated (most neutral) — that's what the strip's own blank plastic
 // looks like, versus colored pads or the (usually darker, textured)
 // background behind the strip.
+//
+// Scans the full frame width at the strip's y band rather than just the
+// neighborhood of the nominal position. Depending on how the user framed
+// the shot, the strip may not extend to the nominal x position (e.g. only
+// 60-70% of the frame), so limiting the search to ±0.08 around x=0.85
+// landed on the concrete background and caused white-balance to wildly
+// overcorrect — tanking all pad confidences even when pad colors were fine.
 function findWhiteReference(
   ctx: CanvasRenderingContext2D,
   imgW: number,
   imgH: number,
   nominal: { x: number; y: number }
 ): { cx: number; cy: number } {
-  const xRadius = 0.08
-  const yRadius = 0.08
-  const step = 0.01
+  const step = 0.02
+  const yRadius = 0.10
   let best = { cx: nominal.x, cy: nominal.y, score: -Infinity }
-  for (let dy = -yRadius; dy <= yRadius + 1e-9; dy += step) {
-    for (let dx = -xRadius; dx <= xRadius + 1e-9; dx += step) {
-      const fx = nominal.x + dx
-      const fy = nominal.y + dy
-      if (fx < 0 || fx > 1 || fy < 0 || fy > 1) continue
+  for (let fy = nominal.y - yRadius; fy <= nominal.y + yRadius + 1e-9; fy += step) {
+    for (let fx = step; fx <= 1 - step + 1e-9; fx += step) {
+      if (fy < 0 || fy > 1) continue
       const rgb = samplePixel(ctx, fx * imgW, fy * imgH)
       const brightness = Math.min(rgb[0], rgb[1], rgb[2])
       const saturation = Math.max(rgb[0], rgb[1], rgb[2]) - brightness
