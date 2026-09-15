@@ -296,13 +296,18 @@ export default function ScanStrip({
     const ch = container.clientHeight
 
     // Map guide rect (CSS fractions of container) → video pixel crop.
-    // object-fit: contain may add letterbox bars — account for their offset.
-    const scale = Math.min(cw / vw, ch / vh)
-    const lbX = (cw - vw * scale) / 2
-    const lbY = (ch - vh * scale) / 2
+    // object-fit: cover scales the video up to fill the container on its
+    // shorter axis, then centers it — overflowing (and clipping) the other
+    // axis. The guide overlay is drawn as container-relative percentages,
+    // so it always lines up with what's visibly on screen; this converts
+    // those same container fractions into video pixel coordinates by
+    // accounting for that overflow, matching what the user actually sees.
+    const scale = Math.max(cw / vw, ch / vh)
+    const overflowX = vw * scale - cw
+    const overflowY = vh * scale - ch
 
-    const cropX = Math.max(0, Math.round((cw * GUIDE.x - lbX) / scale))
-    const cropY = Math.max(0, Math.round((ch * GUIDE.y - lbY) / scale))
+    const cropX = Math.max(0, Math.round((cw * GUIDE.x + overflowX / 2) / scale))
+    const cropY = Math.max(0, Math.round((ch * GUIDE.y + overflowY / 2) / scale))
     const cropW = Math.min(vw - cropX, Math.round(cw * GUIDE.w / scale))
     const cropH = Math.min(vh - cropY, Math.round(ch * GUIDE.h / scale))
 
@@ -449,7 +454,7 @@ export default function ScanStrip({
                   playsInline
                   muted
                   className="w-full h-full"
-                  style={{ objectFit: 'contain' }}
+                  style={{ objectFit: 'cover' }}
                 />
 
                 {/* Darkened panels around the guide rect */}
