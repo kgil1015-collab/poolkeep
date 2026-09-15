@@ -96,6 +96,15 @@ const SWATCHES: Record<StripParamKey, Swatch[]> = {
     // status circle looked visibly wrong against before the fix.
     { value: 80,  rgb: [227, 230, 128] },
     { value: 120, rgb: [120, 138, 114] },
+    // Added 2026-09-15 from a real dipped strip + the user's own read of it
+    // ("between 120 and 180") — same pattern as the 80 fix above: this
+    // pad's actual white-balance-corrected color, [144,178,178], is much
+    // brighter/bluer than the 180 bottle-chart entry it was landing
+    // between, which was pulling results for pads in this range down to
+    // ~100. The existing 120/180 chart points are left as-is since neither
+    // was directly confirmed wrong, but a real anchor in the gap between
+    // them should stop this band from collapsing toward 120 by default.
+    { value: 175, rgb: [144, 178, 178] },
     { value: 180, rgb: [61, 111, 101] },
     { value: 240, rgb: [79, 115, 126] },
   ],
