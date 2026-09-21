@@ -49,94 +49,60 @@ export type RGB = [number, number, number]
 
 interface Swatch { value: number; rgb: RGB }
 
+// Reference colors for each param, ordered low → high, in the same white-
+// balanced space scans are matched in.
+//
+// Rebuilt 2026-09-20 from five photos of the real AquaChek 7-Way bottle
+// chart under different lighting (plus the strip-beside-bottle shots), each
+// normalized against its own label paper (the brightest ~6% of the label)
+// exactly like scans are normalized against the strip's plastic, then
+// averaged. The earlier tables were sampled from raw, un-normalized photos,
+// and were then patched with one-off "anchor" points taken from individual
+// scans — but those anchors were themselves sampled through a white-balance
+// bug (the white reference was landing on the background), so each patch
+// fixed one photo and broke the next. Those anchors are removed.
+//
+// Brightness of the same swatch varies a lot between photos (exposure and
+// tone curve), while hue/chroma stay put — e.g. TA 0→240 ppm runs hue
+// 81° → 100° → 109° → 142° → 178° → 222° in every photo. matchSwatch()
+// therefore leans on hue/chroma and barely on brightness.
 const SWATCHES: Record<StripParamKey, Swatch[]> = {
   ph: [
-    { value: 6.2, rgb: [242, 225, 74] },
-    { value: 6.8, rgb: [240, 201, 62] },
-    { value: 7.2, rgb: [240, 160, 60] },
-    { value: 7.5, rgb: [232, 130, 94] },
-    { value: 7.8, rgb: [224, 108, 134] },
-    // Added 2026-08-31 from a real dipped strip + the user's own read of it
-    // ("closer to 8") — the app's white-balance-corrected color for that pad
-    // was a warm red [255,151,136], notably redder/brighter than the
-    // 7.8/8.4 bottle-chart points it was landing between (both pull toward
-    // pink/purple), which was pulling the interpolated result down to 7.6.
-    { value: 8.0, rgb: [255, 151, 136] },
-    { value: 8.4, rgb: [196, 80, 126] },
+    { value: 6.2, rgb: [224, 152, 62] },
+    { value: 6.8, rgb: [228, 118, 35] },
+    { value: 7.2, rgb: [213, 78, 5] },
+    { value: 7.8, rgb: [216, 87, 81] },
+    { value: 8.4, rgb: [210, 25, 65] },
   ],
-  // Calibrated 2026-08-15 against a real AquaChek 7-Way bottle chart — the
-  // previous generic pink/rose approximation was the wrong hue family
-  // entirely. AquaChek's Free Chlorine reagent actually reads white → blue →
-  // purple, not white → pink → magenta, which is likely why low free
-  // chlorine readings were coming back near 0 regardless of the real value.
-  // Re-calibrated 2026-08-16 — the 2026-08-15 fix (blue→purple) was itself
-  // wrong. Direct pixel sampling of the real bottle chart shows the actual
-  // progression is pale cream-yellow → pale pink → dusty mauve → magenta →
-  // dark purple, not blue at the low end at all.
   free_chlorine: [
-    { value: 0,    rgb: [240, 234, 185] },
-    { value: 0.5,  rgb: [240, 230, 193] },
-    { value: 1,    rgb: [240, 225, 212] },
-    { value: 3,    rgb: [191, 133, 163] },
-    { value: 5,    rgb: [142, 48, 107] },
-    { value: 10,   rgb: [103, 24, 84] },
+    { value: 0,   rgb: [226, 232, 213] },
+    { value: 0.5, rgb: [218, 212, 192] },
+    { value: 1,   rgb: [223, 208, 212] },
+    { value: 3,   rgb: [198, 163, 216] },
+    { value: 5,   rgb: [172, 111, 192] },
+    { value: 10,  rgb: [147, 53, 153] },
   ],
-  // Calibrated 2026-08-15 against a real AquaChek 7-Way bottle chart
-  // (extracted via pixel sampling, not eyeballed) — replaces an earlier
-  // generic approximation that ran noticeably hot in the green channel
-  // across the whole range, which was likely part of why TA scans were
-  // landing on the wrong ppm band.
   total_alkalinity: [
-    { value: 0,   rgb: [222, 157, 54] },
-    { value: 40,  rgb: [180, 158, 54] },
-    // Replaced 2026-08-31: the bottle-chart value (dark olive [135,132,56])
-    // was way darker than how this pad actually renders in a real photo —
-    // the app's white-balance-corrected color for a strip the user read as
-    // 80 ppm was a bright yellow-green [227,230,128]. This is what the "T"
-    // status circle looked visibly wrong against before the fix.
-    { value: 80,  rgb: [227, 230, 128] },
-    { value: 120, rgb: [120, 138, 114] },
-    // Added 2026-09-15 from a real dipped strip + the user's own read of it
-    // ("between 120 and 180") — same pattern as the 80 fix above: this
-    // pad's actual white-balance-corrected color, [144,178,178], is much
-    // brighter/bluer than the 180 bottle-chart entry it was landing
-    // between, which was pulling results for pads in this range down to
-    // ~100. The existing 120/180 chart points are left as-is since neither
-    // was directly confirmed wrong, but a real anchor in the gap between
-    // them should stop this band from collapsing toward 120 by default.
-    { value: 175, rgb: [144, 178, 178] },
-    { value: 180, rgb: [61, 111, 101] },
-    { value: 240, rgb: [79, 115, 126] },
+    { value: 0,   rgb: [195, 144, 30] },
+    { value: 40,  rgb: [153, 145, 42] },
+    { value: 80,  rgb: [116, 126, 38] },
+    { value: 120, rgb: [106, 129, 105] },
+    { value: 180, rgb: [45, 105, 93] },
+    { value: 240, rgb: [60, 96, 105] },
   ],
-  // Calibrated 2026-08-15 against a real AquaChek 7-Way bottle chart. The
-  // previous approximation was wrong on two axes at once: colors (pale
-  // cream instead of golden-orange-to-magenta) and scale (topped out at 110
-  // ppm; the real chart goes to 300) — a real "0 ppm" swatch was landing
-  // closer to the old table's "110" entry than its own "0".
   cya: [
-    { value: 0,   rgb: [185, 124, 30] },
-    { value: 40,  rgb: [175, 89, 7]   },
-    // Added 2026-08-31 from a real dipped strip + the user's own read of it
-    // (~75 ppm) — the app's white-balance-corrected color for that pad was
-    // a bright orange [255,180,123], much brighter than the 40/100
-    // bottle-chart points it was landing between, which was pulling the
-    // interpolated result down to 19.
-    { value: 75,  rgb: [255, 180, 123] },
-    { value: 100, rgb: [163, 48, 45]  },
-    { value: 150, rgb: [147, 32, 66]  },
-    { value: 300, rgb: [136, 35, 88]  },
+    { value: 0,   rgb: [183, 129, 25] },
+    { value: 40,  rgb: [175, 89, 2] },
+    { value: 100, rgb: [167, 44, 53] },
+    { value: 150, rgb: [136, 14, 69] },
+    { value: 300, rgb: [119, 16, 93] },
   ],
-  // Calibrated 2026-08-15 against a real AquaChek 7-Way bottle chart — same
-  // kind of wrong-hue-family bug as Free Chlorine. The previous table
-  // assumed blue -> teal -> green -> yellow-green -> purple; the real
-  // progression never goes green/yellow at all, it's blue -> purple ->
-  // purple -> rose -> pink across the whole 0-1000 ppm range.
   calcium_hardness: [
-    { value: 0,    rgb: [73, 87, 110]  },
-    { value: 100,  rgb: [108, 98, 122] },
-    { value: 250,  rgb: [113, 81, 110] },
-    { value: 500,  rgb: [138, 73, 95]  },
-    { value: 1000, rgb: [169, 79, 105] },
+    { value: 0,    rgb: [66, 83, 128] },
+    { value: 100,  rgb: [97, 93, 141] },
+    { value: 250,  rgb: [103, 74, 126] },
+    { value: 500,  rgb: [126, 64, 99] },
+    { value: 1000, rgb: [156, 69, 108] },
   ],
 }
 
@@ -163,50 +129,80 @@ export function rgbToLab(rgb: RGB): [number, number, number] {
   return [116 * fy - 16, 500 * (fx - fy), 200 * (fy - fz)]
 }
 
-function deltaE(lab1: number[], lab2: number[]) {
-  return Math.sqrt((lab1[0] - lab2[0]) ** 2 + (lab1[1] - lab2[1]) ** 2 + (lab1[2] - lab2[2]) ** 2)
-}
-
 // Corrects for ambient lighting/white-balance drift by scaling the sampled
 // pad color against a patch of the strip's own (assumed near-white) plastic.
 export function whiteBalance(rgb: RGB, referenceWhite: RGB): RGB {
   const target = 235
-  const clamp = (v: number) => Math.max(0, Math.min(255, v))
+  // Only clamp below zero: a saturated pad (a red pH pad next to dimly lit
+  // plastic) legitimately lands above 255 once the plastic is normalized to
+  // 235, and clipping it flattens exactly the hue we match on. Callers that
+  // paint the color (CSS rgb()) clamp on their own.
+  const floor = (v: number) => Math.max(0, v)
   const gain = (c: number) => target / Math.max(c, 30)
   return [
-    clamp(rgb[0] * gain(referenceWhite[0])),
-    clamp(rgb[1] * gain(referenceWhite[1])),
-    clamp(rgb[2] * gain(referenceWhite[2])),
+    floor(rgb[0] * gain(referenceWhite[0])),
+    floor(rgb[1] * gain(referenceWhite[1])),
+    floor(rgb[2] * gain(referenceWhite[2])),
   ]
 }
 
 export interface MatchResult { value: number; confidence: number }
 
-// Finds the two nearest reference swatches (by Lab distance) and takes a
-// distance-weighted average between them, so a color between two printed
-// bands still produces a reasonable in-between reading rather than snapping
-// to the nearest band.
-export function matchSwatch(key: StripParamKey, rgb: RGB): MatchResult {
+// Brightness counts for far less than hue/chroma. The same pad photographs
+// at very different lightness depending on exposure, tone curve and shadow
+// (the same TA swatch varies ~2x in brightness across three chart photos)
+// while its a*/b* barely move.
+const L_WEIGHT = 0.3
+
+// Distance (in the weighted space) at which confidence hits zero. Correctly
+// matched real pads land roughly 5-30 away — printed chart swatches and
+// real reagent pads never match exactly — while a background pixel or the
+// wrong pad lands well past 50.
+const CONFIDENCE_DISTANCE = 50
+
+type Vec3 = [number, number, number]
+
+function feature(rgb: RGB): Vec3 {
+  const [L, a, b] = rgbToLab(rgb)
+  return [L * L_WEIGHT, a, b]
+}
+
+export interface ScaleLocation { value: number; distance: number; segment: [number, number] }
+
+// Finds where a color sits along a param's reference scale: the closest point
+// on the polyline through the swatches (ordered low → high). Reading along
+// the scale instead of averaging the two nearest swatches by color means the
+// result is always between two ADJACENT chart values — never a blend of
+// swatches from opposite ends of the scale that happen to share a color.
+export function locateOnScale(key: StripParamKey, rgb: RGB): ScaleLocation {
   const swatches = SWATCHES[key]
-  const lab = rgbToLab(rgb)
-  const ranked = swatches
-    .map(s => ({ s, d: deltaE(lab, rgbToLab(s.rgb)) }))
-    .sort((a, b) => a.d - b.d)
-  const [best, second] = ranked
-  // 35 was calibrated against clean bottle-chart swatches, not real strip
-  // photos — a user reading a strip by eye already has to eyeball a color
-  // that often falls between two printed bands, so treating anything short
-  // of a near-exact match as "low confidence" mismatches how strips are
-  // actually meant to be read. Checked against verified real photos
-  // (2026-08-30): legitimate, correctly-matched pads ranged deltaE 13-61, so
-  // 90 keeps meaningfully bad matches (wrong pad entirely) penalized while
-  // no longer flagging normal in-between readings as failures.
-  const confidence = Math.max(0, Math.min(1, 1 - best.d / 90))
-  if (!second || best.d < 0.01) return { value: best.s.value, confidence }
-  const w1 = 1 / Math.max(best.d, 0.01)
-  const w2 = 1 / Math.max(second.d, 0.01)
-  const value = (best.s.value * w1 + second.s.value * w2) / (w1 + w2)
-  return { value, confidence }
+  const p = feature(rgb)
+  let best: ScaleLocation | null = null
+  for (let i = 0; i < swatches.length - 1; i++) {
+    const a = feature(swatches[i].rgb)
+    const b = feature(swatches[i + 1].rgb)
+    const ab: Vec3 = [b[0] - a[0], b[1] - a[1], b[2] - a[2]]
+    const ap: Vec3 = [p[0] - a[0], p[1] - a[1], p[2] - a[2]]
+    const len2 = ab[0] ** 2 + ab[1] ** 2 + ab[2] ** 2
+    const t = len2 === 0 ? 0 : Math.max(0, Math.min(1, (ap[0] * ab[0] + ap[1] * ab[1] + ap[2] * ab[2]) / len2))
+    const dx = p[0] - (a[0] + ab[0] * t)
+    const dy = p[1] - (a[1] + ab[1] * t)
+    const dz = p[2] - (a[2] + ab[2] * t)
+    const distance = Math.sqrt(dx * dx + dy * dy + dz * dz)
+    if (!best || distance < best.distance) {
+      best = {
+        value: swatches[i].value + (swatches[i + 1].value - swatches[i].value) * t,
+        distance,
+        segment: [swatches[i].value, swatches[i + 1].value],
+      }
+    }
+  }
+  return best as ScaleLocation
+}
+
+export function matchSwatch(key: StripParamKey, rgb: RGB): MatchResult {
+  const { value, distance } = locateOnScale(key, rgb)
+  return { value, confidence: Math.max(0, Math.min(1, 1 - distance / CONFIDENCE_DISTANCE)) }
 }
 
 export interface PinPosition { x: number; y: number } // fractional 0..1 within the photo
@@ -271,30 +267,30 @@ export const PIN_LAYOUTS: Record<StripBrand, Record<PinKey, PinPosition>> = {
 // diagram shown before the camera opens — includes pads PoolKeep doesn't
 // track (tracked: false) so the diagram matches the real physical strip
 // the user is holding, not just the subset we sample.
-export interface StripPadInfo { label: string; tracked: boolean }
+export interface StripPadInfo { label: string; tracked: boolean; key?: StripParamKey }
 export const STRIP_BRAND_LAYOUT: Record<StripBrand, StripPadInfo[]> = {
   aquachek_7way: [
-    { label: 'Hardness',    tracked: true },
+    { label: 'Hardness',    tracked: true, key: 'calcium_hardness' },
     { label: 'Total Cl',    tracked: false },
-    { label: 'Free Cl',     tracked: true },
-    { label: 'pH',          tracked: true },
-    { label: 'Alkalinity',  tracked: true },
-    { label: 'CYA',         tracked: true },
+    { label: 'Free Cl',     tracked: true, key: 'free_chlorine' },
+    { label: 'pH',          tracked: true, key: 'ph' },
+    { label: 'Alkalinity',  tracked: true, key: 'total_alkalinity' },
+    { label: 'CYA',         tracked: true, key: 'cya' },
   ],
   taylor: [
-    { label: 'Free Cl',     tracked: true },
+    { label: 'Free Cl',     tracked: true, key: 'free_chlorine' },
     { label: 'Total Cl/Br', tracked: false },
-    { label: 'pH',          tracked: true },
-    { label: 'Alkalinity',  tracked: true },
-    { label: 'Hardness',    tracked: true },
-    { label: 'CYA',         tracked: true },
+    { label: 'pH',          tracked: true, key: 'ph' },
+    { label: 'Alkalinity',  tracked: true, key: 'total_alkalinity' },
+    { label: 'Hardness',    tracked: true, key: 'calcium_hardness' },
+    { label: 'CYA',         tracked: true, key: 'cya' },
   ],
   generic: [
-    { label: 'pH',          tracked: true },
-    { label: 'Free Cl',     tracked: true },
-    { label: 'Alkalinity',  tracked: true },
-    { label: 'CYA',         tracked: true },
-    { label: 'Hardness',    tracked: true },
+    { label: 'pH',          tracked: true, key: 'ph' },
+    { label: 'Free Cl',     tracked: true, key: 'free_chlorine' },
+    { label: 'Alkalinity',  tracked: true, key: 'total_alkalinity' },
+    { label: 'CYA',         tracked: true, key: 'cya' },
+    { label: 'Hardness',    tracked: true, key: 'calcium_hardness' },
   ],
 }
 export function stripLayoutForBrand(stripBrand: string | null | undefined): StripPadInfo[] {
@@ -308,3 +304,4 @@ export function pinsForBrand(stripBrand: string | null | undefined): Record<PinK
   if (stripBrand === 'taylor') return PIN_LAYOUTS.taylor
   return PIN_LAYOUTS.generic
 }
+

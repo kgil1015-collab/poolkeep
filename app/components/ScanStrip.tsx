@@ -9,11 +9,10 @@ import {
   pinsForBrand,
   stripLayoutForBrand,
   CYA_STRIP_BANDS,
-  whiteBalance,
-  matchSwatch,
   type StripParamKey,
   type RGB,
 } from '@/lib/stripScan'
+import { analyzeStrip } from '@/lib/stripDetect'
 
 type Step = 'intro' | 'camera' | 'review' | 'unclear'
 
@@ -30,183 +29,6 @@ const RETAKE_CONFIDENCE_THRESHOLD = 0.25
 const GUIDE = { x: 0.05, y: 0.36, w: 0.90, h: 0.28 }
 
 interface ResultRow { value: number; confidence: number; rgb: RGB }
-
-function averageColor(ctx: CanvasRenderingContext2D, cx: number, cy: number, radius: number): RGB {
-  const canvas = ctx.canvas
-  const x0 = Math.max(0, Math.round(cx - radius))
-  const y0 = Math.max(0, Math.round(cy - radius))
-  const x1 = Math.min(canvas.width, Math.round(cx + radius))
-  const y1 = Math.min(canvas.height, Math.round(cy + radius))
-  const w = Math.max(1, x1 - x0)
-  const h = Math.max(1, y1 - y0)
-  const data = ctx.getImageData(x0, y0, w, h).data
-  let r = 0, g = 0, b = 0, n = 0
-  for (let i = 0; i < data.length; i += 4) { r += data[i]; g += data[i + 1]; b += data[i + 2]; n++ }
-  return [r / n, g / n, b / n]
-}
-
-function samplePixel(ctx: CanvasRenderingContext2D, x: number, y: number): RGB {
-  const canvas = ctx.canvas
-  const px = Math.max(0, Math.min(canvas.width - 1, Math.round(x)))
-  const py = Math.max(0, Math.min(canvas.height - 1, Math.round(y)))
-  const d = ctx.getImageData(px, py, 1, 1).data
-  return [d[0], d[1], d[2]]
-}
-
-function findBestPin(
-  ctx: CanvasRenderingContext2D,
-  imgW: number,
-  imgH: number,
-  key: StripParamKey,
-  nominal: { x: number; y: number },
-  whiteRgb: RGB
-): { cx: number; cy: number } {
-  const xRadius = 0.05
-  const yRadius = 0.07
-  const step = 0.01
-  let best = { cx: nominal.x, cy: nominal.y, score: -Infinity }
-  for (let dy = -yRadius; dy <= yRadius + 1e-9; dy += step) {
-    for (let dx = -xRadius; dx <= xRadius + 1e-9; dx += step) {
-      const fx = nominal.x + dx
-      const fy = nominal.y + dy
-      if (fx < 0 || fx > 1 || fy < 0 || fy > 1) continue
-      const raw = samplePixel(ctx, fx * imgW, fy * imgH)
-      const corrected = whiteBalance(raw, whiteRgb)
-      const { confidence } = matchSwatch(key, corrected)
-      if (confidence > best.score) best = { cx: fx, cy: fy, score: confidence }
-    }
-  }
-  return best
-}
-
-function findStripRow(ctx: CanvasRenderingContext2D, imgW: number, imgH: number): number {
-  let bestY = 0.5, bestRun = 0
-  for (let yf = 0.08; yf <= 0.92; yf += 0.01) {
-    const y = Math.round(yf * imgH)
-    let run = 0, maxRun = 0
-    for (let xf = 0; xf <= 1; xf += 0.004) {
-      const x = Math.round(xf * imgW)
-      const [r, g, b] = samplePixel(ctx, x, y)
-      const lo = Math.min(r, g, b)
-      const hi = Math.max(r, g, b)
-      if (lo > 195 || hi - lo > 45) { run++; if (run > maxRun) maxRun = run } else { run = 0 }
-    }
-    if (maxRun > bestRun) { bestRun = maxRun; bestY = yf }
-  }
-  return bestY
-}
-
-interface PadBlob { xCenter: number; y: number }
-
-function findPadBlobs(ctx: CanvasRenderingContext2D, imgW: number, imgH: number, coarseY: number): PadBlob[] {
-  const step = 0.003
-  const yBand = 0.05
-  const cols: { sat: number; y: number }[] = []
-  for (let xf = 0; xf <= 1; xf += step) {
-    const x = Math.round(xf * imgW)
-    let bestSat = 0, bestY = coarseY
-    for (let dy = -yBand; dy <= yBand + 1e-9; dy += 0.005) {
-      const yf = coarseY + dy
-      if (yf < 0 || yf > 1) continue
-      const y = Math.round(yf * imgH)
-      const [r, g, b] = samplePixel(ctx, x, y)
-      const sat = Math.max(r, g, b) - Math.min(r, g, b)
-      if (sat > bestSat) { bestSat = sat; bestY = yf }
-    }
-    cols.push({ sat: bestSat, y: bestY })
-  }
-
-  const rawRuns: [number, number][] = []
-  let runStart = -1
-  for (let i = 0; i < cols.length; i++) {
-    if (cols[i].sat > 35 && runStart < 0) runStart = i
-    if (cols[i].sat <= 35 && runStart >= 0) {
-      if ((i - runStart) * step > 0.015) rawRuns.push([runStart, i])
-      runStart = -1
-    }
-  }
-  if (runStart >= 0) rawRuns.push([runStart, cols.length - 1])
-
-  const avgSatOf = (a: number, b: number) => {
-    let sum = 0, n = 0
-    for (let i = a; i <= b; i++) { sum += cols[i].sat; n++ }
-    return sum / n
-  }
-  const padWidthCols = Math.max(1, Math.round(0.035 / step))
-  const blobs: PadBlob[] = []
-  for (const [rs, re] of rawRuns) {
-    if ((re - rs) * step <= 0.07) {
-      const c = Math.round((rs + re) / 2)
-      blobs.push({ xCenter: (rs + re) / 2 * step, y: cols[c].y })
-      continue
-    }
-    let bestStart = rs, bestAvg = -1
-    for (let s = rs; s + padWidthCols <= re; s++) {
-      const avg = avgSatOf(s, s + padWidthCols)
-      if (avg > bestAvg) { bestAvg = avg; bestStart = s }
-    }
-    const bestEnd = bestStart + padWidthCols
-    const c = Math.round((bestStart + bestEnd) / 2)
-    blobs.push({ xCenter: (bestStart + bestEnd) / 2 * step, y: cols[c].y })
-  }
-  return blobs
-}
-
-function matchBlobsToPins(
-  blobs: PadBlob[],
-  pins: Record<StripParamKey, { x: number; y: number }>,
-  keys: StripParamKey[]
-): Partial<Record<StripParamKey, PadBlob>> {
-  const maxDist = 0.12
-  const candidates: { key: StripParamKey; blobIdx: number; dist: number }[] = []
-  for (const key of keys) {
-    blobs.forEach((b, i) => candidates.push({ key, blobIdx: i, dist: Math.abs(b.xCenter - pins[key].x) }))
-  }
-  candidates.sort((a, b) => a.dist - b.dist)
-  const assigned: Partial<Record<StripParamKey, PadBlob>> = {}
-  const usedBlobs = new Set<number>()
-  for (const c of candidates) {
-    if (c.dist > maxDist) break
-    if (assigned[c.key] || usedBlobs.has(c.blobIdx)) continue
-    assigned[c.key] = blobs[c.blobIdx]
-    usedBlobs.add(c.blobIdx)
-  }
-  return assigned
-}
-
-// White reference has no swatch list to score against, so instead of
-// matching a param it prefers whichever nearby point is brightest and least
-// saturated (most neutral) — that's what the strip's own blank plastic
-// looks like, versus colored pads or the (usually darker, textured)
-// background behind the strip.
-//
-// Scans the full frame width at the strip's y band rather than just the
-// neighborhood of the nominal position. Depending on how the user framed
-// the shot, the strip may not extend to the nominal x position (e.g. only
-// 60-70% of the frame), so limiting the search to ±0.08 around x=0.85
-// landed on the concrete background and caused white-balance to wildly
-// overcorrect — tanking all pad confidences even when pad colors were fine.
-function findWhiteReference(
-  ctx: CanvasRenderingContext2D,
-  imgW: number,
-  imgH: number,
-  nominal: { x: number; y: number }
-): { cx: number; cy: number } {
-  const step = 0.02
-  const yRadius = 0.10
-  let best = { cx: nominal.x, cy: nominal.y, score: -Infinity }
-  for (let fy = nominal.y - yRadius; fy <= nominal.y + yRadius + 1e-9; fy += step) {
-    for (let fx = step; fx <= 1 - step + 1e-9; fx += step) {
-      if (fy < 0 || fy > 1) continue
-      const rgb = samplePixel(ctx, fx * imgW, fy * imgH)
-      const brightness = Math.min(rgb[0], rgb[1], rgb[2])
-      const saturation = Math.max(rgb[0], rgb[1], rgb[2]) - brightness
-      const score = brightness - saturation * 2
-      if (score > best.score) best = { cx: fx, cy: fy, score }
-    }
-  }
-  return best
-}
 
 export default function ScanStrip({
   stripBrand,
@@ -333,26 +155,10 @@ export default function ScanStrip({
     if (!ctx) return
     ctx.drawImage(img, 0, 0)
 
-    const sampleRadius = Math.max(6, Math.round(img.naturalWidth * 0.015))
-    const sample = (x: number, y: number) => averageColor(ctx, x * img.naturalWidth, y * img.naturalHeight, sampleRadius)
-
-    const whiteBest = findWhiteReference(ctx, img.naturalWidth, img.naturalHeight, pins.white_reference)
-    const whiteRgb = sample(whiteBest.cx, whiteBest.cy)
-
-    const coarseY = findStripRow(ctx, img.naturalWidth, img.naturalHeight)
-    const blobs = findPadBlobs(ctx, img.naturalWidth, img.naturalHeight, coarseY)
-    const blobMatches = matchBlobsToPins(blobs, pins, STRIP_PARAMS.map(p => p.key))
-
-    const next: Record<StripParamKey, ResultRow> = {} as Record<StripParamKey, ResultRow>
+    const analysis = analyzeStrip(ctx, img.naturalWidth, img.naturalHeight, pins, STRIP_PARAMS.map(p => p.key), padLayout)
+    const next = {} as Record<StripParamKey, ResultRow>
     for (const p of STRIP_PARAMS) {
-      const pin = pins[p.key]
-      const matched = blobMatches[p.key]
-      const best = matched
-        ? { cx: matched.xCenter, cy: matched.y }
-        : findBestPin(ctx, img.naturalWidth, img.naturalHeight, p.key, pin, whiteRgb)
-      const raw = sample(best.cx, best.cy)
-      const corrected = whiteBalance(raw, whiteRgb)
-      const { value, confidence } = matchSwatch(p.key, corrected)
+      const { value, confidence, corrected } = analysis.readings[p.key]
       next[p.key] = { value, confidence, rgb: corrected }
     }
 
