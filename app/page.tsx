@@ -70,6 +70,9 @@ export default async function LandingPage() {
           </span>
         </div>
         <div className="flex items-center gap-3">
+          <Link href="/learn" className="hidden sm:inline-block text-white/70 text-sm font-medium hover:text-white transition-colors px-3 py-2 rounded-lg hover:bg-white/8">
+            Learn
+          </Link>
           <Link href="/login" className="text-white/70 text-sm font-medium hover:text-white transition-colors px-3 py-2 rounded-lg hover:bg-white/8">
             Sign In
           </Link>
@@ -350,6 +353,8 @@ export default async function LandingPage() {
       <footer className="bg-white border-t border-gray-100 py-6 px-6 text-center">
         <p className="text-xs text-text-muted">
           © {new Date().getFullYear()} PoolKeep &nbsp;·&nbsp;
+          <Link href="/learn" className="hover:text-text-primary transition-colors">Learn</Link>
+          &nbsp;·&nbsp;
           <Link href="/privacy" className="hover:text-text-primary transition-colors">Privacy</Link>
           &nbsp;·&nbsp;
           <Link href="/terms" className="hover:text-text-primary transition-colors">Terms</Link>
