@@ -81,75 +81,35 @@ export default async function LandingPage() {
 
       {/* Hero */}
       <section className="bg-pool-deep text-white text-center px-6 py-20">
-        <div className="flex justify-center gap-2 flex-wrap mb-6">
-          <span className="bg-white/10 border border-white/20 text-white/85 text-xs font-medium px-3 py-1 rounded-full">✦ Works on Any Phone</span>
-          <span className="bg-white/10 border border-white/20 text-white/85 text-xs font-medium px-3 py-1 rounded-full">✦ No Hardware Required</span>
-          <span className="bg-red-500/25 border border-red-400/40 text-white/85 text-xs font-medium px-3 py-1 rounded-full">{spotsLabel(spotsLeft)}</span>
-        </div>
+        <p className="text-teal text-sm font-bold uppercase tracking-widest mb-4">Welcome, pool owner</p>
         <h1 className="font-bold tracking-tight leading-tight mb-5" style={{fontFamily:"'Oswald',sans-serif",fontSize:'clamp(42px,7vw,72px)'}}>
-          Stop Guessing,<br />Start Swimming.
+          You can do this<br />yourself.
         </h1>
         <p className="text-white/80 text-lg max-w-lg mx-auto mb-8 leading-relaxed">
-          Enter your test results. Get exact doses in plain English.<br className="hidden sm:block" /> Log everything. Share with a pro in one tap.
+          Clear, healthy water doesn&apos;t take a pro or a cabinet full of chemicals. It takes a few simple habits, and a friendly guide that tells you exactly what your pool needs.
         </p>
-        {/* Primary CTAs */}
-        <div className="flex flex-col sm:flex-row items-start justify-center gap-3 mb-5">
-          <div className="flex flex-col items-center gap-1">
-            <Link href="/signup?founding=1" className="inline-block bg-teal text-pool-deep text-lg font-bold px-9 py-4 rounded-xl hover:opacity-90 transition-all hover:-translate-y-0.5 shadow-lg">
-              Claim Founding Spot →
-            </Link>
-            <p className="text-[11px]" style={{color:'rgba(0,224,176,0.7)'}}>💳 $60 once · then $4.99/mo forever</p>
-          </div>
-          <Link href="/signup" className="inline-block bg-white/10 border border-white/25 text-white text-lg font-bold px-9 py-4 rounded-xl hover:bg-white/20 transition-all">
-            Join Free
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-6">
+          <Link href="/signup" className="inline-block bg-teal text-pool-deep text-lg font-bold px-9 py-4 rounded-xl hover:opacity-90 transition-all hover:-translate-y-0.5 shadow-lg">
+            Start Free →
           </Link>
+          <a href="#philosophy" className="inline-block bg-white/10 border border-white/25 text-white text-lg font-bold px-9 py-4 rounded-xl hover:bg-white/20 transition-all">
+            See How Simple It Is
+          </a>
         </div>
-
-        {/* Secondary plan options */}
-        <div className="flex items-center justify-center gap-3 flex-wrap mb-5">
-          <Link href="/signup" className="flex items-center gap-2 text-xs font-semibold px-4 py-2 rounded-full hover:opacity-80 transition-all" style={{background:'rgba(245,166,35,0.18)',color:'#F5C842',border:'1px solid rgba(245,166,35,0.35)'}}>
-            <span>Pro Monthly</span>
-            <span className="opacity-50">·</span>
-            <span className="font-bold">$9.99/mo</span>
-          </Link>
-          <Link href="/signup" className="flex items-center gap-2 text-xs font-semibold px-4 py-2 rounded-full hover:opacity-80 transition-all" style={{background:'rgba(245,166,35,0.18)',color:'#F5C842',border:'1px solid rgba(245,166,35,0.35)'}}>
-            <span>Pro Annual</span>
-            <span className="opacity-50">·</span>
-            <span className="font-bold">$99/yr</span>
-            <span className="text-[10px] font-bold ml-1" style={{color:'#00E0B0'}}>SAVE $21</span>
-          </Link>
-        </div>
-
-        <p className="mt-2 text-xs text-white/35">Start free · Upgrade anytime · Founding rate locked in forever</p>
-      </section>
-
-      {/* How it works */}
-      <section className="py-16 px-6 bg-surface">
-        <div className="max-w-4xl mx-auto text-center">
-          <p className="text-pool-dark text-sm font-bold uppercase tracking-widest mb-3">How It Works</p>
-          <h2 className="text-3xl font-bold tracking-tight mb-12" style={{fontFamily:"'Oswald',sans-serif"}}>Crystal clear water in three steps.</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-8">
-            {[
-              { n: '1', title: 'Test Your Water', desc: 'Use any test kit or strips. Enter your 6 readings in under 30 seconds.' },
-              { n: '2', title: 'Get Your Exact Plan', desc: 'PoolKeep calculates precise doses adjusted for your pool size, climate, and current conditions.' },
-              { n: '3', title: 'Log, Track & Share', desc: 'Every test is saved automatically. Send a pro a full service report in one tap.' },
-            ].map(s => (
-              <div key={s.n} className="text-center px-2">
-                <div className="w-13 h-13 rounded-full bg-pool-dark text-white text-xl font-extrabold flex items-center justify-center mx-auto mb-4" style={{width:52,height:52}}>{s.n}</div>
-                <h3 className="text-xl font-bold text-text-primary mb-2" style={{fontFamily:"'Oswald',sans-serif"}}>{s.title}</h3>
-                <p className="text-text-muted text-sm leading-relaxed">{s.desc}</p>
-              </div>
-            ))}
-          </div>
+        <div className="flex justify-center gap-2 flex-wrap">
+          <span className="bg-white/10 border border-white/20 text-white/85 text-xs font-medium px-3 py-1 rounded-full">✦ Works on Any Phone</span>
+          <span className="bg-white/10 border border-white/20 text-white/85 text-xs font-medium px-3 py-1 rounded-full">✦ No Hardware Required</span>
+          <span className="bg-white/10 border border-white/20 text-white/85 text-xs font-medium px-3 py-1 rounded-full">✦ No Credit Card to Start</span>
         </div>
       </section>
 
       {/* Our Philosophy */}
-      <section className="py-16 px-6 bg-white border-t border-gray-100">
+      <section id="philosophy" className="py-16 px-6 bg-white">
         <div className="max-w-3xl mx-auto">
           <div className="text-center mb-10">
             <p className="text-pool-dark text-sm font-bold uppercase tracking-widest mb-3">Our Philosophy</p>
-            <h2 className="text-3xl font-bold tracking-tight" style={{fontFamily:"'Oswald',sans-serif"}}>Minimum effective dose.<br/>Maximum peace of mind.</h2>
+            <h2 className="text-3xl font-bold tracking-tight" style={{fontFamily:"'Oswald',sans-serif"}}>Pool care is simpler than you&apos;ve been told.</h2>
+            <p className="text-text-muted text-sm mt-3 max-w-md mx-auto">Minimum effective dose, maximum peace of mind. Here&apos;s the whole approach.</p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-10">
             {[
@@ -184,6 +144,93 @@ export default async function LandingPage() {
             </p>
           </div>
         </div>
+      </section>
+
+      {/* How it works */}
+      <section className="py-16 px-6 bg-surface">
+        <div className="max-w-4xl mx-auto text-center">
+          <p className="text-pool-dark text-sm font-bold uppercase tracking-widest mb-3">How It Works</p>
+          <h2 className="text-3xl font-bold tracking-tight mb-12" style={{fontFamily:"'Oswald',sans-serif"}}>Crystal clear water in three steps.</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-8">
+            {[
+              { n: '1', title: 'Test Your Water', desc: 'Use any test kit or strips. Enter your 6 readings in under 30 seconds.' },
+              { n: '2', title: 'Get Your Exact Plan', desc: 'PoolKeep calculates precise doses adjusted for your pool size, climate, and current conditions.' },
+              { n: '3', title: 'Log, Track & Share', desc: 'Every test is saved automatically. Send a pro a full service report in one tap.' },
+            ].map(s => (
+              <div key={s.n} className="text-center px-2">
+                <div className="w-13 h-13 rounded-full bg-pool-dark text-white text-xl font-extrabold flex items-center justify-center mx-auto mb-4" style={{width:52,height:52}}>{s.n}</div>
+                <h3 className="text-xl font-bold text-text-primary mb-2" style={{fontFamily:"'Oswald',sans-serif"}}>{s.title}</h3>
+                <p className="text-text-muted text-sm leading-relaxed">{s.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Feature comparison */}
+      <section className="py-16 px-6 bg-white">
+        <div className="max-w-2xl mx-auto">
+          <div className="text-center mb-10">
+            <p className="text-pool-dark text-sm font-bold uppercase tracking-widest mb-3">Why PoolKeep</p>
+            <h2 className="text-3xl font-bold tracking-tight" style={{fontFamily:"'Oswald',sans-serif"}}>Everything you need. Nothing you don&apos;t.</h2>
+          </div>
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+            <div className="grid grid-cols-3 text-center text-xs font-bold uppercase tracking-widest py-3 px-4 border-b border-gray-100" style={{background:'#F8FBFD'}}>
+              <span className="text-text-muted">Feature</span>
+              <span style={{color:'#003D5C'}}>PoolKeep</span>
+              <span className="text-text-muted">Hiring a Pro</span>
+            </div>
+            {[
+              ['Health score 0–100', true, false],
+              ['Exact chemical doses', true, true],
+              ['Step-by-step instructions', true, false],
+              ['Full test history', true, false],
+              ['Shareable reports', true, true],
+              ['Works on your schedule', true, false],
+              ['Cost per month', 'From $4.99*', '$80–$200'],
+            ].map(([feature, pool, pro], i) => (
+              <div key={i} className={`grid grid-cols-3 items-center text-sm px-4 py-3.5 ${i % 2 === 0 ? '' : 'bg-surface/60'}`}>
+                <span className="text-text-muted text-xs">{feature}</span>
+                <span className="text-center">
+                  {typeof pool === 'boolean'
+                    ? pool
+                      ? <span className="inline-flex items-center justify-center w-5 h-5 rounded-full" style={{background:'rgba(29,184,105,0.12)'}}><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#1DB869" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+                      : <span className="inline-block w-4 h-0.5 rounded bg-gray-200 mx-auto" />
+                    : <span className="text-xs font-bold" style={{color:'#003D5C'}}>{pool}</span>
+                  }
+                </span>
+                <span className="text-center">
+                  {typeof pro === 'boolean'
+                    ? pro
+                      ? <span className="inline-flex items-center justify-center w-5 h-5 rounded-full" style={{background:'rgba(29,184,105,0.12)'}}><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#1DB869" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+                      : <span className="inline-block w-4 h-0.5 rounded bg-gray-200 mx-auto" />
+                    : <span className="text-xs text-text-muted">{pro}</span>
+                  }
+                </span>
+              </div>
+            ))}
+          </div>
+          <p className="text-[11px] text-text-muted mt-3 text-center">* $4.99/mo is the founding member rate ($60 one-time to join). Regular plans from $9.99/mo.</p>
+        </div>
+      </section>
+
+      {/* Get the app */}
+      <section className="bg-pool-deep py-16 px-6 text-center">
+        <p className="text-teal text-sm font-bold uppercase tracking-widest mb-3">Now on the App Store</p>
+        <h2 className="text-3xl font-bold text-white tracking-tight mb-3" style={{fontFamily:"'Oswald',sans-serif"}}>Get PoolKeep on your iPhone.</h2>
+        <p className="text-white/60 text-sm mb-8 max-w-md mx-auto">The full PoolKeep experience, right from your home screen. Android coming soon.</p>
+        <a
+          href="https://apps.apple.com/app/id6788501208"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-3 bg-white text-pool-deep font-bold px-7 py-3.5 rounded-2xl hover:opacity-90 transition-opacity"
+        >
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
+          <span className="text-left leading-tight">
+            <span className="block text-[10px] font-medium opacity-70">Download on the</span>
+            <span className="block text-lg -mt-0.5">App Store</span>
+          </span>
+        </a>
       </section>
 
       {/* Founding Member Pricing */}
@@ -266,72 +313,6 @@ export default async function LandingPage() {
           </div>
 
         </div>
-      </section>
-
-      {/* Feature comparison */}
-      <section className="py-16 px-6 bg-surface">
-        <div className="max-w-2xl mx-auto">
-          <div className="text-center mb-10">
-            <p className="text-pool-dark text-sm font-bold uppercase tracking-widest mb-3">Why PoolKeep</p>
-            <h2 className="text-3xl font-bold tracking-tight" style={{fontFamily:"'Oswald',sans-serif"}}>Everything you need. Nothing you don&apos;t.</h2>
-          </div>
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-            <div className="grid grid-cols-3 text-center text-xs font-bold uppercase tracking-widest py-3 px-4 border-b border-gray-100" style={{background:'#F8FBFD'}}>
-              <span className="text-text-muted">Feature</span>
-              <span style={{color:'#003D5C'}}>PoolKeep</span>
-              <span className="text-text-muted">Hiring a Pro</span>
-            </div>
-            {[
-              ['Health score 0–100', true, false],
-              ['Exact chemical doses', true, true],
-              ['Step-by-step instructions', true, false],
-              ['Full test history', true, false],
-              ['Shareable reports', true, true],
-              ['Works on your schedule', true, false],
-              ['Cost per month', 'From $4.99*', '$80–$200'],
-            ].map(([feature, pool, pro], i) => (
-              <div key={i} className={`grid grid-cols-3 items-center text-sm px-4 py-3.5 ${i % 2 === 0 ? '' : 'bg-surface/60'}`}>
-                <span className="text-text-muted text-xs">{feature}</span>
-                <span className="text-center">
-                  {typeof pool === 'boolean'
-                    ? pool
-                      ? <span className="inline-flex items-center justify-center w-5 h-5 rounded-full" style={{background:'rgba(29,184,105,0.12)'}}><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#1DB869" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
-                      : <span className="inline-block w-4 h-0.5 rounded bg-gray-200 mx-auto" />
-                    : <span className="text-xs font-bold" style={{color:'#003D5C'}}>{pool}</span>
-                  }
-                </span>
-                <span className="text-center">
-                  {typeof pro === 'boolean'
-                    ? pro
-                      ? <span className="inline-flex items-center justify-center w-5 h-5 rounded-full" style={{background:'rgba(29,184,105,0.12)'}}><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#1DB869" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
-                      : <span className="inline-block w-4 h-0.5 rounded bg-gray-200 mx-auto" />
-                    : <span className="text-xs text-text-muted">{pro}</span>
-                  }
-                </span>
-              </div>
-            ))}
-          </div>
-          <p className="text-[11px] text-text-muted mt-3 text-center">* $4.99/mo is the founding member rate ($60 one-time to join). Regular plans from $9.99/mo.</p>
-        </div>
-      </section>
-
-      {/* Get the app */}
-      <section className="bg-pool-deep py-16 px-6 text-center">
-        <p className="text-teal text-sm font-bold uppercase tracking-widest mb-3">Now on the App Store</p>
-        <h2 className="text-3xl font-bold text-white tracking-tight mb-3" style={{fontFamily:"'Oswald',sans-serif"}}>Get PoolKeep on your iPhone.</h2>
-        <p className="text-white/60 text-sm mb-8 max-w-md mx-auto">The full PoolKeep experience, right from your home screen. Android coming soon.</p>
-        <a
-          href="https://apps.apple.com/app/id6788501208"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-3 bg-white text-pool-deep font-bold px-7 py-3.5 rounded-2xl hover:opacity-90 transition-opacity"
-        >
-          <svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
-          <span className="text-left leading-tight">
-            <span className="block text-[10px] font-medium opacity-70">Download on the</span>
-            <span className="block text-lg -mt-0.5">App Store</span>
-          </span>
-        </a>
       </section>
 
       {/* Final CTA */}
